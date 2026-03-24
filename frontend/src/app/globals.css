@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+/* ─── Tailwind v4 Theme ──────────────────────────────────────────────────────── */
+@theme {
+  --color-primary:        #0454FC;
+  --color-primary-light:  #3B7BFF;
+  --color-accent:         #00E5A0;
+  --color-danger:         #FF4444;
+  --color-warning:        #F5A623;
+
+  --color-bg-base:        #050505;
+  --color-bg-surface:     #0F0F0F;
+  --color-bg-elevated:    #1A1A1A;
+  --color-bg-overlay:     #242424;
+
+  --color-border:         #2A2A2A;
+  --color-border-subtle:  #1E1E1E;
+
+  --color-text-primary:   #F3F3F3;
+  --color-text-secondary: #888888;
+  --color-text-muted:     #444444;
+
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  --text-display:    2rem;
+  --text-heading:    1.5rem;
+  --text-subheading: 1.125rem;
+  --text-body:       0.875rem;
+  --text-small:      0.75rem;
+
+  --radius-card:  12px;
+  --radius-btn:   8px;
+  --radius-badge: 6px;
+
+  --shadow-card:       0 1px 2px rgba(0,0,0,0.5);
+  --shadow-card-hover: 0 0 0 1px rgba(4,84,252,0.35), 0 8px 24px rgba(0,0,0,0.5);
+  --shadow-modal:      0 32px 64px rgba(0,0,0,0.9);
+
+  --animate-slide-in-right: slideInRight 0.22s cubic-bezier(0.16,1,0.3,1);
+  --animate-fade-in:        fadeIn 0.15s ease-out;
+  --animate-fade-up:        fadeUp 0.2s cubic-bezier(0.16,1,0.3,1);
+  --animate-spin:           spin 0.8s linear infinite;
+  --animate-pulse-dot:      pulseDot 1.8s ease-in-out infinite;
+
+  @keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes fadeUp {
+    from { transform: translateY(8px); opacity: 0; }
+    to   { transform: translateY(0);   opacity: 1; }
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulseDot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(0.85); }
+  }
+}
+
+/* ─── Base ─────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: #050505;
+  color: #F3F3F3;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ─── Card hover class ─────────────────────────────────────────────────────── */
+.card-hover {
+  transition: box-shadow 0.15s ease, background 0.15s ease, transform 0.1s ease;
+}
+.card-hover:hover {
+  background: #141414 !important;
+  box-shadow: 0 0 0 1px rgba(4,84,252,0.3), 0 8px 24px rgba(0,0,0,0.5);
+  transform: translateY(-1px);
+}
+
+/* ─── Button hover class ───────────────────────────────────────────────────── */
+.btn-ghost {
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.btn-ghost:hover { background: #1A1A1A; color: #F3F3F3 !important; }
+
+/* ─── Nav link hover ───────────────────────────────────────────────────────── */
+.nav-item { transition: background 0.12s ease, color 0.12s ease; }
+.nav-item:hover { background: #1A1A1A !important; color: #F3F3F3 !important; }
+
+/* ─── Input focus ──────────────────────────────────────────────────────────── */
+.input-field {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.input-field:focus {
+  border-color: rgba(4,84,252,0.5) !important;
+  box-shadow: 0 0 0 3px rgba(4,84,252,0.08);
+  outline: none;
+}
+
+/* ─── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #242424; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #333; }
+
+::selection { background: rgba(4,84,252,0.2); color: #F3F3F3; }
