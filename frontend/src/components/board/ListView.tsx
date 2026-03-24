@@ -2,8 +2,11 @@
 import { useState } from "react";
 import { format, isPast, isToday, isTomorrow } from "date-fns";
 import { ChevronDown, ChevronRight, Plus } from "lucide-react";
-import { PRIORITY_CONFIG } from "@/lib/utils";
+import { PRIORITY_CONFIG, cn } from "@/lib/utils";
 import { CardDetailDrawer } from "@/components/card/CardDetailDrawer";
+import { AvatarGroup } from "@/components/ui/Avatar";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 import type { Board, Card } from "@/types";
 
 interface ListViewProps {
@@ -41,15 +44,15 @@ export function ListView({ board, cards, onCardCreate }: ListViewProps) {
 
   return (
     <>
-      <div style={{ flex: 1, overflowY: "auto", padding: "14px 20px 40px" }}>
+      <div className="flex-1 overflow-y-auto px-5 pt-3.5 pb-10">
 
         {/* Column headers */}
-        <div style={{
-          display: "grid", gridTemplateColumns: GRID,
-          padding: "0 12px 8px 36px", borderBottom: "1px solid #1A1A1A", marginBottom: 4,
-        }}>
+        <div
+          className="grid border-b border-border-subtle mb-1 pb-2 pl-9 pr-3"
+          style={{ gridTemplateColumns: GRID }}
+        >
           {HEADERS.map(h => (
-            <span key={h} style={{ fontSize: 10, fontWeight: 700, color: "#333", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            <span key={h} className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
               {h}
             </span>
           ))}
@@ -61,27 +64,21 @@ export function ListView({ board, cards, onCardCreate }: ListViewProps) {
           const accent      = colAccent(col.name);
 
           return (
-            <div key={col._id} style={{ marginBottom: 4 }}>
+            <div key={col._id} className="mb-1">
               {/* Group header */}
               <button
                 onClick={() => setCollapsed(p => ({ ...p, [col._id]: !p[col._id] }))}
-                style={{
-                  width: "100%", display: "flex", alignItems: "center", gap: 8,
-                  padding: "7px 12px", background: "transparent", border: "none",
-                  cursor: "pointer", borderRadius: 8, transition: "background 0.1s",
-                }}
-                onMouseEnter={e => (e.currentTarget.style.background = "#111")}
-                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                className="w-full flex items-center gap-2 py-[7px] px-3 bg-transparent border-none cursor-pointer rounded-lg hover:bg-bg-elevated transition-colors"
               >
                 {isCollapsed
-                  ? <ChevronRight size={11} color="#444" />
-                  : <ChevronDown size={11} color="#444" />
+                  ? <ChevronRight size={11} className="text-text-muted" />
+                  : <ChevronDown size={11} className="text-text-muted" />
                 }
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: accent }} />
-                <span style={{ fontSize: 11, fontWeight: 600, color: "#666", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: accent }} />
+                <span className="text-[11px] font-semibold text-text-secondary uppercase tracking-wider">
                   {col.name}
                 </span>
-                <span style={{ fontSize: 10, color: "#333", background: "#1A1A1A", padding: "1px 6px", borderRadius: 10, fontFamily: "monospace" }}>
+                <span className="text-[10px] text-text-muted bg-bg-elevated px-1.5 py-px rounded-[10px] font-mono">
                   {colCards.length}
                 </span>
               </button>
@@ -95,41 +92,29 @@ export function ListView({ board, cards, onCardCreate }: ListViewProps) {
 
                   {/* Add card */}
                   {addingIn === col._id ? (
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 12px 5px 40px" }}>
-                      <input
+                    <div className="flex items-center gap-2 py-[5px] px-3 pl-10">
+                      <Input
                         autoFocus
                         value={newTitle}
                         onChange={e => setNewTitle(e.target.value)}
                         placeholder="Card title..."
-                        style={{
-                          flex: 1, background: "#111", border: "1px solid #2A2A2A",
-                          borderRadius: 7, padding: "5px 10px", fontSize: 13,
-                          color: "#F3F3F3", outline: "none",
-                        }}
-                        className="input-field"
+                        className="flex-1"
                         onKeyDown={e => {
                           if (e.key === "Enter") handleAdd(col._id);
                           if (e.key === "Escape") { setAddingIn(null); setNewTitle(""); }
                         }}
                       />
-                      <button onClick={() => handleAdd(col._id)} style={{ padding: "5px 12px", background: "#0454FC", color: "white", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 500, cursor: "pointer" }}>
+                      <Button variant="primary" size="sm" onClick={() => handleAdd(col._id)}>
                         Add
-                      </button>
-                      <button onClick={() => { setAddingIn(null); setNewTitle(""); }} style={{ padding: "5px 10px", background: "transparent", color: "#555", border: "none", fontSize: 12, cursor: "pointer" }}>
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => { setAddingIn(null); setNewTitle(""); }}>
                         Cancel
-                      </button>
+                      </Button>
                     </div>
                   ) : (
                     <button
                       onClick={() => { setAddingIn(col._id); setNewTitle(""); }}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 6,
-                        padding: "5px 12px 5px 40px", width: "100%",
-                        background: "transparent", border: "none", cursor: "pointer",
-                        color: "#333", fontSize: 12, transition: "color 0.1s",
-                      }}
-                      onMouseEnter={e => (e.currentTarget.style.color = "#666")}
-                      onMouseLeave={e => (e.currentTarget.style.color = "#333")}
+                      className="flex items-center gap-1.5 py-[5px] px-3 pl-10 w-full bg-transparent border-none cursor-pointer text-text-muted text-[12px] hover:text-text-secondary transition-colors"
                     >
                       <Plus size={11} /> Add card
                     </button>
@@ -167,61 +152,45 @@ function ListRow({ card, onClick }: { card: Card; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      style={{
-        width: "100%", display: "grid", gridTemplateColumns: GRID,
-        padding: "7px 12px 7px 36px", background: "transparent",
-        border: "none", cursor: "pointer", borderRadius: 8,
-        textAlign: "left", transition: "background 0.1s", alignItems: "center",
-        borderBottom: "1px solid #111",
-      }}
-      onMouseEnter={e => (e.currentTarget.style.background = "#0F0F0F")}
-      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+      className="w-full grid items-center py-[7px] px-3 pl-9 bg-transparent border-none cursor-pointer rounded-lg text-left border-b border-border-subtle/50 hover:bg-bg-elevated transition-colors"
+      style={{ gridTemplateColumns: GRID }}
     >
       {/* Title */}
-      <span style={{ fontSize: 13, color: "#C8C8C8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: 16 }}>
+      <span className="text-[13px] text-text-primary overflow-hidden text-ellipsis whitespace-nowrap pr-4">
         {card.title}
       </span>
 
       {/* Priority */}
       {card.priority !== "none" ? (
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: priority.color }}>
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: priority.color, flexShrink: 0 }} />
+        <span className="inline-flex items-center gap-[5px] text-[11px]" style={{ color: priority.color }}>
+          <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: priority.color }} />
           {priority.label}
         </span>
       ) : <span />}
 
       {/* Assignees */}
-      <div style={{ display: "flex" }}>
-        {card.assignees.slice(0, 4).map((u, i) => (
-          <div key={u._id} style={{
-            width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
-            background: `hsl(${(u.name.charCodeAt(0) * 37) % 360}, 50%, 35%)`,
-            fontSize: 9, fontWeight: 700, color: "white",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            border: "1.5px solid #080808",
-            marginLeft: i > 0 ? -6 : 0,
-          }}>
-            {u.name[0].toUpperCase()}
-          </div>
-        ))}
-        {card.assignees.length === 0 && <span style={{ fontSize: 12, color: "#333" }}>—</span>}
+      <div className="flex">
+        {card.assignees.length > 0 ? (
+          <AvatarGroup users={card.assignees} max={4} size="sm" />
+        ) : (
+          <span className="text-[12px] text-text-muted">—</span>
+        )}
       </div>
 
       {/* Due date */}
-      <span style={{
-        fontSize: 12, fontFamily: "monospace",
-        color: isOverdue ? "#FF4444" : dueFmt === "Today" ? "#F5A623" : "#666",
-      }}>
+      <span className={cn(
+        "text-[12px] font-mono",
+        isOverdue ? "text-danger" : dueFmt === "Today" ? "text-warning" : "text-text-secondary"
+      )}>
         {dueFmt ?? "—"}
       </span>
 
       {/* Labels */}
-      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+      <div className="flex gap-1 flex-wrap">
         {card.labels.slice(0, 3).map(l => (
-          <span key={l} style={{
-            fontSize: 10, color: "#666", background: "#161616",
-            border: "1px solid #1E1E1E", padding: "1px 6px", borderRadius: 4,
-          }}>{l}</span>
+          <span key={l} className="text-[10px] text-text-secondary bg-bg-base border border-border-subtle px-1.5 py-px rounded">
+            {l}
+          </span>
         ))}
       </div>
     </button>

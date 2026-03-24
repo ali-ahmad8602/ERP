@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutGrid, LayoutDashboard, ChevronDown, ChevronRight, Building2, Settings, LogOut, Plus } from "lucide-react";
 import { useAuthStore } from "@/store/auth.store";
+import { cn } from "@/lib/utils";
 import type { Department } from "@/types";
 
 interface SidebarProps {
@@ -25,32 +26,23 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
   const toggle = (id: string) => setExpanded(p => ({ ...p, [id]: !p[id] }));
 
   return (
-    <aside style={{
-      width: 228, height: "100vh", background: "#0A0A0A",
-      borderRight: "1px solid #1E1E1E", display: "flex",
-      flexDirection: "column", flexShrink: 0,
-    }}>
+    <aside className="w-[228px] h-screen bg-bg-base border-r border-border-subtle flex flex-col shrink-0">
 
       {/* Logo */}
-      <div style={{ height: 56, display: "flex", alignItems: "center", padding: "0 14px", borderBottom: "1px solid #1E1E1E", flexShrink: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-          <div style={{
-            width: 28, height: 28, borderRadius: 8,
-            background: "linear-gradient(135deg, #0454FC 0%, #3B7BFF 100%)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 2px 8px rgba(4,84,252,0.4)",
-          }}>
-            <LayoutGrid size={14} color="white" />
+      <div className="h-14 flex items-center px-3.5 border-b border-border-subtle shrink-0">
+        <div className="flex items-center gap-[9px]">
+          <div className="w-7 h-7 rounded-btn bg-gradient-to-br from-primary to-primary-light flex items-center justify-center shadow-[0_2px_8px_var(--color-primary-ghost)]">
+            <LayoutGrid size={14} className="text-white" />
           </div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#F3F3F3", letterSpacing: "-0.02em" }}>InvoiceMate</div>
-            <div style={{ fontSize: 9, color: "#444", textTransform: "uppercase", letterSpacing: "0.06em" }}>Workspace</div>
+            <div className="text-[13px] font-bold text-text-primary tracking-tight">InvoiceMate</div>
+            <div className="text-[9px] text-text-muted uppercase tracking-widest">Workspace</div>
           </div>
         </div>
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, overflowY: "auto", padding: "10px 8px" }}>
+      <nav className="flex-1 overflow-y-auto p-[10px_8px]">
 
         {/* Dashboard */}
         <NavItem
@@ -58,7 +50,6 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
           icon={<LayoutDashboard size={14} />}
           label="Dashboard"
           active={pathname === "/dashboard"}
-          accentColor="#0454FC"
         />
 
         {/* Company Board */}
@@ -68,13 +59,12 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
             icon={<Building2 size={14} />}
             label="Company Board"
             active={pathname === "/company"}
-            accentColor="#0454FC"
           />
         )}
 
         {/* Dept section label */}
         {departments.length > 0 && (
-          <div style={{ padding: "14px 8px 5px", fontSize: 9.5, fontWeight: 700, color: "#3A3A3A", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+          <div className="px-2 pt-3.5 pb-[5px] text-[9.5px] font-bold text-text-muted uppercase tracking-widest">
             Departments
           </div>
         )}
@@ -84,60 +74,57 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
           const isActive = pathname.startsWith(`/dept/${dept.slug}`);
           const isOpen   = expanded[dept._id];
           return (
-            <div key={dept._id} style={{ marginBottom: 1 }}>
+            <div key={dept._id} className="mb-px">
               {/* Dept row */}
-              <button onClick={() => toggle(dept._id)} style={{
-                width: "100%", display: "flex", alignItems: "center", gap: 8,
-                padding: "7px 8px", borderRadius: 8, border: "none", cursor: "pointer",
-                background: isActive ? "#151515" : "transparent",
-                color: isActive ? "#F3F3F3" : "#666666",
-                position: "relative", transition: "background 0.12s, color 0.12s",
-              }}
-                className="nav-item"
+              <button
+                onClick={() => toggle(dept._id)}
+                className={cn(
+                  "w-full flex items-center gap-2 py-[7px] px-2 rounded-btn border-none cursor-pointer relative transition-colors",
+                  isActive
+                    ? "bg-bg-elevated text-text-primary"
+                    : "bg-transparent text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
+                )}
               >
                 {/* Active indicator */}
                 {isActive && (
-                  <div style={{
-                    position: "absolute", left: 0, top: "20%", bottom: "20%",
-                    width: 3, borderRadius: "0 3px 3px 0",
-                    background: dept.color || "#0454FC",
-                  }} />
+                  <div
+                    className="absolute left-0 top-[20%] bottom-[20%] w-[3px] rounded-r-[3px]"
+                    style={{ background: dept.color || "var(--color-primary)" }}
+                  />
                 )}
 
                 {/* Dept icon with color tint */}
-                <div style={{
-                  width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-                  background: isActive ? `${dept.color || "#0454FC"}18` : "#161616",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 12, transition: "background 0.12s",
-                }}>
+                <div
+                  className="w-[22px] h-[22px] rounded-badge shrink-0 flex items-center justify-center text-xs transition-colors"
+                  style={{
+                    background: isActive
+                      ? `${dept.color || "var(--color-primary)"}18`
+                      : "var(--color-bg-elevated)",
+                  }}
+                >
                   {dept.icon}
                 </div>
 
-                <span style={{
-                  flex: 1, fontSize: 13, textAlign: "left",
-                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                  letterSpacing: "-0.01em",
-                }}>
+                <span className="flex-1 text-[13px] text-left overflow-hidden text-ellipsis whitespace-nowrap tracking-tight">
                   {dept.name}
                 </span>
 
                 {/* Member count badge */}
                 {dept.members?.length > 0 && (
-                  <span style={{ fontSize: 10, color: "#333", background: "#1A1A1A", padding: "0 5px", borderRadius: 10, flexShrink: 0 }}>
+                  <span className="text-[10px] text-text-muted bg-bg-elevated px-[5px] rounded-full shrink-0">
                     {dept.members.length}
                   </span>
                 )}
 
                 {isOpen
-                  ? <ChevronDown size={11} color="#333" style={{ flexShrink: 0 }} />
-                  : <ChevronRight size={11} color="#333" style={{ flexShrink: 0 }} />
+                  ? <ChevronDown size={11} className="text-text-muted shrink-0" />
+                  : <ChevronRight size={11} className="text-text-muted shrink-0" />
                 }
               </button>
 
               {/* Sub-items */}
               {isOpen && (
-                <div style={{ marginLeft: 14, paddingLeft: 12, borderLeft: "1px solid #1E1E1E", marginTop: 2, marginBottom: 4 }}>
+                <div className="ml-3.5 pl-3 border-l border-border-subtle mt-0.5 mb-1">
                   <SubNavItem href={`/dept/${dept.slug}`} label="All Boards" active={pathname === `/dept/${dept.slug}`} />
                   <SubNavItem href={`/dept/${dept.slug}/members`} label="Members" active={pathname.includes("/members")} />
                 </div>
@@ -148,19 +135,12 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
 
         {/* Add dept */}
         {isAdmin && (
-          <button onClick={onAddDept} style={{
-            width: "100%", display: "flex", alignItems: "center", gap: 8,
-            padding: "7px 8px", borderRadius: 8, border: "none", cursor: "pointer",
-            background: "transparent", color: "#333", fontSize: 12,
-            marginTop: 4, transition: "background 0.12s, color 0.12s",
-          }}
-            className="nav-item"
+          <button
+            onClick={onAddDept}
+            className="w-full flex items-center gap-2 py-[7px] px-2 rounded-btn border-none cursor-pointer bg-transparent text-text-muted text-xs mt-1 transition-colors hover:bg-bg-elevated hover:text-text-primary"
           >
-            <div style={{
-              width: 22, height: 22, borderRadius: 6, background: "#141414",
-              border: "1px dashed #2A2A2A", display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <Plus size={11} color="#333" />
+            <div className="w-[22px] h-[22px] rounded-badge bg-bg-elevated border border-dashed border-border flex items-center justify-center">
+              <Plus size={11} className="text-text-muted" />
             </div>
             <span>Add Department</span>
           </button>
@@ -168,7 +148,7 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
       </nav>
 
       {/* Bottom bar */}
-      <div style={{ borderTop: "1px solid #1E1E1E", padding: "8px" }}>
+      <div className="border-t border-border-subtle p-2">
         {isAdmin && (
           <BottomItem href="/settings/invites" icon={<Settings size={13} />} label="Settings" />
         )}
@@ -180,63 +160,60 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function NavItem({ href, icon, label, active, accentColor = "#0454FC" }: {
-  href: string; icon: React.ReactNode; label: string; active: boolean; accentColor?: string;
+function NavItem({ href, icon, label, active }: {
+  href: string; icon: React.ReactNode; label: string; active: boolean;
 }) {
   return (
-    <Link href={href} style={{
-      display: "flex", alignItems: "center", gap: 8, padding: "7px 8px",
-      borderRadius: 8, textDecoration: "none", marginBottom: 1,
-      background: active ? "#151515" : "transparent",
-      color: active ? "#F3F3F3" : "#666666",
-      fontSize: 13, position: "relative",
-      transition: "background 0.12s, color 0.12s",
-    }}
-      className="nav-item"
+    <Link
+      href={href}
+      className={cn(
+        "flex items-center gap-2 py-[7px] px-2 rounded-btn no-underline mb-px relative transition-colors",
+        active
+          ? "bg-bg-elevated text-text-primary"
+          : "bg-transparent text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
+      )}
     >
-      {active && <div style={{ position: "absolute", left: 0, top: "20%", bottom: "20%", width: 3, borderRadius: "0 3px 3px 0", background: accentColor }} />}
-      <span style={{ color: active ? accentColor : "inherit" }}>{icon}</span>
-      {label}
+      {active && (
+        <div className="absolute left-0 top-[20%] bottom-[20%] w-[3px] rounded-r-[3px] bg-primary" />
+      )}
+      <span className={cn(active ? "text-primary" : "text-inherit")}>{icon}</span>
+      <span className="text-[13px]">{label}</span>
     </Link>
   );
 }
 
 function SubNavItem({ href, label, active }: { href: string; label: string; active: boolean }) {
   return (
-    <Link href={href} style={{
-      display: "block", padding: "5px 8px", borderRadius: 6,
-      fontSize: 12, textDecoration: "none",
-      color: active ? "#0454FC" : "#555",
-      background: active ? "rgba(4,84,252,0.08)" : "transparent",
-      transition: "background 0.1s, color 0.1s",
-    }}
-      className="nav-item"
+    <Link
+      href={href}
+      className={cn(
+        "block py-[5px] px-2 rounded-badge text-xs no-underline transition-colors",
+        active
+          ? "text-primary bg-primary-ghost"
+          : "text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
+      )}
     >
       {label}
     </Link>
   );
 }
 
-function BottomItem({ href, onClick, icon, label, danger }: { href?: string; onClick?: () => void; icon: React.ReactNode; label: string; danger?: boolean }) {
-  const style: React.CSSProperties = {
-    display: "flex", alignItems: "center", gap: 8, padding: "7px 8px",
-    borderRadius: 8, textDecoration: "none", fontSize: 12,
-    color: "#555", background: "transparent",
-    transition: "background 0.12s, color 0.12s",
-    border: "none", cursor: "pointer", width: "100%",
-  };
-  const onEnter = (e: React.MouseEvent<HTMLElement>) => {
-    if (danger) { e.currentTarget.style.background = "rgba(255,68,68,0.06)"; e.currentTarget.style.color = "#FF4444"; }
-    else { e.currentTarget.style.background = "#161616"; e.currentTarget.style.color = "#F3F3F3"; }
-  };
-  const onLeave = (e: React.MouseEvent<HTMLElement>) => {
-    e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#555";
-  };
+function BottomItem({ href, onClick, icon, label, danger }: {
+  href?: string; onClick?: () => void; icon: React.ReactNode; label: string; danger?: boolean;
+}) {
+  const classes = cn(
+    "flex items-center gap-2 py-[7px] px-2 rounded-btn no-underline text-xs border-none cursor-pointer w-full transition-colors",
+    "text-text-secondary bg-transparent",
+    danger
+      ? "hover:bg-danger/5 hover:text-danger"
+      : "hover:bg-bg-elevated hover:text-text-primary"
+  );
+
   if (onClick) {
-    return <button onClick={onClick} style={style} onMouseEnter={onEnter} onMouseLeave={onLeave}>{icon}{label}</button>;
+    return <button onClick={onClick} className={classes}>{icon}{label}</button>;
   }
   return (
-    <Link href={href!} style={style} onMouseEnter={onEnter} onMouseLeave={onLeave}>
+    <Link href={href!} className={classes}>
       {icon}{label}
     </Link>
   );

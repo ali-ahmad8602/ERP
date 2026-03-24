@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { Search, LayoutGrid, FileText, Users, ArrowRight, Hash, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { Card, Board, Department } from "@/types";
 
 interface CommandPaletteProps {
@@ -55,48 +56,29 @@ export function CommandPalette({ open, onClose, cards = [], boards = [], departm
   return (
     <>
       {/* Backdrop */}
-      <div onClick={onClose} style={{
-        position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)",
-        zIndex: 100, backdropFilter: "blur(4px)",
-        animation: "fadeIn 0.12s ease-out",
-      }} />
+      <div
+        onClick={onClose}
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] animate-fade-in"
+      />
 
       {/* Palette */}
-      <div style={{
-        position: "fixed", top: "18%", left: "50%", transform: "translateX(-50%)",
-        width: 560, maxHeight: 420,
-        background: "#0F0F0F", border: "1px solid #2A2A2A",
-        borderRadius: 14, zIndex: 101, overflow: "hidden",
-        boxShadow: "0 32px 64px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.04)",
-        animation: "fadeUp 0.18s cubic-bezier(0.16,1,0.3,1)",
-      }}>
+      <div className="fixed top-[18%] left-1/2 -translate-x-1/2 w-[560px] max-h-[420px] bg-bg-surface border border-border rounded-[14px] z-[101] shadow-modal animate-fade-up overflow-hidden">
 
         {/* Search input */}
-        <div style={{
-          display: "flex", alignItems: "center", gap: 12,
-          padding: "14px 16px", borderBottom: "1px solid #1E1E1E",
-        }}>
-          <Search size={16} color="#555" />
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border">
+          <Search size={16} className="text-text-muted" />
           <input
             ref={inputRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search cards, boards, departments..."
-            style={{
-              flex: 1, background: "transparent", border: "none", outline: "none",
-              fontSize: 14, color: "#F3F3F3",
-            }}
-            className="placeholder:text-[#444]"
+            className="flex-1 bg-transparent border-none outline-none text-[14px] text-text-primary placeholder:text-text-muted"
           />
-          <kbd style={{
-            fontSize: 10, color: "#444", background: "#1A1A1A",
-            border: "1px solid #2A2A2A", padding: "2px 6px",
-            borderRadius: 5, fontFamily: "monospace",
-          }}>ESC</kbd>
+          <kbd className="text-[10px] text-text-muted bg-bg-elevated border border-border px-1.5 py-0.5 rounded font-mono">ESC</kbd>
         </div>
 
         {/* Results */}
-        <div style={{ overflowY: "auto", maxHeight: 360 }}>
+        <div className="overflow-y-auto max-h-[360px]">
 
           {/* Quick actions — shown when no query */}
           {!q && (
@@ -105,7 +87,7 @@ export function CommandPalette({ open, onClose, cards = [], boards = [], departm
                 <ResultRow key={a.label}
                   icon={<span style={{ color: a.color }}>{a.icon}</span>}
                   label={a.label}
-                  right={<kbd style={{ fontSize: 10, color: "#444", background: "#1A1A1A", border: "1px solid #2A2A2A", padding: "1px 5px", borderRadius: 4, fontFamily: "monospace" }}>{a.shortcut}</kbd>}
+                  right={<kbd className="text-[10px] text-text-muted bg-bg-elevated border border-border px-1.5 py-0.5 rounded font-mono">{a.shortcut}</kbd>}
                   onClick={onClose}
                 />
               ))}
@@ -118,10 +100,10 @@ export function CommandPalette({ open, onClose, cards = [], boards = [], departm
               {filteredCards.map(card => (
                 <ResultRow
                   key={card._id}
-                  icon={<FileText size={13} color="#555" />}
+                  icon={<FileText size={13} className="text-text-muted" />}
                   label={card.title}
                   sublabel={card.priority !== "none" ? card.priority : undefined}
-                  right={<ArrowRight size={12} color="#333" />}
+                  right={<ArrowRight size={12} className="text-text-muted" />}
                   onClick={() => { onSelectCard?.(card); onClose(); }}
                 />
               ))}
@@ -134,9 +116,9 @@ export function CommandPalette({ open, onClose, cards = [], boards = [], departm
               {filteredBoards.map(board => (
                 <ResultRow
                   key={board._id}
-                  icon={<LayoutGrid size={13} color="#555" />}
+                  icon={<LayoutGrid size={13} className="text-text-muted" />}
                   label={board.name}
-                  right={<ArrowRight size={12} color="#333" />}
+                  right={<ArrowRight size={12} className="text-text-muted" />}
                   onClick={onClose}
                 />
               ))}
@@ -149,9 +131,9 @@ export function CommandPalette({ open, onClose, cards = [], boards = [], departm
               {filteredDepts.map(dept => (
                 <ResultRow
                   key={dept._id}
-                  icon={<span style={{ fontSize: 13 }}>{dept.icon}</span>}
+                  icon={<span className="text-[13px]">{dept.icon}</span>}
                   label={dept.name}
-                  right={<ArrowRight size={12} color="#333" />}
+                  right={<ArrowRight size={12} className="text-text-muted" />}
                   onClick={onClose}
                 />
               ))}
@@ -160,20 +142,17 @@ export function CommandPalette({ open, onClose, cards = [], boards = [], departm
 
           {/* No results */}
           {q && !hasResults && (
-            <div style={{ padding: "32px 16px", textAlign: "center" }}>
-              <Hash size={20} color="#333" style={{ margin: "0 auto 8px" }} />
-              <p style={{ fontSize: 13, color: "#555" }}>No results for &ldquo;{query}&rdquo;</p>
+            <div className="px-4 py-8 text-center">
+              <Hash size={20} className="text-text-muted mx-auto mb-2" />
+              <p className="text-[13px] text-text-muted">No results for &ldquo;{query}&rdquo;</p>
             </div>
           )}
 
           {/* Footer hint */}
-          <div style={{
-            padding: "8px 16px", borderTop: "1px solid #1A1A1A",
-            display: "flex", gap: 16, alignItems: "center",
-          }}>
+          <div className="px-4 py-2 border-t border-border-subtle flex gap-4 items-center">
             {[["↑↓", "navigate"], ["↵", "select"], ["esc", "close"]].map(([key, label]) => (
-              <span key={key} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "#444" }}>
-                <kbd style={{ fontSize: 10, background: "#1A1A1A", border: "1px solid #2A2A2A", padding: "1px 4px", borderRadius: 3, fontFamily: "monospace", color: "#888" }}>
+              <span key={key} className="flex items-center gap-1 text-[11px] text-text-muted">
+                <kbd className="text-[10px] bg-bg-elevated border border-border px-1 py-0.5 rounded-[3px] font-mono text-text-secondary">
                   {key}
                 </kbd>
                 {label}
@@ -189,7 +168,7 @@ export function CommandPalette({ open, onClose, cards = [], boards = [], departm
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div style={{ padding: "8px 16px 4px", fontSize: 10, fontWeight: 600, color: "#444", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+      <div className="px-4 pt-2 pb-1 text-[10px] font-semibold text-text-muted uppercase tracking-wide">
         {label}
       </div>
       {children}
@@ -202,24 +181,20 @@ function ResultRow({ icon, label, sublabel, right, onClick }: {
   right?: React.ReactNode; onClick: () => void;
 }) {
   return (
-    <button onClick={onClick} style={{
-      width: "100%", display: "flex", alignItems: "center", gap: 10,
-      padding: "8px 16px", background: "transparent", border: "none",
-      cursor: "pointer", textAlign: "left", transition: "background 0.1s",
-    }}
-      onMouseEnter={e => (e.currentTarget.style.background = "#161616")}
-      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-2.5 px-4 py-2 bg-transparent border-none cursor-pointer text-left hover:bg-bg-elevated transition-colors"
     >
-      <span style={{ flexShrink: 0, width: 20, display: "flex", justifyContent: "center" }}>{icon}</span>
-      <span style={{ flex: 1, fontSize: 13, color: "#C8C8C8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+      <span className="shrink-0 w-5 flex justify-center">{icon}</span>
+      <span className="flex-1 text-[13px] text-text-primary overflow-hidden text-ellipsis whitespace-nowrap">
         {label}
       </span>
       {sublabel && (
-        <span style={{ fontSize: 10, color: "#555", background: "#1A1A1A", padding: "1px 6px", borderRadius: 4, border: "1px solid #2A2A2A" }}>
+        <span className="text-[10px] text-text-muted bg-bg-elevated px-1.5 py-0.5 rounded border border-border-subtle">
           {sublabel}
         </span>
       )}
-      <span style={{ flexShrink: 0 }}>{right}</span>
+      <span className="shrink-0">{right}</span>
     </button>
   );
 }

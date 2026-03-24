@@ -1,7 +1,10 @@
 "use client";
-import { Search, ChevronRight, Lock, ShieldCheck } from "lucide-react";
+import { Search, ChevronRight, Lock, ShieldCheck, Sun, Moon } from "lucide-react";
+import { useTheme } from "next-themes";
 import type { Board, Department } from "@/types";
 import { useAuthStore } from "@/store/auth.store";
+import { cn } from "@/lib/utils";
+import { Avatar } from "@/components/ui/Avatar";
 import { NotificationBell } from "./NotificationBell";
 
 interface TopbarProps {
@@ -11,46 +14,45 @@ interface TopbarProps {
   onSearchClick?: () => void;
 }
 
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  return (
+    <button
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      className="w-8 h-8 rounded-btn flex items-center justify-center text-text-muted hover:text-text-secondary hover:bg-bg-elevated transition-colors"
+    >
+      {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+    </button>
+  );
+}
+
 export function Topbar({ department, board, title, onSearchClick }: TopbarProps) {
   const { user } = useAuthStore();
-  const initials = user?.name ? user.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) : "U";
 
   return (
-    <header style={{
-      height: 56, display: "flex", alignItems: "center", justifyContent: "space-between",
-      padding: "0 20px", borderBottom: "1px solid #1E1E1E",
-      background: "#0A0A0A", flexShrink: 0,
-    }}>
+    <header className="h-14 flex items-center justify-between px-5 border-b border-border-subtle bg-bg-base shrink-0">
 
       {/* Left — breadcrumb */}
-      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+      <div className="flex items-center gap-[5px]">
         {department && (
           <>
-            <span style={{ fontSize: 13, color: "#444", fontWeight: 500 }}>
+            <span className="text-[13px] text-text-muted font-medium">
               {department.icon} {department.name}
             </span>
-            <ChevronRight size={13} color="#333" />
+            <ChevronRight size={13} className="text-text-muted" />
           </>
         )}
-        <span style={{ fontSize: 13, fontWeight: 600, color: "#EBEBEB", letterSpacing: "-0.01em" }}>
+        <span className="text-[13px] font-semibold text-text-primary tracking-tight">
           {board?.name ?? title ?? ""}
         </span>
-        <div style={{ display: "flex", alignItems: "center", gap: 5, marginLeft: 6 }}>
+        <div className="flex items-center gap-[5px] ml-1.5">
           {board?.settings.isLocked && (
-            <span style={{
-              display: "flex", alignItems: "center", gap: 4, padding: "2px 8px",
-              borderRadius: 6, background: "rgba(245,166,35,0.08)",
-              border: "1px solid rgba(245,166,35,0.2)", fontSize: 11, color: "#F5A623",
-            }}>
+            <span className="flex items-center gap-1 py-0.5 px-2 rounded-badge bg-warning/[0.08] border border-warning/20 text-[11px] text-warning">
               <Lock size={9} /> Locked
             </span>
           )}
           {board?.settings.complianceTagging && (
-            <span style={{
-              display: "flex", alignItems: "center", gap: 4, padding: "2px 8px",
-              borderRadius: 6, background: "rgba(4,84,252,0.08)",
-              border: "1px solid rgba(4,84,252,0.2)", fontSize: 11, color: "#0454FC",
-            }}>
+            <span className="flex items-center gap-1 py-0.5 px-2 rounded-badge bg-primary-ghost border border-primary/20 text-[11px] text-primary">
               <ShieldCheck size={9} /> Compliance Mode
             </span>
           )}
@@ -58,52 +60,34 @@ export function Topbar({ department, board, title, onSearchClick }: TopbarProps)
       </div>
 
       {/* Right */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div className="flex items-center gap-2">
 
         {/* Search trigger */}
-        <button onClick={onSearchClick} style={{
-          display: "flex", alignItems: "center", gap: 8,
-          background: "#111111", border: "1px solid #222222",
-          borderRadius: 8, padding: "6px 12px", cursor: "pointer",
-          width: 200, transition: "border-color 0.15s, background 0.15s",
-        }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "#333"; (e.currentTarget as HTMLElement).style.background = "#161616"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#222"; (e.currentTarget as HTMLElement).style.background = "#111"; }}
+        <button
+          onClick={onSearchClick}
+          className="flex items-center gap-2 bg-bg-surface border border-border-subtle rounded-btn py-1.5 px-3 cursor-pointer w-[200px] transition-colors hover:border-border hover:bg-bg-elevated"
         >
-          <Search size={12} color="#444" />
-          <span style={{ flex: 1, fontSize: 12, color: "#444", textAlign: "left" }}>Search...</span>
-          <div style={{ display: "flex", gap: 2 }}>
-            <kbd style={{ fontSize: 9, color: "#333", background: "#1A1A1A", border: "1px solid #2A2A2A", padding: "1px 4px", borderRadius: 3, fontFamily: "monospace" }}>⌘</kbd>
-            <kbd style={{ fontSize: 9, color: "#333", background: "#1A1A1A", border: "1px solid #2A2A2A", padding: "1px 4px", borderRadius: 3, fontFamily: "monospace" }}>K</kbd>
+          <Search size={12} className="text-text-muted" />
+          <span className="flex-1 text-xs text-text-muted text-left">Search...</span>
+          <div className="flex gap-0.5">
+            <kbd className="text-[9px] text-text-muted bg-bg-elevated border border-border px-1 rounded font-mono">⌘</kbd>
+            <kbd className="text-[9px] text-text-muted bg-bg-elevated border border-border px-1 rounded font-mono">K</kbd>
           </div>
         </button>
 
         {/* Notifications */}
         <NotificationBell />
 
+        {/* Theme toggle */}
+        <ThemeToggle />
+
         {/* Divider */}
-        <div style={{ width: 1, height: 18, background: "#1E1E1E" }} />
+        <div className="w-px h-[18px] bg-border-subtle" />
 
         {/* Avatar */}
-        <button style={{
-          display: "flex", alignItems: "center", gap: 8,
-          background: "transparent", border: "none", cursor: "pointer",
-          padding: "4px 6px", borderRadius: 8,
-          transition: "background 0.12s",
-        }}
-          onMouseEnter={e => (e.currentTarget.style.background = "#161616")}
-          onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-        >
-          <div style={{
-            width: 28, height: 28, borderRadius: "50%",
-            background: "linear-gradient(135deg, #0454FC, #3B7BFF)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 11, fontWeight: 700, color: "white",
-            letterSpacing: "-0.02em",
-          }}>
-            {initials}
-          </div>
-          <span style={{ fontSize: 12, color: "#888", maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <button className="flex items-center gap-2 bg-transparent border-none cursor-pointer py-1 px-1.5 rounded-btn transition-colors hover:bg-bg-elevated">
+          <Avatar name={user?.name ?? "User"} size="md" />
+          <span className="text-xs text-text-secondary max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap">
             {user?.name ?? "User"}
           </span>
         </button>

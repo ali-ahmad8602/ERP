@@ -1,6 +1,7 @@
 "use client";
 import { AlertCircle, Clock, Zap, CheckCircle2, LayoutList } from "lucide-react";
 import { isPast, isToday } from "date-fns";
+import { cn } from "@/lib/utils";
 import type { Card, Column } from "@/types";
 
 interface BoardStatsBarProps {
@@ -30,38 +31,35 @@ export function BoardStatsBar({ cards, columns }: BoardStatsBarProps) {
   ];
 
   return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 0,
-      padding: "0 20px", height: 36,
-      background: "#090909", borderBottom: "1px solid #1E1E1E",
-      overflowX: "auto", flexShrink: 0,
-    }}>
+    <div className="flex items-center px-5 h-9 bg-bg-base border-b border-border-subtle overflow-x-auto shrink-0">
       {stats.map((s, i) => (
-        <div key={s.label} style={{ display: "flex", alignItems: "center" }}>
+        <div key={s.label} className="flex items-center">
           {i > 0 && (
-            <div style={{ width: 1, height: 14, background: "#2A2A2A", margin: "0 12px" }} />
+            <div className="w-px h-3.5 bg-border mx-3" />
           )}
-          <div style={{ display: "flex", alignItems: "center", gap: 5, color: s.color }}>
+          <div className="flex items-center gap-[5px]" style={{ color: s.color }}>
             {s.icon}
-            <span style={{ fontSize: 12, fontWeight: 600, color: s.value > 0 || s.label === "Total" ? s.color : "#333" }}>
+            <span
+              className="text-[12px] font-semibold"
+              style={{ color: s.value > 0 || s.label === "Total" ? s.color : "#333" }}
+            >
               {s.value}
             </span>
-            <span style={{ fontSize: 11, color: "#444444", whiteSpace: "nowrap" }}>{s.label}</span>
+            <span className="text-[11px] text-text-muted whitespace-nowrap">{s.label}</span>
           </div>
         </div>
       ))}
 
       {/* Progress bar: done / total */}
       {total > 0 && (
-        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ width: 80, height: 4, background: "#1A1A1A", borderRadius: 4, overflow: "hidden" }}>
-            <div style={{
-              width: `${Math.round((done / total) * 100)}%`,
-              height: "100%", background: "#00E5A0",
-              borderRadius: 4, transition: "width 0.4s ease",
-            }} />
+        <div className="ml-auto flex items-center gap-2">
+          <div className="w-20 h-1 bg-bg-elevated rounded overflow-hidden">
+            <div
+              className="h-full bg-success rounded transition-[width] duration-400 ease-out"
+              style={{ width: `${Math.round((done / total) * 100)}%` }}
+            />
           </div>
-          <span style={{ fontSize: 11, color: "#444444", whiteSpace: "nowrap" }}>
+          <span className="text-[11px] text-text-muted whitespace-nowrap">
             {Math.round((done / total) * 100)}% complete
           </span>
         </div>

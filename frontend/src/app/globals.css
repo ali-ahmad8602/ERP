@@ -1,26 +1,108 @@
 @import "tailwindcss";
 
-/* ─── Tailwind v4 Theme ──────────────────────────────────────────────────────── */
+/* ─── Theme Variables ─────────────────────────────────────────────────────────
+   Dark theme (default) on :root, light theme overrides on .light class.
+   next-themes toggles the class on <html>.
+───────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  color-scheme: dark;
+
+  /* Brand */
+  --color-primary:       #8B1D41;
+  --color-primary-light:  #A93058;
+  --color-primary-dark:   #6B1533;
+  --color-primary-ghost:  rgba(139, 29, 65, 0.12);
+
+  /* Accents */
+  --color-accent:  #00E5A0;
+  --color-danger:  #FF4444;
+  --color-warning: #F5A623;
+  --color-info:    #3B82F6;
+
+  /* Backgrounds */
+  --color-bg-base:     #0C0A0B;
+  --color-bg-surface:  #141012;
+  --color-bg-elevated: #1E181A;
+  --color-bg-overlay:  #2A2226;
+
+  /* Borders */
+  --color-border:        #2E2428;
+  --color-border-subtle: #221C1F;
+
+  /* Text */
+  --color-text-primary:   #F5F0F2;
+  --color-text-secondary: #8A8085;
+  --color-text-muted:     #4A4045;
+
+  /* Shadows */
+  --shadow-card:       0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-card-hover: 0 0 0 1px rgba(139, 29, 65, 0.35), 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-modal:      0 32px 64px rgba(0, 0, 0, 0.9);
+}
+
+.light {
+  color-scheme: light;
+
+  /* Brand — same hue */
+  --color-primary:       #8B1D41;
+  --color-primary-light:  #A93058;
+  --color-primary-dark:   #6B1533;
+  --color-primary-ghost:  rgba(139, 29, 65, 0.08);
+
+  /* Accents */
+  --color-accent:  #00C88A;
+  --color-danger:  #E03E3E;
+  --color-warning: #D4911E;
+  --color-info:    #2563EB;
+
+  /* Backgrounds */
+  --color-bg-base:     #FAFAFA;
+  --color-bg-surface:  #FFFFFF;
+  --color-bg-elevated: #F5F1F3;
+  --color-bg-overlay:  #EDE8EB;
+
+  /* Borders */
+  --color-border:        #E5DFE2;
+  --color-border-subtle: #F0EBED;
+
+  /* Text */
+  --color-text-primary:   #1A1118;
+  --color-text-secondary: #6B5F65;
+  --color-text-muted:     #A89BA0;
+
+  /* Shadows */
+  --shadow-card:       0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 0 0 1px rgba(139, 29, 65, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-modal:      0 16px 48px rgba(0, 0, 0, 0.15);
+}
+
+/* ─── Tailwind v4 Theme ───────────────────────────────────────────────────── */
 @theme {
-  --color-primary:        #0454FC;
-  --color-primary-light:  #3B7BFF;
-  --color-accent:         #00E5A0;
-  --color-danger:         #FF4444;
-  --color-warning:        #F5A623;
+  /* Colors — reference CSS vars so they resolve per-theme */
+  --color-primary:        var(--color-primary);
+  --color-primary-light:  var(--color-primary-light);
+  --color-primary-dark:   var(--color-primary-dark);
+  --color-primary-ghost:  var(--color-primary-ghost);
+  --color-accent:         var(--color-accent);
+  --color-danger:         var(--color-danger);
+  --color-warning:        var(--color-warning);
+  --color-info:           var(--color-info);
 
-  --color-bg-base:        #050505;
-  --color-bg-surface:     #0F0F0F;
-  --color-bg-elevated:    #1A1A1A;
-  --color-bg-overlay:     #242424;
+  --color-bg-base:        var(--color-bg-base);
+  --color-bg-surface:     var(--color-bg-surface);
+  --color-bg-elevated:    var(--color-bg-elevated);
+  --color-bg-overlay:     var(--color-bg-overlay);
 
-  --color-border:         #2A2A2A;
-  --color-border-subtle:  #1E1E1E;
+  --color-border:         var(--color-border);
+  --color-border-subtle:  var(--color-border-subtle);
 
-  --color-text-primary:   #F3F3F3;
-  --color-text-secondary: #888888;
-  --color-text-muted:     #444444;
+  --color-text-primary:   var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted:     var(--color-text-muted);
 
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  /* Typography */
+  --font-sans: "Lato", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
 
   --text-display:    2rem;
@@ -29,17 +111,20 @@
   --text-body:       0.875rem;
   --text-small:      0.75rem;
 
+  /* Radii */
   --radius-card:  12px;
   --radius-btn:   8px;
   --radius-badge: 6px;
 
-  --shadow-card:       0 1px 2px rgba(0,0,0,0.5);
-  --shadow-card-hover: 0 0 0 1px rgba(4,84,252,0.35), 0 8px 24px rgba(0,0,0,0.5);
-  --shadow-modal:      0 32px 64px rgba(0,0,0,0.9);
+  /* Shadows */
+  --shadow-card:       var(--shadow-card);
+  --shadow-card-hover: var(--shadow-card-hover);
+  --shadow-modal:      var(--shadow-modal);
 
-  --animate-slide-in-right: slideInRight 0.22s cubic-bezier(0.16,1,0.3,1);
+  /* Animations */
+  --animate-slide-in-right: slideInRight 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   --animate-fade-in:        fadeIn 0.15s ease-out;
-  --animate-fade-up:        fadeUp 0.2s cubic-bezier(0.16,1,0.3,1);
+  --animate-fade-up:        fadeUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   --animate-spin:           spin 0.8s linear infinite;
   --animate-pulse-dot:      pulseDot 1.8s ease-in-out infinite;
 
@@ -67,49 +152,52 @@
 
 html, body {
   height: 100%;
-  background: #050505;
-  color: #F3F3F3;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: "Lato", -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: 14px;
   line-height: 1.5;
 }
 
-/* ─── Card hover class ─────────────────────────────────────────────────────── */
+/* ─── Utility Classes (temporary — will be replaced by Tailwind in phases) ── */
 .card-hover {
   transition: box-shadow 0.15s ease, background 0.15s ease, transform 0.1s ease;
 }
 .card-hover:hover {
-  background: #141414 !important;
-  box-shadow: 0 0 0 1px rgba(4,84,252,0.3), 0 8px 24px rgba(0,0,0,0.5);
+  background: var(--color-bg-elevated) !important;
+  box-shadow: var(--shadow-card-hover);
   transform: translateY(-1px);
 }
 
-/* ─── Button hover class ───────────────────────────────────────────────────── */
 .btn-ghost {
   transition: background 0.12s ease, color 0.12s ease;
 }
-.btn-ghost:hover { background: #1A1A1A; color: #F3F3F3 !important; }
+.btn-ghost:hover {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary) !important;
+}
 
-/* ─── Nav link hover ───────────────────────────────────────────────────────── */
 .nav-item { transition: background 0.12s ease, color 0.12s ease; }
-.nav-item:hover { background: #1A1A1A !important; color: #F3F3F3 !important; }
+.nav-item:hover {
+  background: var(--color-bg-elevated) !important;
+  color: var(--color-text-primary) !important;
+}
 
-/* ─── Input focus ──────────────────────────────────────────────────────────── */
 .input-field {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .input-field:focus {
-  border-color: rgba(4,84,252,0.5) !important;
-  box-shadow: 0 0 0 3px rgba(4,84,252,0.08);
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px var(--color-primary-ghost);
   outline: none;
 }
 
 /* ─── Scrollbar ────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #242424; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #333; }
+::-webkit-scrollbar-thumb { background: var(--color-bg-overlay); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-border); }
 
-::selection { background: rgba(4,84,252,0.2); color: #F3F3F3; }
+::selection { background: var(--color-primary-ghost); color: var(--color-text-primary); }

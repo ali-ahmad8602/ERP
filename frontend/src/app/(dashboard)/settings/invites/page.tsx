@@ -3,6 +3,11 @@ import { useEffect, useState } from "react";
 import { inviteApi } from "@/lib/api";
 import { useDeptStore } from "@/store/dept.store";
 import { Send, Copy, Check, X, Loader2, UserPlus, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { SectionLabel } from "@/components/ui/SectionLabel";
+import { cn } from "@/lib/utils";
 import type { Invite } from "@/types";
 
 const ORG_ROLES = [
@@ -97,45 +102,47 @@ export default function InvitesPage() {
   }
 
   const statusIcon = (status: string) => {
-    if (status === "pending") return <Clock size={12} color="#F5A623" />;
-    if (status === "accepted") return <CheckCircle2 size={12} color="#22C55E" />;
-    return <XCircle size={12} color="#FF4444" />;
+    if (status === "pending") return <Clock size={12} className="text-warning" />;
+    if (status === "accepted") return <CheckCircle2 size={12} className="text-accent" />;
+    return <XCircle size={12} className="text-danger" />;
   };
 
   return (
-    <div style={{ maxWidth: 720 }}>
+    <div className="max-w-[720px]">
       {/* Invite Form */}
-      <div style={{ background: "#0C0C0C", border: "1px solid #1A1A1A", borderRadius: 14, padding: 24, marginBottom: 24 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-          <UserPlus size={16} color="#0454FC" />
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: "#E0E0E0" }}>Invite a User</h2>
+      <Card className="mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <UserPlus size={16} className="text-primary" />
+          <h2 className="text-[15px] font-semibold text-text-primary">Invite a User</h2>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* Email */}
-          <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Email Address</label>
-            <input
-              type="email" value={email} onChange={e => setEmail(e.target.value)}
-              placeholder="colleague@invoicemate.com" required
-              style={{ width: "100%", background: "#111", border: "1px solid #222", borderRadius: 9, padding: "9px 12px", fontSize: 13, color: "#F3F3F3", outline: "none", boxSizing: "border-box" }}
-              className="input-field"
-            />
-          </div>
+          <Input
+            label="Email Address"
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="colleague@invoicemate.com"
+            required
+          />
 
           {/* Org Role */}
           <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Organization Role</label>
-            <div style={{ display: "flex", gap: 6 }}>
+            <SectionLabel className="mb-1.5">Organization Role</SectionLabel>
+            <div className="flex gap-1.5">
               {ORG_ROLES.map(r => (
-                <button key={r.value} type="button" onClick={() => setOrgRole(r.value)} style={{
-                  padding: "6px 14px", borderRadius: 7, fontSize: 12, border: "1px solid",
-                  cursor: "pointer", transition: "all 0.1s",
-                  background: orgRole === r.value ? "#0454FC14" : "#111",
-                  borderColor: orgRole === r.value ? "#0454FC" : "#222",
-                  color: orgRole === r.value ? "#0454FC" : "#888",
-                  fontWeight: orgRole === r.value ? 600 : 400,
-                }}>
+                <button
+                  key={r.value}
+                  type="button"
+                  onClick={() => setOrgRole(r.value)}
+                  className={cn(
+                    "px-3.5 py-1.5 rounded-[7px] text-xs border cursor-pointer transition-all duration-100",
+                    orgRole === r.value
+                      ? "bg-primary-ghost border-primary text-primary font-semibold"
+                      : "bg-bg-surface border-border text-text-secondary hover:bg-bg-elevated"
+                  )}
+                >
                   {r.label}
                 </button>
               ))}
@@ -144,13 +151,13 @@ export default function InvitesPage() {
 
           {/* Department assignments */}
           <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Departments (optional)</label>
+            <SectionLabel className="mb-1.5">Departments (optional)</SectionLabel>
             {selectedDepts.map((d, idx) => (
-              <div key={idx} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+              <div key={idx} className="flex gap-2 mb-2">
                 <select
                   value={d.department}
                   onChange={e => updateDeptSelection(idx, "department", e.target.value)}
-                  style={{ flex: 1, background: "#111", border: "1px solid #222", borderRadius: 9, padding: "8px 10px", fontSize: 12, color: "#F3F3F3", outline: "none" }}
+                  className="flex-1 bg-bg-surface border border-border rounded-btn px-2.5 py-2 text-xs text-text-primary outline-none"
                 >
                   <option value="">Select department...</option>
                   {departments.map(dept => (
@@ -160,118 +167,117 @@ export default function InvitesPage() {
                 <select
                   value={d.role}
                   onChange={e => updateDeptSelection(idx, "role", e.target.value)}
-                  style={{ width: 150, background: "#111", border: "1px solid #222", borderRadius: 9, padding: "8px 10px", fontSize: 12, color: "#F3F3F3", outline: "none" }}
+                  className="w-[150px] bg-bg-surface border border-border rounded-btn px-2.5 py-2 text-xs text-text-primary outline-none"
                 >
                   {DEPT_ROLES.map(r => (
                     <option key={r.value} value={r.value}>{r.label}</option>
                   ))}
                 </select>
-                <button type="button" onClick={() => removeDeptSelection(idx)} style={{
-                  width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
-                  borderRadius: 7, background: "#111", border: "1px solid #222", cursor: "pointer", color: "#555",
-                }}><X size={12} /></button>
+                <button
+                  type="button"
+                  onClick={() => removeDeptSelection(idx)}
+                  className="w-[34px] h-[34px] flex items-center justify-center rounded-[7px] bg-bg-surface border border-border cursor-pointer text-text-muted hover:text-danger hover:border-danger/40 transition-colors"
+                >
+                  <X size={12} />
+                </button>
               </div>
             ))}
-            <button type="button" onClick={addDeptSelection} style={{
-              fontSize: 12, color: "#0454FC", background: "none", border: "1px dashed #222",
-              borderRadius: 7, padding: "6px 12px", cursor: "pointer", width: "100%",
-            }}>
+            <button
+              type="button"
+              onClick={addDeptSelection}
+              className="text-xs text-primary bg-transparent border border-dashed border-border rounded-[7px] px-3 py-1.5 cursor-pointer w-full hover:bg-primary-ghost hover:border-primary/40 transition-colors"
+            >
               + Add department
             </button>
           </div>
 
           {error && (
-            <div style={{ fontSize: 12, color: "#FF4444", background: "rgba(255,68,68,0.08)", padding: "8px 12px", borderRadius: 8 }}>
+            <div className="text-xs text-danger bg-danger/10 px-3 py-2 rounded-lg">
               {error}
             </div>
           )}
 
           {/* Invite URL result */}
           {inviteUrl && (
-            <div style={{ background: "#0A1A0A", border: "1px solid #1A3A1A", borderRadius: 10, padding: 14 }}>
-              <div style={{ fontSize: 12, color: "#22C55E", fontWeight: 600, marginBottom: 8 }}>Invite created! Share this link:</div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <input readOnly value={inviteUrl} style={{
-                  flex: 1, background: "#111", border: "1px solid #222", borderRadius: 7,
-                  padding: "7px 10px", fontSize: 11, color: "#888", outline: "none", fontFamily: "monospace",
-                }} />
-                <button type="button" onClick={handleCopy} style={{
-                  display: "flex", alignItems: "center", gap: 5, padding: "6px 12px",
-                  borderRadius: 7, border: "none", cursor: "pointer", fontSize: 12,
-                  background: copied ? "#22C55E" : "#1A1A1A", color: copied ? "white" : "#888",
-                }}>
+            <div className="bg-accent/5 border border-accent/20 rounded-[10px] p-3.5">
+              <div className="text-xs text-accent font-semibold mb-2">Invite created! Share this link:</div>
+              <div className="flex gap-2">
+                <input
+                  readOnly
+                  value={inviteUrl}
+                  className="flex-1 bg-bg-surface border border-border rounded-[7px] px-2.5 py-1.5 text-[11px] text-text-secondary outline-none font-mono"
+                />
+                <Button
+                  type="button"
+                  onClick={handleCopy}
+                  variant={copied ? "primary" : "secondary"}
+                  size="sm"
+                  className={cn(copied && "bg-accent hover:bg-accent")}
+                >
                   {copied ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy</>}
-                </button>
+                </Button>
               </div>
             </div>
           )}
 
-          <button type="submit" disabled={!email.trim() || submitting} style={{
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-            padding: "10px 0", borderRadius: 9, border: "none", fontSize: 13, fontWeight: 500,
-            background: email.trim() && !submitting ? "#0454FC" : "#1A1A1A",
-            color: email.trim() && !submitting ? "white" : "#444",
-            cursor: email.trim() && !submitting ? "pointer" : "not-allowed",
-          }}>
-            {submitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={13} />}
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={!email.trim() || submitting}
+            loading={submitting}
+            className="w-full"
+          >
+            {submitting ? <Send size={13} /> : <Send size={13} />}
             {submitting ? "Sending..." : "Send Invite"}
-          </button>
+          </Button>
         </form>
-      </div>
+      </Card>
 
       {/* Invite List */}
       <div>
-        <h2 style={{ fontSize: 13, fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
+        <SectionLabel className="mb-3">
           All Invites ({invites.length})
-        </h2>
+        </SectionLabel>
 
         {loading && (
-          <div style={{ padding: 24, textAlign: "center" }}>
-            <Loader2 size={18} color="#0454FC" className="animate-spin" />
+          <div className="py-6 text-center">
+            <Loader2 size={18} className="animate-spin text-primary mx-auto" />
           </div>
         )}
 
         {!loading && invites.length === 0 && (
-          <div style={{ padding: 32, textAlign: "center", color: "#444", fontSize: 13, background: "#0C0C0C", borderRadius: 12, border: "1px solid #1A1A1A" }}>
+          <Card className="py-8 text-center text-text-muted text-[13px]">
             No invites sent yet.
-          </div>
+          </Card>
         )}
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div className="flex flex-col gap-1.5">
           {invites.map(invite => (
-            <div key={invite._id} style={{
-              display: "flex", alignItems: "center", gap: 12,
-              background: "#0C0C0C", border: "1px solid #1A1A1A", borderRadius: 10,
-              padding: "12px 16px",
-            }}>
+            <Card key={invite._id} padding="sm" className="flex items-center gap-3 !p-3">
               {statusIcon(invite.status)}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, color: "#D0D0D0", fontWeight: 500 }}>{invite.email}</div>
-                <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>
+              <div className="flex-1 min-w-0">
+                <div className="text-[13px] text-text-primary font-medium">{invite.email}</div>
+                <div className="text-[11px] text-text-muted mt-0.5">
                   {invite.orgRole} &middot; invited by {invite.invitedBy?.name || "Admin"} &middot; {new Date(invite.createdAt).toLocaleDateString()}
                 </div>
               </div>
-              <span style={{
-                fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 6,
-                textTransform: "uppercase", letterSpacing: "0.06em",
-                ...(invite.status === "pending" ? { color: "#F5A623", background: "rgba(245,166,35,0.1)" } :
-                  invite.status === "accepted" ? { color: "#22C55E", background: "rgba(34,197,94,0.1)" } :
-                    { color: "#FF4444", background: "rgba(255,68,68,0.1)" }),
-              }}>
+              <span className={cn(
+                "text-[10px] font-semibold px-2 py-1 rounded-md uppercase tracking-wide",
+                invite.status === "pending" && "text-warning bg-warning/10",
+                invite.status === "accepted" && "text-accent bg-accent/10",
+                invite.status !== "pending" && invite.status !== "accepted" && "text-danger bg-danger/10"
+              )}>
                 {invite.status}
               </span>
               {invite.status === "pending" && (
-                <button onClick={() => handleRevoke(invite._id)} style={{
-                  fontSize: 11, color: "#555", background: "none", border: "1px solid #222",
-                  borderRadius: 6, padding: "4px 10px", cursor: "pointer",
-                }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = "#FF4444"; e.currentTarget.style.color = "#FF4444"; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = "#222"; e.currentTarget.style.color = "#555"; }}
+                <button
+                  onClick={() => handleRevoke(invite._id)}
+                  className="text-[11px] text-text-muted bg-transparent border border-border rounded-md px-2.5 py-1 cursor-pointer hover:border-danger/40 hover:text-danger transition-colors"
                 >
                   Revoke
                 </button>
               )}
-            </div>
+            </Card>
           ))}
         </div>
       </div>

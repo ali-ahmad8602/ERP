@@ -7,6 +7,10 @@ import {
   LayoutDashboard, Clock, AlertTriangle, CheckCircle2, Shield,
   TrendingUp, Users, ArrowRight, Loader2,
 } from "lucide-react";
+import { Card } from "@/components/ui/Card";
+import { Avatar } from "@/components/ui/Avatar";
+import { SectionLabel } from "@/components/ui/SectionLabel";
+import { cn } from "@/lib/utils";
 import type { DeptStats, ActivityEntry } from "@/types";
 
 // ─── Action label map ────────────────────────────────────────────────────────
@@ -46,28 +50,28 @@ export default function DashboardPage() {
 
   if (loading && !overview) {
     return (
-      <div style={{ display: "flex", height: "100%", alignItems: "center", justifyContent: "center", background: "#080808" }}>
-        <Loader2 size={24} color="#0454FC" className="animate-spin" />
+      <div className="flex h-full items-center justify-center bg-bg-base">
+        <Loader2 size={24} className="animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div style={{ height: "100%", overflow: "auto", background: "#080808", padding: "24px 28px" }}>
+    <div className="h-full overflow-auto bg-bg-base p-6">
       {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-          <LayoutDashboard size={18} color="#0454FC" />
-          <h1 style={{ fontSize: 18, fontWeight: 700, color: "#F3F3F3", letterSpacing: "-0.02em" }}>Dashboard</h1>
+      <div className="mb-6">
+        <div className="flex items-center gap-2.5 mb-1">
+          <LayoutDashboard size={18} className="text-primary" />
+          <h1 className="text-lg font-bold text-text-primary tracking-tight">Dashboard</h1>
         </div>
-        <p style={{ fontSize: 13, color: "#555" }}>
+        <p className="text-[13px] text-text-muted">
           Welcome back{user?.name ? `, ${user.name.split(" ")[0]}` : ""}. Here&apos;s your organization overview.
         </p>
       </div>
 
       {/* KPI Row */}
       {overview && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(155px, 1fr))", gap: 10, marginBottom: 28 }}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(155px,1fr))] gap-2.5 mb-7">
           <KpiCard label="Total Tasks" value={overview.totalCards} icon={<TrendingUp size={14} />} color="#0454FC" />
           <KpiCard label="In Progress" value={overview.inProgressCount} icon={<Clock size={14} />} color="#F5A623" />
           <KpiCard label="Overdue" value={overview.overdueCount} icon={<AlertTriangle size={14} />} color="#FF4444" />
@@ -78,21 +82,21 @@ export default function DashboardPage() {
       )}
 
       {/* Two-column layout: Departments + Activity */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 20, minHeight: 0 }}>
+      <div className="grid grid-cols-[1fr_380px] gap-5 min-h-0">
         {/* Department Cards */}
         <div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-            <h2 style={{ fontSize: 13, fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.08em" }}>Departments</h2>
-            <span style={{ fontSize: 11, color: "#444" }}>{deptStats.length} total</span>
+          <div className="flex items-center justify-between mb-3.5">
+            <SectionLabel className="mb-0">Departments</SectionLabel>
+            <span className="text-[11px] text-text-muted">{deptStats.length} total</span>
           </div>
 
           {deptStats.length === 0 && !loading && (
-            <div style={{ padding: 40, textAlign: "center", color: "#444", fontSize: 13, background: "#0C0C0C", borderRadius: 12, border: "1px solid #1A1A1A" }}>
+            <Card className="py-10 text-center text-text-muted text-[13px]">
               No departments yet. Create one from the sidebar.
-            </div>
+            </Card>
           )}
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 10 }}>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-2.5">
             {deptStats.map(ds => (
               <DeptCard key={ds.department._id} stats={ds} />
             ))}
@@ -101,21 +105,18 @@ export default function DashboardPage() {
 
         {/* Activity Feed */}
         <div>
-          <h2 style={{ fontSize: 13, fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>Recent Activity</h2>
+          <SectionLabel className="mb-3.5">Recent Activity</SectionLabel>
 
-          <div style={{
-            background: "#0C0C0C", border: "1px solid #1A1A1A", borderRadius: 12,
-            maxHeight: 520, overflow: "auto",
-          }}>
+          <Card padding="none" className="max-h-[520px] overflow-auto">
             {activities.length === 0 && (
-              <div style={{ padding: 40, textAlign: "center", color: "#444", fontSize: 13 }}>
+              <div className="py-10 text-center text-text-muted text-[13px]">
                 No activity yet. Start creating cards!
               </div>
             )}
             {activities.map((a, i) => (
               <ActivityRow key={a._id} entry={a} isLast={i === activities.length - 1} />
             ))}
-          </div>
+          </Card>
         </div>
       </div>
     </div>
@@ -126,24 +127,20 @@ export default function DashboardPage() {
 
 function KpiCard({ label, value, icon, color }: { label: string; value: number; icon: React.ReactNode; color: string }) {
   return (
-    <div style={{
-      background: "#0C0C0C", border: "1px solid #1A1A1A", borderRadius: 12,
-      padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8,
-    }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <div style={{
-          width: 26, height: 26, borderRadius: 7,
-          background: `${color}14`, display: "flex", alignItems: "center", justifyContent: "center",
-          color,
-        }}>
+    <Card className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <div
+          className="w-[26px] h-[26px] rounded-[7px] flex items-center justify-center"
+          style={{ background: `${color}14`, color }}
+        >
           {icon}
         </div>
-        <span style={{ fontSize: 11, color: "#555", textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 600 }}>{label}</span>
+        <span className="text-[11px] text-text-muted uppercase tracking-wide font-semibold">{label}</span>
       </div>
-      <div style={{ fontSize: 26, fontWeight: 700, color: "#F3F3F3", letterSpacing: "-0.03em" }}>
+      <div className="text-[26px] font-bold text-text-primary tracking-tight">
         {value}
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -152,64 +149,61 @@ function DeptCard({ stats }: { stats: DeptStats }) {
   const progress = totalCards > 0 ? Math.round((doneCount / totalCards) * 100) : 0;
 
   return (
-    <Link href={`/dept/${d.slug}`} style={{ textDecoration: "none" }}>
-      <div style={{
-        background: "#0C0C0C", border: "1px solid #1A1A1A", borderRadius: 12,
-        padding: "16px 18px", cursor: "pointer",
-        transition: "border-color 0.15s, background 0.15s",
-      }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = "#2A2A2A"; e.currentTarget.style.background = "#0F0F0F"; }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = "#1A1A1A"; e.currentTarget.style.background = "#0C0C0C"; }}
-      >
+    <Link href={`/dept/${d.slug}`} className="no-underline">
+      <Card hover>
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{
-              width: 30, height: 30, borderRadius: 8,
-              background: `${d.color}18`, display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 14,
-            }}>
+        <div className="flex items-center justify-between mb-3.5">
+          <div className="flex items-center gap-2.5">
+            <div
+              className="w-[30px] h-[30px] rounded-lg flex items-center justify-center text-sm"
+              style={{ background: `${d.color}18` }}
+            >
               {d.icon}
             </div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "#E0E0E0" }}>{d.name}</div>
-              <div style={{ fontSize: 11, color: "#444", display: "flex", alignItems: "center", gap: 4 }}>
+              <div className="text-sm font-semibold text-text-primary">{d.name}</div>
+              <div className="text-[11px] text-text-muted flex items-center gap-1">
                 <Users size={10} /> {memberCount} members
               </div>
             </div>
           </div>
-          <ArrowRight size={14} color="#333" />
+          <ArrowRight size={14} className="text-text-muted" />
         </div>
 
         {/* Progress bar */}
-        <div style={{ marginBottom: 10 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-            <span style={{ fontSize: 11, color: "#555" }}>{doneCount}/{totalCards} completed</span>
-            <span style={{ fontSize: 11, color: progress === 100 ? "#22C55E" : "#555", fontWeight: 600 }}>{progress}%</span>
+        <div className="mb-2.5">
+          <div className="flex justify-between mb-1.5">
+            <span className="text-[11px] text-text-muted">{doneCount}/{totalCards} completed</span>
+            <span className={cn(
+              "text-[11px] font-semibold",
+              progress === 100 ? "text-accent" : "text-text-muted"
+            )}>{progress}%</span>
           </div>
-          <div style={{ height: 4, background: "#1A1A1A", borderRadius: 4, overflow: "hidden" }}>
-            <div style={{
-              height: "100%", borderRadius: 4, transition: "width 0.3s",
-              width: `${progress}%`,
-              background: progress === 100 ? "#22C55E" : d.color || "#0454FC",
-            }} />
+          <div className="h-1 bg-bg-elevated rounded overflow-hidden">
+            <div
+              className="h-full rounded transition-[width] duration-300"
+              style={{
+                width: `${progress}%`,
+                background: progress === 100 ? "#22C55E" : d.color || "#0454FC",
+              }}
+            />
           </div>
         </div>
 
         {/* Stats row */}
-        <div style={{ display: "flex", gap: 12 }}>
+        <div className="flex gap-3">
           <StatPill label="In Progress" value={inProgressCount} color="#F5A623" />
           {overdueCount > 0 && <StatPill label="Overdue" value={overdueCount} color="#FF4444" />}
         </div>
-      </div>
+      </Card>
     </Link>
   );
 }
 
 function StatPill({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#555" }}>
-      <div style={{ width: 6, height: 6, borderRadius: "50%", background: color }} />
+    <div className="flex items-center gap-1.5 text-[11px] text-text-muted">
+      <div className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />
       {value} {label}
     </div>
   );
@@ -219,32 +213,29 @@ function ActivityRow({ entry, isLast }: { entry: ActivityEntry; isLast: boolean 
   const actionLabel = ACTION_LABELS[entry.action] || entry.action;
 
   return (
-    <div style={{
-      display: "flex", gap: 10, padding: "12px 16px",
-      borderBottom: isLast ? "none" : "1px solid #141414",
-    }}>
+    <div className={cn(
+      "flex gap-2.5 px-4 py-3",
+      !isLast && "border-b border-border-subtle"
+    )}>
       {/* Avatar */}
-      <div style={{
-        width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
-        background: "#1A1A1A", display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 11, fontWeight: 600, color: "#666",
-      }}>
-        {entry.user.name?.charAt(0).toUpperCase() || "?"}
-      </div>
+      <Avatar name={entry.user.name || "?"} size="md" />
 
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12, color: "#AAAAAA", lineHeight: 1.4 }}>
-          <span style={{ fontWeight: 600, color: "#D0D0D0" }}>{entry.user.name}</span>
+      <div className="flex-1 min-w-0">
+        <div className="text-xs text-text-secondary leading-relaxed">
+          <span className="font-semibold text-text-primary">{entry.user.name}</span>
           {" "}{actionLabel}{" "}
-          <span style={{ fontWeight: 500, color: "#D0D0D0" }}>{entry.entityTitle}</span>
+          <span className="font-medium text-text-primary">{entry.entityTitle}</span>
           {entry.detail && (
-            <span style={{ color: "#555" }}> &mdash; {entry.detail}</span>
+            <span className="text-text-muted"> &mdash; {entry.detail}</span>
           )}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
-          <span style={{ fontSize: 10, color: "#444" }}>{formatTimeAgo(entry.createdAt)}</span>
+        <div className="flex items-center gap-2 mt-1">
+          <span className="text-[10px] text-text-muted">{formatTimeAgo(entry.createdAt)}</span>
           {entry.department && (
-            <span style={{ fontSize: 10, color: entry.department.color || "#444", background: `${entry.department.color || "#444"}14`, padding: "1px 6px", borderRadius: 4 }}>
+            <span
+              className="text-[10px] px-1.5 py-px rounded"
+              style={{ color: entry.department.color || "#444", background: `${entry.department.color || "#444"}14` }}
+            >
               {entry.department.name}
             </span>
           )}

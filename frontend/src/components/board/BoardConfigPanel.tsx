@@ -2,6 +2,10 @@
 import { useState } from "react";
 import { X, Lock, ShieldCheck, CheckSquare, Trash2 } from "lucide-react";
 import { useBoardStore } from "@/store/board.store";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { SectionLabel } from "@/components/ui/SectionLabel";
+import { cn } from "@/lib/utils";
 import type { Board } from "@/types";
 
 interface BoardConfigPanelProps {
@@ -68,69 +72,71 @@ export function BoardConfigPanel({ board, onClose }: BoardConfigPanelProps) {
 
   return (
     <>
-      <div onClick={onClose} style={{
-        position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)",
-        zIndex: 40, backdropFilter: "blur(1px)", animation: "fadeIn 0.15s ease-out",
-      }} />
+      <div onClick={onClose} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 animate-fade-in" />
 
-      <div style={{
-        position: "fixed", right: 0, top: 0, height: "100%", width: 400,
-        background: "#0A0A0A", borderLeft: "1px solid #1E1E1E",
-        zIndex: 50, display: "flex", flexDirection: "column",
-        animation: "slideInRight 0.22s cubic-bezier(0.16,1,0.3,1)",
-        boxShadow: "-40px 0 80px rgba(0,0,0,0.7)",
-      }}>
+      <div className="fixed right-0 top-0 h-full w-[400px] bg-bg-base border-l border-border z-50 flex flex-col animate-slide-in-right shadow-[-40px_0_80px_rgba(0,0,0,0.7)]">
         {/* Header */}
-        <div style={{ padding: "18px 18px 14px", borderBottom: "1px solid #1E1E1E", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div className="px-[18px] pt-[18px] pb-3.5 border-b border-border flex items-center justify-between">
           <div>
-            <h2 style={{ fontSize: 14, fontWeight: 600, color: "#EBEBEB" }}>Board Settings</h2>
-            <p style={{ fontSize: 12, color: "#555", marginTop: 2 }}>{current.name}</p>
+            <h2 className="text-[14px] font-semibold text-text-primary">Board Settings</h2>
+            <p className="text-[12px] text-text-muted mt-0.5">{current.name}</p>
           </div>
-          <button onClick={onClose} style={{ width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 7, background: "transparent", border: "none", cursor: "pointer", color: "#444" }}
-            onMouseEnter={e => { e.currentTarget.style.background = "#161616"; e.currentTarget.style.color = "#F3F3F3"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#444"; }}
-          ><X size={14} /></button>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 flex items-center justify-center rounded-[7px] bg-transparent border-none cursor-pointer text-text-muted hover:bg-bg-elevated hover:text-text-primary transition-colors"
+          >
+            <X size={14} />
+          </button>
         </div>
 
         {/* Tabs */}
-        <div style={{ display: "flex", borderBottom: "1px solid #1E1E1E", flexShrink: 0 }}>
+        <div className="flex border-b border-border shrink-0">
           {(["general", "columns", "fields"] as const).map(t => (
-            <button key={t} onClick={() => setTab(t)} style={{
-              flex: 1, padding: "10px 0", fontSize: 12, fontWeight: 600,
-              background: "transparent", border: "none", cursor: "pointer",
-              borderBottom: tab === t ? "2px solid #0454FC" : "2px solid transparent",
-              color: tab === t ? "#0454FC" : "#555", textTransform: "capitalize",
-              transition: "color 0.12s",
-            }}>{t}</button>
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={cn(
+                "flex-1 py-2.5 text-[12px] font-semibold bg-transparent border-none cursor-pointer capitalize transition-colors",
+                tab === t
+                  ? "text-primary border-b-2 border-primary"
+                  : "text-text-muted border-b-2 border-transparent hover:text-text-secondary"
+              )}
+            >
+              {t}
+            </button>
           ))}
         </div>
 
         {/* Body */}
-        <div style={{ flex: 1, overflowY: "auto", padding: 18 }}>
+        <div className="flex-1 overflow-y-auto p-[18px]">
 
           {/* ── General ── */}
           {tab === "general" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <div className="flex flex-col gap-5">
               <div>
-                <Label>Board Name</Label>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <input value={name} onChange={e => setName(e.target.value)}
+                <SectionLabel>Board Name</SectionLabel>
+                <div className="flex gap-2">
+                  <Input
+                    value={name}
+                    onChange={e => setName(e.target.value)}
                     onKeyDown={e => e.key === "Enter" && saveName()}
-                    style={inputStyle}
-                    className="input-field"
                   />
-                  <button onClick={saveName} disabled={nameSaving || name === current.name} style={{
-                    padding: "0 16px", borderRadius: 8, border: "none", fontSize: 12, fontWeight: 500, flexShrink: 0,
-                    background: name !== current.name && !nameSaving ? "#0454FC" : "#1A1A1A",
-                    color: name !== current.name && !nameSaving ? "white" : "#444",
-                    cursor: name !== current.name ? "pointer" : "default",
-                  }}>{nameSaving ? "..." : "Save"}</button>
+                  <Button
+                    variant={name !== current.name && !nameSaving ? "primary" : "secondary"}
+                    size="md"
+                    onClick={saveName}
+                    disabled={nameSaving || name === current.name}
+                    loading={nameSaving}
+                    className="shrink-0"
+                  >
+                    Save
+                  </Button>
                 </div>
               </div>
 
-              <div style={{ height: 1, background: "#161616" }} />
+              <div className="h-px bg-border-subtle" />
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div className="flex flex-col gap-4">
                 <ToggleRow
                   icon={<Lock size={13} />}
                   label="Lock Board"
@@ -158,81 +164,113 @@ export function BoardConfigPanel({ board, onClose }: BoardConfigPanelProps) {
 
           {/* ── Columns ── */}
           {tab === "columns" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div className="flex flex-col gap-1.5">
               {[...current.columns].sort((a, b) => a.order - b.order).map(col => (
-                <div key={col._id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: "#111", borderRadius: 9, border: "1px solid #1E1E1E" }}>
-                  <div style={{ width: 9, height: 9, borderRadius: "50%", background: col.color || "#555", flexShrink: 0 }} />
-                  <span style={{ flex: 1, fontSize: 13, color: "#C8C8C8" }}>{col.name}</span>
-                  {col.isDefault && <span style={{ fontSize: 10, color: "#444", background: "#1A1A1A", padding: "2px 6px", borderRadius: 4 }}>default</span>}
+                <div key={col._id} className="flex items-center gap-2.5 py-[9px] px-3 bg-bg-surface rounded-[9px] border border-border-subtle">
+                  <div className="w-[9px] h-[9px] rounded-full shrink-0" style={{ background: col.color || "#555" }} />
+                  <span className="flex-1 text-[13px] text-text-primary">{col.name}</span>
+                  {col.isDefault && <span className="text-[10px] text-text-muted bg-bg-elevated px-1.5 py-0.5 rounded">default</span>}
                   {!col.isDefault && (
-                    <button onClick={() => deleteColumn(current._id, col._id)} style={{ width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 6, background: "transparent", border: "none", cursor: "pointer", color: "#444" }}
-                      onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,68,68,0.1)"; e.currentTarget.style.color = "#FF4444"; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#444"; }}
-                    ><Trash2 size={12} /></button>
+                    <button
+                      onClick={() => deleteColumn(current._id, col._id)}
+                      className="w-[26px] h-[26px] flex items-center justify-center rounded-md bg-transparent border-none cursor-pointer text-text-muted hover:bg-danger/10 hover:text-danger transition-colors"
+                    >
+                      <Trash2 size={12} />
+                    </button>
                   )}
                 </div>
               ))}
 
-              <div style={{ marginTop: 10, padding: 14, background: "#0D0D0D", border: "1px dashed #2A2A2A", borderRadius: 10 }}>
-                <Label>Add Column</Label>
-                <input value={newColName} onChange={e => setNewColName(e.target.value)}
+              <div className="mt-2.5 p-3.5 bg-bg-base border border-dashed border-border rounded-[10px]">
+                <SectionLabel>Add Column</SectionLabel>
+                <Input
+                  value={newColName}
+                  onChange={e => setNewColName(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && handleAddColumn()}
                   placeholder="Column name"
-                  style={{ ...inputStyle, marginBottom: 10 }}
-                  className="input-field"
+                  className="mb-2.5"
                 />
-                <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+                <div className="flex gap-1.5 mb-3">
                   {COLUMN_COLORS.map(c => (
-                    <button key={c} type="button" onClick={() => setNewColColor(c)} style={{
-                      width: 20, height: 20, borderRadius: "50%", background: c, cursor: "pointer",
-                      border: newColColor === c ? "2px solid white" : "2px solid transparent",
-                      transition: "border 0.1s",
-                    }} />
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setNewColColor(c)}
+                      className={cn(
+                        "w-5 h-5 rounded-full cursor-pointer transition-all",
+                        newColColor === c ? "border-2 border-white scale-110" : "border-2 border-transparent"
+                      )}
+                      style={{ background: c }}
+                    />
                   ))}
                 </div>
-                <ActionButton onClick={handleAddColumn} disabled={!newColName.trim() || addingCol} loading={addingCol} label="+ Add Column" />
+                <Button
+                  variant="primary"
+                  size="md"
+                  onClick={handleAddColumn}
+                  disabled={!newColName.trim() || addingCol}
+                  loading={addingCol}
+                  className="w-full"
+                >
+                  + Add Column
+                </Button>
               </div>
             </div>
           )}
 
           {/* ── Fields ── */}
           {tab === "fields" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div className="flex flex-col gap-1.5">
               {(current.customFields ?? []).length === 0 && (
-                <p style={{ fontSize: 13, color: "#333", padding: "16px 0", textAlign: "center" }}>No custom fields yet</p>
+                <p className="text-[13px] text-text-muted py-4 text-center">No custom fields yet</p>
               )}
               {[...(current.customFields ?? [])].sort((a, b) => a.order - b.order).map(field => (
-                <div key={field._id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: "#111", borderRadius: 9, border: "1px solid #1E1E1E" }}>
-                  <span style={{ fontSize: 10, fontFamily: "monospace", color: "#0454FC", background: "rgba(4,84,252,0.1)", padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>{field.type}</span>
-                  <span style={{ flex: 1, fontSize: 13, color: "#C8C8C8" }}>{field.name}</span>
-                  {(field.options?.length ?? 0) > 0 && <span style={{ fontSize: 10, color: "#555" }}>{field.options!.length} opts</span>}
-                  <button onClick={() => deleteField(current._id, field._id)} style={{ width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 6, background: "transparent", border: "none", cursor: "pointer", color: "#444" }}
-                    onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,68,68,0.1)"; e.currentTarget.style.color = "#FF4444"; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#444"; }}
-                  ><Trash2 size={12} /></button>
+                <div key={field._id} className="flex items-center gap-2.5 py-[9px] px-3 bg-bg-surface rounded-[9px] border border-border-subtle">
+                  <span className="text-[10px] font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded shrink-0">{field.type}</span>
+                  <span className="flex-1 text-[13px] text-text-primary">{field.name}</span>
+                  {(field.options?.length ?? 0) > 0 && <span className="text-[10px] text-text-muted">{field.options!.length} opts</span>}
+                  <button
+                    onClick={() => deleteField(current._id, field._id)}
+                    className="w-[26px] h-[26px] flex items-center justify-center rounded-md bg-transparent border-none cursor-pointer text-text-muted hover:bg-danger/10 hover:text-danger transition-colors"
+                  >
+                    <Trash2 size={12} />
+                  </button>
                 </div>
               ))}
 
-              <div style={{ marginTop: 10, padding: 14, background: "#0D0D0D", border: "1px dashed #2A2A2A", borderRadius: 10 }}>
-                <Label>Add Field</Label>
-                <input value={newFieldName} onChange={e => setNewFieldName(e.target.value)}
+              <div className="mt-2.5 p-3.5 bg-bg-base border border-dashed border-border rounded-[10px]">
+                <SectionLabel>Add Field</SectionLabel>
+                <Input
+                  value={newFieldName}
+                  onChange={e => setNewFieldName(e.target.value)}
                   placeholder="Field name"
-                  style={{ ...inputStyle, marginBottom: 8 }}
-                  className="input-field"
+                  className="mb-2"
                 />
-                <select value={newFieldType} onChange={e => setNewFieldType(e.target.value)}
-                  style={{ ...inputStyle, marginBottom: 8, cursor: "pointer" }}
+                <select
+                  value={newFieldType}
+                  onChange={e => setNewFieldType(e.target.value)}
+                  className="w-full bg-bg-surface border border-border rounded-btn px-3.5 py-2.5 text-[13px] text-text-primary outline-none cursor-pointer mb-2 transition-all focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
                 >
                   {FIELD_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
                 {newFieldType === "dropdown" && (
-                  <input value={newFieldOpts} onChange={e => setNewFieldOpts(e.target.value)}
+                  <Input
+                    value={newFieldOpts}
+                    onChange={e => setNewFieldOpts(e.target.value)}
                     placeholder="Options (comma-separated)"
-                    style={{ ...inputStyle, marginBottom: 8 }}
-                    className="input-field"
+                    className="mb-2"
                   />
                 )}
-                <ActionButton onClick={handleAddField} disabled={!newFieldName.trim() || addingField} loading={addingField} label="+ Add Field" />
+                <Button
+                  variant="primary"
+                  size="md"
+                  onClick={handleAddField}
+                  disabled={!newFieldName.trim() || addingField}
+                  loading={addingField}
+                  className="w-full"
+                >
+                  + Add Field
+                </Button>
               </div>
             </div>
           )}
@@ -244,58 +282,30 @@ export function BoardConfigPanel({ board, onClose }: BoardConfigPanelProps) {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const inputStyle: React.CSSProperties = {
-  width: "100%", background: "#111", border: "1px solid #222",
-  borderRadius: 8, padding: "8px 12px", fontSize: 13, color: "#F3F3F3",
-  outline: "none", boxSizing: "border-box",
-};
-
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ fontSize: 11, fontWeight: 700, color: "#444", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>
-      {children}
-    </div>
-  );
-}
-
-function ActionButton({ onClick, disabled, loading, label }: { onClick: () => void; disabled: boolean; loading: boolean; label: string }) {
-  return (
-    <button onClick={onClick} disabled={disabled} style={{
-      width: "100%", padding: "8px 0", borderRadius: 8, border: "none", fontSize: 12, fontWeight: 500,
-      background: !disabled ? "#0454FC" : "#1A1A1A",
-      color: !disabled ? "white" : "#444",
-      cursor: !disabled ? "pointer" : "default",
-      transition: "background 0.1s",
-    }}
-      onMouseEnter={e => { if (!disabled) e.currentTarget.style.background = "#3B7BFF"; }}
-      onMouseLeave={e => { if (!disabled) e.currentTarget.style.background = "#0454FC"; }}
-    >{loading ? "..." : label}</button>
-  );
-}
-
 function ToggleRow({ icon, label, description, value, onChange }: {
   icon: React.ReactNode; label: string; description: string;
   value: boolean; onChange: (v: boolean) => void;
 }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
-        <span style={{ color: value ? "#0454FC" : "#555", flexShrink: 0, transition: "color 0.2s" }}>{icon}</span>
+    <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2.5 flex-1">
+        <span className={cn("shrink-0 transition-colors duration-200", value ? "text-primary" : "text-text-muted")}>{icon}</span>
         <div>
-          <div style={{ fontSize: 13, color: "#C8C8C8", fontWeight: 500 }}>{label}</div>
-          <div style={{ fontSize: 11, color: "#444" }}>{description}</div>
+          <div className="text-[13px] text-text-primary font-medium">{label}</div>
+          <div className="text-[11px] text-text-muted">{description}</div>
         </div>
       </div>
-      <button onClick={() => onChange(!value)} style={{
-        width: 36, height: 20, borderRadius: 10, border: "none", cursor: "pointer",
-        background: value ? "#0454FC" : "#252525",
-        position: "relative", transition: "background 0.2s", flexShrink: 0,
-      }}>
-        <div style={{
-          position: "absolute", top: 2, left: value ? 18 : 2,
-          width: 16, height: 16, borderRadius: "50%", background: "white",
-          transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.4)",
-        }} />
+      <button
+        onClick={() => onChange(!value)}
+        className={cn(
+          "w-9 h-5 rounded-[10px] border-none cursor-pointer relative transition-colors duration-200 shrink-0",
+          value ? "bg-primary" : "bg-bg-elevated"
+        )}
+      >
+        <div
+          className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-[left] duration-200 shadow-sm"
+          style={{ left: value ? 18 : 2 }}
+        />
       </button>
     </div>
   );

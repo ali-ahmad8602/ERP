@@ -14,8 +14,8 @@ export default function Home() {
   }, [token, user, fetchMe, router]);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#050505", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ width: 28, height: 28, border: "2px solid #1A1A1A", borderTopColor: "#0454FC", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+    <div className="min-h-screen bg-bg-base flex items-center justify-center">
+      <div className="w-7 h-7 border-2 border-border-subtle border-t-primary rounded-full animate-spin" />
     </div>
   );
 }

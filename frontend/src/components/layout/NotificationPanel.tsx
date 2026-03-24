@@ -4,6 +4,9 @@ import { useNotificationStore } from "@/store/notification.store";
 import {
   UserPlus, MessageSquare, CheckCircle2, XCircle, Clock, ArrowRightLeft, Users, Shield,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Avatar } from "@/components/ui/Avatar";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import type { Notification } from "@/types";
 
 const TYPE_CONFIG: Record<string, { icon: React.ReactNode; color: string }> = {
@@ -74,25 +77,13 @@ export function NotificationPanel({ onClose }: Props) {
   };
 
   return (
-    <div style={{
-      position: "absolute", top: "calc(100% + 8px)", right: 0, width: 380,
-      background: "#0C0C0C", border: "1px solid #1E1E1E", borderRadius: 14,
-      boxShadow: "0 20px 60px rgba(0,0,0,0.8)",
-      zIndex: 200, overflow: "hidden",
-      animation: "fadeUp 0.15s cubic-bezier(0.16,1,0.3,1)",
-    }}>
+    <div className="absolute right-0 top-full mt-2 w-[380px] bg-bg-surface border border-border rounded-card shadow-modal animate-fade-up overflow-hidden z-[200]">
       {/* Header */}
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "14px 16px", borderBottom: "1px solid #1A1A1A",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: "#E0E0E0" }}>Notifications</span>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle">
+        <div className="flex items-center gap-2">
+          <span className="text-[13px] font-bold text-text-primary">Notifications</span>
           {unreadCount > 0 && (
-            <span style={{
-              fontSize: 10, fontWeight: 600, color: "#FF4444",
-              background: "rgba(255,68,68,0.12)", padding: "2px 7px", borderRadius: 10,
-            }}>
+            <span className="text-[10px] font-semibold text-danger bg-danger/10 px-1.5 py-0.5 rounded-full">
               {unreadCount} new
             </span>
           )}
@@ -100,10 +91,7 @@ export function NotificationPanel({ onClose }: Props) {
         {unreadCount > 0 && (
           <button
             onClick={() => markAllRead()}
-            style={{
-              fontSize: 11, color: "#0454FC", background: "none", border: "none",
-              cursor: "pointer", fontWeight: 500,
-            }}
+            className="text-primary hover:text-primary-light text-[12px] font-medium transition-colors bg-transparent border-none cursor-pointer"
           >
             Mark all read
           </button>
@@ -111,62 +99,74 @@ export function NotificationPanel({ onClose }: Props) {
       </div>
 
       {/* Content */}
-      <div style={{ maxHeight: 420, overflow: "auto" }}>
+      <div className="max-h-[420px] overflow-auto">
         {notifications.length === 0 && (
-          <div style={{ padding: "40px 16px", textAlign: "center", color: "#444", fontSize: 13 }}>
+          <div className="py-10 px-4 text-center text-text-muted text-[13px]">
             You&apos;re all caught up!
           </div>
         )}
 
         {groups.map(group => (
           <div key={group.label}>
-            <div style={{ padding: "10px 16px 4px", fontSize: 10, fontWeight: 700, color: "#3A3A3A", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            <SectionLabel className="px-4 pt-2.5 pb-1 mb-0">
               {group.label}
-            </div>
+            </SectionLabel>
             {group.items.map(n => {
               const config = TYPE_CONFIG[n.type] || { icon: null, color: "#555" };
               return (
                 <button
                   key={n._id}
                   onClick={() => handleClick(n)}
-                  style={{
-                    width: "100%", display: "flex", gap: 10, padding: "10px 16px",
-                    background: "none", border: "none", cursor: "pointer", textAlign: "left",
-                    borderLeft: n.isRead ? "3px solid transparent" : `3px solid ${config.color}`,
-                    transition: "background 0.1s",
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = "#111111"}
-                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                  className={cn(
+                    "w-full flex gap-3 px-4 py-3 bg-transparent border-none cursor-pointer text-left",
+                    "hover:bg-bg-elevated transition-colors",
+                    !n.isRead && "border-l-2 border-primary",
+                    n.isRead && "border-l-2 border-transparent"
+                  )}
                 >
                   {/* Icon */}
-                  <div style={{
-                    width: 28, height: 28, borderRadius: 7, flexShrink: 0,
-                    background: `${config.color}14`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    color: config.color,
-                  }}>
+                  <div
+                    className="w-7 h-7 rounded-[7px] shrink-0 flex items-center justify-center"
+                    style={{
+                      backgroundColor: `${config.color}14`,
+                      color: config.color,
+                    }}
+                  >
                     {config.icon}
                   </div>
 
                   {/* Content */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, color: n.isRead ? "#666" : "#D0D0D0", fontWeight: n.isRead ? 400 : 500, lineHeight: 1.4 }}>
+                  <div className="flex-1 min-w-0">
+                    <div
+                      className={cn(
+                        "text-[12px] leading-[1.4]",
+                        n.isRead
+                          ? "text-text-muted font-normal"
+                          : "text-text-primary font-medium"
+                      )}
+                    >
                       {n.title}
                     </div>
-                    <div style={{ fontSize: 11, color: "#555", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div className="text-[11px] text-text-muted mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap">
                       {n.message}
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-                      <span style={{ fontSize: 10, color: "#444" }}>{formatTimeAgo(n.createdAt)}</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[10px] text-text-muted">{formatTimeAgo(n.createdAt)}</span>
                       {n.sender && (
-                        <span style={{ fontSize: 10, color: "#555" }}>by {n.sender.name}</span>
+                        <span className="flex items-center gap-1 text-[10px] text-text-secondary">
+                          <Avatar name={n.sender.name} size="xs" />
+                          {n.sender.name}
+                        </span>
                       )}
                     </div>
                   </div>
 
                   {/* Unread dot */}
                   {!n.isRead && (
-                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: config.color, flexShrink: 0, marginTop: 6 }} />
+                    <div
+                      className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5"
+                      style={{ backgroundColor: config.color }}
+                    />
                   )}
                 </button>
               );

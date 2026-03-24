@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { Bell } from "lucide-react";
 import { useNotificationStore } from "@/store/notification.store";
 import { NotificationPanel } from "./NotificationPanel";
+import { cn } from "@/lib/utils";
 
 export function NotificationBell() {
   const { unreadCount } = useNotificationStore();
@@ -20,29 +21,21 @@ export function NotificationBell() {
   }, [open]);
 
   return (
-    <div ref={ref} style={{ position: "relative" }}>
+    <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(p => !p)}
-        style={{
-          position: "relative", display: "flex", alignItems: "center", justifyContent: "center",
-          width: 32, height: 32, borderRadius: 8, border: "none", cursor: "pointer",
-          background: open ? "#1A1A1A" : "transparent",
-          color: open ? "#D0D0D0" : "#555",
-          transition: "background 0.12s, color 0.12s",
-        }}
-        onMouseEnter={e => { if (!open) { e.currentTarget.style.background = "#141414"; e.currentTarget.style.color = "#888"; } }}
-        onMouseLeave={e => { if (!open) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#555"; } }}
+        className={cn(
+          "relative w-8 h-8 rounded-btn flex items-center justify-center",
+          "border-none cursor-pointer transition-colors",
+          "hover:bg-bg-elevated hover:text-text-secondary",
+          open
+            ? "bg-bg-elevated text-text-primary"
+            : "bg-transparent text-text-muted"
+        )}
       >
         <Bell size={15} />
         {unreadCount > 0 && (
-          <div style={{
-            position: "absolute", top: 3, right: 3,
-            minWidth: 15, height: 15, borderRadius: 10,
-            background: "#FF4444", color: "white",
-            fontSize: 9, fontWeight: 700,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            padding: "0 4px", lineHeight: 1,
-          }}>
+          <div className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full bg-danger text-white text-[9px] font-bold flex items-center justify-center px-1 leading-none">
             {unreadCount > 99 ? "99+" : unreadCount}
           </div>
         )}

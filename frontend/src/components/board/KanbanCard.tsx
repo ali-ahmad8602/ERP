@@ -3,6 +3,8 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Calendar, MessageSquare, Paperclip, ShieldCheck, Clock, CheckCircle2 } from "lucide-react";
 import { PRIORITY_CONFIG } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { AvatarGroup } from "@/components/ui/Avatar";
 import { format, isPast, isToday, isTomorrow } from "date-fns";
 import type { Card } from "@/types";
 
@@ -50,57 +52,46 @@ export function KanbanCard({ card, onClick, isDragging }: KanbanCardProps) {
       style={{
         transform: CSS.Transform.toString(transform),
         transition: transition ?? undefined,
-        opacity: (isSortable || isDragging) ? 0.35 : 1,
-        position: "relative",
-        borderRadius: 10,
-        background: "#0F0F0F",
-        border: "1px solid #222222",
         borderLeft: `3px solid ${card.isComplianceTagged ? "#F5A623" : dotColor === "transparent" ? "#222222" : dotColor}`,
-        padding: "11px 12px 10px",
-        cursor: "grab",
-        userSelect: "none",
       }}
-      className="card-hover"
+      className={cn(
+        "relative rounded-[10px] bg-bg-surface border border-border-subtle",
+        "py-[11px] px-3 cursor-grab select-none card-hover",
+        (isSortable || isDragging) ? "opacity-35" : "opacity-100"
+      )}
       {...attributes}
       {...listeners}
       onClick={onClick}
     >
       {/* Top row: title + approval dot */}
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 6, marginBottom: 7 }}>
-        <p style={{
-          flex: 1, fontSize: 13, fontWeight: 500, color: "#EBEBEB",
-          lineHeight: 1.45, letterSpacing: "-0.01em",
-        }}>
+      <div className="flex items-start gap-1.5 mb-[7px]">
+        <p className="flex-1 text-[13px] font-medium text-text-primary leading-[1.45] tracking-tight">
           {card.title}
         </p>
         {card.approval?.required && card.approval.status === "pending" && (
-          <span title="Awaiting approval" style={{
-            flexShrink: 0, marginTop: 2,
-            width: 7, height: 7, borderRadius: "50%",
-            background: "#F5A623",
-            animation: "pulseDot 1.8s ease-in-out infinite",
-          }} />
+          <span
+            title="Awaiting approval"
+            className="shrink-0 mt-0.5 w-[7px] h-[7px] rounded-full bg-warning animate-pulse-dot"
+          />
         )}
         {isApproved && (
-          <CheckCircle2 size={13} color="#00E5A0" style={{ flexShrink: 0, marginTop: 2 }} />
+          <CheckCircle2 size={13} className="text-success shrink-0 mt-0.5" />
         )}
       </div>
 
       {/* Labels */}
       {card.labels.length > 0 && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 8 }}>
+        <div className="flex flex-wrap gap-1 mb-2">
           {card.labels.slice(0, 3).map(label => (
-            <span key={label} style={{
-              padding: "2px 7px", borderRadius: 4,
-              fontSize: 10, fontWeight: 500,
-              background: "#1C1C1C", color: "#666666",
-              border: "1px solid #2A2A2A",
-            }}>
+            <span
+              key={label}
+              className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-bg-elevated text-text-muted border border-border-subtle"
+            >
               {label}
             </span>
           ))}
           {card.labels.length > 3 && (
-            <span style={{ padding: "2px 5px", fontSize: 10, color: "#444444" }}>
+            <span className="px-[5px] py-0.5 text-[10px] text-text-muted">
               +{card.labels.length - 3}
             </span>
           )}
@@ -108,14 +99,17 @@ export function KanbanCard({ card, onClick, isDragging }: KanbanCardProps) {
       )}
 
       {/* Footer */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div className="flex items-center justify-between">
         {/* Left: due date + compliance */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div className="flex items-center gap-2">
           {dueDateLabel && (
-            <span style={{
-              display: "flex", alignItems: "center", gap: 3,
-              fontSize: 11, color: dueDateColor, fontWeight: isOverdue || isDueToday ? 500 : 400,
-            }}>
+            <span
+              className={cn(
+                "flex items-center gap-[3px] text-[11px]",
+                (isOverdue || isDueToday) ? "font-medium" : "font-normal"
+              )}
+              style={{ color: dueDateColor }}
+            >
               {isOverdue
                 ? <Clock size={10} />
                 : <Calendar size={10} />}
@@ -123,64 +117,38 @@ export function KanbanCard({ card, onClick, isDragging }: KanbanCardProps) {
             </span>
           )}
           {card.isComplianceTagged && (
-            <span title="Compliance-tagged" style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 10, color: "#F5A623" }}>
+            <span title="Compliance-tagged" className="flex items-center gap-0.5 text-[10px] text-warning">
               <ShieldCheck size={10} /> Compliance
             </span>
           )}
         </div>
 
         {/* Right: meta + avatars */}
-        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+        <div className="flex items-center gap-[7px]">
           {(card.comments?.length ?? 0) > 0 && (
-            <span style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11, color: "#444444" }}>
+            <span className="flex items-center gap-[3px] text-[11px] text-text-muted">
               <MessageSquare size={10} />
               {card.comments.length}
             </span>
           )}
           {(card.attachments?.length ?? 0) > 0 && (
-            <span style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11, color: "#444444" }}>
+            <span className="flex items-center gap-[3px] text-[11px] text-text-muted">
               <Paperclip size={10} />
               {card.attachments!.length}
             </span>
           )}
           {(card.assignees?.length ?? 0) > 0 && (
-            <div style={{ display: "flex", marginLeft: 2 }}>
-              {card.assignees.slice(0, 3).map((user, i) => (
-                <div key={user._id} title={user.name} style={{
-                  width: 20, height: 20, borderRadius: "50%",
-                  background: `hsl(${(user.name.charCodeAt(0) * 37) % 360}, 55%, 40%)`,
-                  border: "2px solid #0F0F0F",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 8, fontWeight: 700, color: "white",
-                  marginLeft: i > 0 ? -6 : 0,
-                  zIndex: 3 - i,
-                  position: "relative",
-                }}>
-                  {user.name[0].toUpperCase()}
-                </div>
-              ))}
-              {card.assignees.length > 3 && (
-                <div style={{
-                  width: 20, height: 20, borderRadius: "50%",
-                  background: "#1A1A1A", border: "2px solid #0F0F0F",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 8, color: "#666", marginLeft: -6, position: "relative",
-                }}>
-                  +{card.assignees.length - 3}
-                </div>
-              )}
-            </div>
+            <AvatarGroup users={card.assignees} max={3} size="xs" />
           )}
         </div>
       </div>
 
       {/* Priority micro-indicator strip at top */}
       {card.priority !== "none" && !card.isComplianceTagged && (
-        <div style={{
-          position: "absolute", top: 0, left: 0, right: 0, height: 2,
-          borderRadius: "10px 10px 0 0",
-          background: `linear-gradient(90deg, ${dotColor}60, transparent)`,
-        }} />
+        <div
+          className="absolute top-0 left-0 right-0 h-0.5 rounded-t-[10px]"
+          style={{ background: `linear-gradient(90deg, ${dotColor}60, transparent)` }}
+        />
       )}
     </div>
   );

@@ -2,8 +2,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff, Loader2, LayoutGrid } from "lucide-react";
+import { Eye, EyeOff, LayoutGrid } from "lucide-react";
 import { useAuthStore } from "@/store/auth.store";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,126 +28,108 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#050505", display: "flex" }}>
+    <div className="min-h-screen bg-bg-base flex">
 
       {/* Left branding panel */}
-      <div style={{
-        width: 480, flexShrink: 0, background: "#0F0F0F",
-        borderRight: "1px solid #2A2A2A", display: "flex", flexDirection: "column",
-        justifyContent: "space-between", padding: 48,
-      }} className="hidden lg:flex">
+      <div className="hidden lg:flex w-[480px] shrink-0 bg-gradient-to-br from-primary-dark via-primary to-primary-light border-r border-border flex-col justify-between p-12">
         {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 10, background: "#0454FC", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <LayoutGrid size={16} color="white" />
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-primary to-primary-light shadow-lg flex items-center justify-center">
+            <LayoutGrid size={16} className="text-white" />
           </div>
-          <span style={{ fontSize: 16, fontWeight: 600, color: "#F3F3F3" }}>InvoiceMate</span>
+          <span className="text-base font-semibold text-white">InvoiceMate</span>
         </div>
 
         {/* Copy */}
         <div>
-          <h2 style={{ fontSize: 28, fontWeight: 700, color: "#F3F3F3", lineHeight: 1.3, marginBottom: 12 }}>
+          <h2 className="text-[28px] font-bold text-white leading-tight mb-3">
             Turning Waiting Capital<br />Into Working Capital
           </h2>
-          <p style={{ fontSize: 15, color: "#888888", lineHeight: 1.7 }}>
+          <p className="text-[15px] text-white/70 leading-relaxed">
             One workspace for every team — Legal, Risk, Tech, Finance, Marketing and more.
             All your backlogs, boards, and workflows in one place.
           </p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 24 }}>
+          <div className="flex flex-wrap gap-2 mt-6">
             {["Kanban Boards", "Role-Based Access", "Audit Trails", "Compliance Tagging", "Approval Workflows"].map(f => (
-              <span key={f} style={{ padding: "5px 12px", borderRadius: 20, background: "#1A1A1A", border: "1px solid #2A2A2A", fontSize: 12, color: "#888888" }}>
+              <span key={f} className="px-3 py-1.5 rounded-full bg-primary-ghost text-primary-foreground text-xs border border-white/15">
                 {f}
               </span>
             ))}
           </div>
         </div>
 
-        <p style={{ fontSize: 11, color: "#444444" }}>
+        <p className="text-[11px] text-white/30">
           © {new Date().getFullYear()} InvoiceMate · Shariah-Compliant · Blockchain-Verified · AI-Powered
         </p>
       </div>
 
       {/* Right form */}
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 32 }}>
-        <div style={{ width: "100%", maxWidth: 380 }}>
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-[380px]">
           {/* Mobile logo */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 32 }} className="flex lg:hidden">
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: "#0454FC", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <LayoutGrid size={14} color="white" />
+          <div className="flex lg:hidden items-center gap-2 mb-8">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-primary-light flex items-center justify-center">
+              <LayoutGrid size={14} className="text-white" />
             </div>
-            <span style={{ fontSize: 15, fontWeight: 600, color: "#F3F3F3" }}>InvoiceMate</span>
+            <span className="text-[15px] font-semibold text-text-primary">InvoiceMate</span>
           </div>
 
-          <h1 style={{ fontSize: 26, fontWeight: 700, color: "#F3F3F3", marginBottom: 4 }}>Welcome back</h1>
-          <p style={{ fontSize: 14, color: "#888888", marginBottom: 32 }}>Sign in to your workspace</p>
+          <h1 className="text-[26px] font-bold text-text-primary mb-1">Welcome back</h1>
+          <p className="text-sm text-text-secondary mb-8">Sign in to your workspace</p>
 
           {error && (
-            <div style={{ marginBottom: 20, padding: "10px 14px", borderRadius: 8, background: "rgba(255,68,68,0.1)", border: "1px solid rgba(255,68,68,0.2)", fontSize: 13, color: "#FF4444" }}>
+            <div className="mb-5 px-3.5 py-2.5 rounded-lg bg-danger/10 border border-danger/20 text-[13px] text-danger">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#888888", marginBottom: 6 }}>
-                Email address
-              </label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="you@invoicemate.net" required
-                style={{
-                  width: "100%", background: "#0F0F0F", border: "1px solid #2A2A2A",
-                  borderRadius: 8, padding: "10px 14px", fontSize: 13,
-                  color: "#F3F3F3", outline: "none", transition: "border-color 0.15s",
-                }}
-                className="placeholder:text-[#444]"
-                onFocus={e => (e.currentTarget.style.borderColor = "rgba(4,84,252,0.5)")}
-                onBlur={e => (e.currentTarget.style.borderColor = "#2A2A2A")}
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <Input
+              label="Email address"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="you@invoicemate.net"
+              required
+            />
 
             <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#888888", marginBottom: 6 }}>
+              <label className="block text-[13px] font-medium text-text-secondary mb-1.5">
                 Password
               </label>
-              <div style={{ position: "relative" }}>
-                <input type={showPass ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••" required
-                  style={{
-                    width: "100%", background: "#0F0F0F", border: "1px solid #2A2A2A",
-                    borderRadius: 8, padding: "10px 40px 10px 14px", fontSize: 13,
-                    color: "#F3F3F3", outline: "none", transition: "border-color 0.15s",
-                  }}
-                  className="placeholder:text-[#444]"
-                  onFocus={e => (e.currentTarget.style.borderColor = "rgba(4,84,252,0.5)")}
-                  onBlur={e => (e.currentTarget.style.borderColor = "#2A2A2A")}
+              <div className="relative">
+                <Input
+                  type={showPass ? "text" : "password"}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="pr-10"
                 />
-                <button type="button" onClick={() => setShowPass(p => !p)} style={{
-                  position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
-                  background: "none", border: "none", cursor: "pointer", color: "#555555",
-                }}>
+                <button
+                  type="button"
+                  onClick={() => setShowPass(p => !p)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
+                >
                   {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               </div>
             </div>
 
-            <button type="submit" disabled={loading} style={{
-              width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-              padding: "11px 0", borderRadius: 8, background: loading ? "#0340CC" : "#0454FC",
-              color: "white", fontSize: 14, fontWeight: 500, border: "none",
-              cursor: loading ? "not-allowed" : "pointer", transition: "background 0.15s",
-              marginTop: 4,
-            }}
-              onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLElement).style.background = "#3B7BFF"; }}
-              onMouseLeave={e => { if (!loading) (e.currentTarget as HTMLElement).style.background = "#0454FC"; }}
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              loading={loading}
+              className="w-full mt-1"
             >
-              {loading && <Loader2 size={14} className="animate-spin" />}
               {loading ? "Signing in..." : "Sign in"}
-            </button>
+            </Button>
           </form>
 
-          <p style={{ marginTop: 24, textAlign: "center", fontSize: 13, color: "#555555" }}>
+          <p className="mt-6 text-center text-[13px] text-text-muted">
             Don&apos;t have an account?{" "}
-            <Link href="/register" style={{ color: "#0454FC", textDecoration: "none" }}>
+            <Link href="/register" className="text-primary hover:text-primary-light transition-colors">
               Request access
             </Link>
           </p>

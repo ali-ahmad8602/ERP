@@ -5,9 +5,12 @@ import {
   type DragStartEvent, type DragEndEvent, closestCenter
 } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { Plus, GripVertical } from "lucide-react";
+import { Plus } from "lucide-react";
 import { KanbanCard } from "./KanbanCard";
 import { CardDetailDrawer } from "../card/CardDetailDrawer";
+import { Button } from "@/components/ui/Button";
+import { Textarea } from "@/components/ui/Input";
+import { cn } from "@/lib/utils";
 import type { Board, Card, Column } from "@/types";
 
 interface KanbanBoardProps {
@@ -62,10 +65,7 @@ export function KanbanBoard({ board, cards, onCardMove, onCardCreate, canEdit = 
     <>
       <DndContext sensors={sensors} collisionDetection={closestCenter}
         onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <div style={{
-          display: "flex", gap: 10, height: "100%",
-          overflowX: "auto", padding: "14px 20px 20px",
-        }}>
+        <div className="flex gap-2.5 h-full overflow-x-auto px-5 pt-3.5 pb-5">
           {columns.map(col => {
             const colCards = cardsByColumn(col._id);
             const accent = getColumnAccent(col.name);
@@ -91,7 +91,7 @@ export function KanbanBoard({ board, cards, onCardMove, onCardCreate, canEdit = 
 
         <DragOverlay dropAnimation={{ duration: 180, easing: "cubic-bezier(0.16,1,0.3,1)" }}>
           {activeCard && (
-            <div style={{ transform: "rotate(1.5deg) scale(1.02)", opacity: 0.95, width: 272 }}>
+            <div className="rotate-[1.5deg] scale-[1.02] opacity-95 w-[272px]">
               <KanbanCard card={activeCard} isDragging />
             </div>
           )}
@@ -122,37 +122,25 @@ interface ColumnPanelProps {
 
 function ColumnPanel({ column, cards, accent, isLocked, canEdit, onCardClick, isAdding, newCardTitle, onNewTitleChange, onAddStart, onAddConfirm, onAddCancel }: ColumnPanelProps) {
   return (
-    <div style={{ width: 272, flexShrink: 0, display: "flex", flexDirection: "column" }}>
+    <div className="w-[272px] shrink-0 flex flex-col">
 
       {/* Column header */}
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        marginBottom: 8, padding: "0 2px",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+      <div className="flex items-center justify-between mb-2 px-0.5">
+        <div className="flex items-center gap-[7px]">
           {/* Colored dot */}
-          <div style={{ width: 7, height: 7, borderRadius: "50%", background: accent, flexShrink: 0 }} />
-          <span style={{ fontSize: 11, fontWeight: 600, color: "#777", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+          <div className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: accent }} />
+          <span className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
             {column.name}
           </span>
-          <span style={{
-            minWidth: 18, height: 16, padding: "0 5px",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            borderRadius: 20, background: "#161616",
-            fontSize: 10, color: "#444", fontFamily: "monospace",
-          }}>
+          <span className="min-w-[18px] h-4 px-[5px] flex items-center justify-center rounded-full bg-bg-base text-[10px] text-text-muted font-mono">
             {cards.length}
           </span>
         </div>
 
         {canEdit && !isLocked && (
-          <button onClick={onAddStart} style={{
-            width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center",
-            borderRadius: 6, background: "transparent", border: "none", cursor: "pointer",
-            color: "#333", transition: "all 0.1s",
-          }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#1A1A1A"; (e.currentTarget as HTMLElement).style.color = "#888"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#333"; }}
+          <button
+            onClick={onAddStart}
+            className="w-[22px] h-[22px] flex items-center justify-center rounded-md bg-transparent border-none cursor-pointer text-text-muted hover:bg-bg-elevated hover:text-text-secondary transition-colors"
           >
             <Plus size={13} />
           </button>
@@ -160,27 +148,25 @@ function ColumnPanel({ column, cards, accent, isLocked, canEdit, onCardClick, is
       </div>
 
       {/* Accent line under header */}
-      <div style={{ height: 2, background: `linear-gradient(90deg, ${accent}50, transparent)`, borderRadius: 2, marginBottom: 8 }} />
+      <div className="h-0.5 rounded-sm mb-2" style={{ background: `linear-gradient(90deg, ${accent}50, transparent)` }} />
 
       {/* Cards */}
       <SortableContext items={cards.map(c => c._id)} strategy={verticalListSortingStrategy}>
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6, minHeight: 40 }}>
+        <div className="flex-1 flex flex-col gap-1.5 min-h-[40px]">
           {cards.map(card => (
             <KanbanCard key={card._id} card={card} onClick={() => onCardClick(card)} />
           ))}
 
           {/* Empty state */}
           {cards.length === 0 && !isAdding && (
-            <div style={{
-              border: "1px dashed #1E1E1E", borderRadius: 10,
-              padding: "20px 12px", textAlign: "center",
-              cursor: canEdit ? "pointer" : "default",
-            }}
+            <div
+              className={cn(
+                "border border-dashed border-border-subtle rounded-[10px] py-5 px-3 text-center",
+                canEdit ? "cursor-pointer hover:border-border transition-colors" : "cursor-default"
+              )}
               onClick={canEdit && !isLocked ? onAddStart : undefined}
-              onMouseEnter={e => { if (canEdit) (e.currentTarget as HTMLElement).style.borderColor = "#2A2A2A"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#1E1E1E"; }}
             >
-              <p style={{ fontSize: 11, color: "#333" }}>{canEdit ? "+ Add a card" : "No cards"}</p>
+              <p className="text-[11px] text-text-muted">{canEdit ? "+ Add a card" : "No cards"}</p>
             </div>
           )}
         </div>
@@ -188,44 +174,27 @@ function ColumnPanel({ column, cards, accent, isLocked, canEdit, onCardClick, is
 
       {/* Inline add card */}
       {isAdding && (
-        <div style={{
-          marginTop: 6, background: "#111111",
-          border: "1px solid #2A2A2A", borderRadius: 10, padding: 10,
-        }}>
-          <textarea autoFocus value={newCardTitle} onChange={e => onNewTitleChange(e.target.value)}
-            placeholder="Card title..." rows={2}
-            style={{
-              width: "100%", background: "transparent", border: "none", outline: "none",
-              resize: "none", fontSize: 13, color: "#F3F3F3", lineHeight: 1.5, fontFamily: "inherit",
-            }}
-            className="placeholder:text-[#333]"
+        <div className="mt-1.5 bg-bg-surface border border-border rounded-[10px] p-2.5">
+          <Textarea
+            autoFocus
+            value={newCardTitle}
+            onChange={e => onNewTitleChange(e.target.value)}
+            placeholder="Card title..."
+            rows={2}
+            className="!bg-transparent !border-none !p-0 text-[13px] leading-relaxed"
             onKeyDown={e => {
               if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onAddConfirm(); }
               if (e.key === "Escape") onAddCancel();
             }}
           />
-          <div style={{ display: "flex", gap: 6, marginTop: 8, alignItems: "center" }}>
-            <button onClick={onAddConfirm} style={{
-              padding: "5px 14px", background: "#0454FC", color: "white",
-              border: "none", borderRadius: 6, fontSize: 12, fontWeight: 500,
-              cursor: "pointer", transition: "background 0.1s",
-            }}
-              onMouseEnter={e => (e.currentTarget.style.background = "#3B7BFF")}
-              onMouseLeave={e => (e.currentTarget.style.background = "#0454FC")}
-            >
+          <div className="flex gap-1.5 mt-2 items-center">
+            <Button variant="primary" size="sm" onClick={onAddConfirm}>
               Add card
-            </button>
-            <button onClick={onAddCancel} style={{
-              padding: "5px 10px", background: "transparent",
-              color: "#555", border: "none", fontSize: 12,
-              cursor: "pointer", transition: "color 0.1s",
-            }}
-              onMouseEnter={e => (e.currentTarget.style.color = "#888")}
-              onMouseLeave={e => (e.currentTarget.style.color = "#555")}
-            >
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onAddCancel}>
               Cancel
-            </button>
-            <span style={{ marginLeft: "auto", fontSize: 10, color: "#333" }}>↵ to add</span>
+            </Button>
+            <span className="ml-auto text-[10px] text-text-muted">↵ to add</span>
           </div>
         </div>
       )}

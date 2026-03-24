@@ -2,9 +2,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff, Loader2, LayoutGrid, Check } from "lucide-react";
+import { Eye, EyeOff, LayoutGrid, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth.store";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 
 const PASSWORD_RULES = [
   { label: "At least 8 characters", test: (p: string) => p.length >= 8 },
@@ -42,7 +44,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-[400px]">
         {/* Logo */}
         <div className="flex items-center gap-2 mb-8">
-          <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
+          <div className="w-7 h-7 rounded-md bg-gradient-to-br from-primary to-primary-light flex items-center justify-center">
             <LayoutGrid size={14} className="text-white" />
           </div>
           <span className="text-[15px] font-semibold text-text-primary">InvoiceMate</span>
@@ -60,52 +62,34 @@ export default function RegisterPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-small font-medium text-text-secondary mb-1.5">Full name</label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={set("name")}
-              placeholder="Ali Ahmad"
-              required
-              className={cn(
-                "w-full bg-bg-surface border border-border rounded-btn px-3.5 py-2.5",
-                "text-small text-text-primary placeholder:text-text-muted",
-                "outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/20 transition-all"
-              )}
-            />
-          </div>
+          <Input
+            label="Full name"
+            type="text"
+            value={form.name}
+            onChange={set("name")}
+            placeholder="Ali Ahmad"
+            required
+          />
+
+          <Input
+            label="Work email"
+            type="email"
+            value={form.email}
+            onChange={set("email")}
+            placeholder="you@invoicemate.net"
+            required
+          />
 
           <div>
-            <label className="block text-small font-medium text-text-secondary mb-1.5">Work email</label>
-            <input
-              type="email"
-              value={form.email}
-              onChange={set("email")}
-              placeholder="you@invoicemate.net"
-              required
-              className={cn(
-                "w-full bg-bg-surface border border-border rounded-btn px-3.5 py-2.5",
-                "text-small text-text-primary placeholder:text-text-muted",
-                "outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/20 transition-all"
-              )}
-            />
-          </div>
-
-          <div>
-            <label className="block text-small font-medium text-text-secondary mb-1.5">Password</label>
+            <label className="block text-[13px] font-medium text-text-secondary mb-1.5">Password</label>
             <div className="relative">
-              <input
+              <Input
                 type={showPass ? "text" : "password"}
                 value={form.password}
                 onChange={set("password")}
                 placeholder="••••••••"
                 required
-                className={cn(
-                  "w-full bg-bg-surface border border-border rounded-btn px-3.5 py-2.5 pr-10",
-                  "text-small text-text-primary placeholder:text-text-muted",
-                  "outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/20 transition-all"
-                )}
+                className="pr-10"
               />
               <button
                 type="button"
@@ -139,19 +123,15 @@ export default function RegisterPage() {
             )}
           </div>
 
-          <button
+          <Button
             type="submit"
-            disabled={loading}
-            className={cn(
-              "w-full flex items-center justify-center gap-2 py-2.5 rounded-btn mt-2",
-              "bg-primary text-white text-small font-medium",
-              "hover:bg-primary-light transition-colors",
-              "disabled:opacity-60 disabled:cursor-not-allowed"
-            )}
+            variant="primary"
+            size="lg"
+            loading={loading}
+            className="w-full mt-2"
           >
-            {loading && <Loader2 size={14} className="animate-spin" />}
             {loading ? "Creating account..." : "Create account"}
-          </button>
+          </Button>
         </form>
 
         <p className="mt-6 text-center text-small text-text-muted">
