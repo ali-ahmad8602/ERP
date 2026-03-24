@@ -1,7 +1,8 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
-import { Search, LayoutGrid, FileText, Users, ArrowRight, Hash, Plus } from "lucide-react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { Search, LayoutGrid, FileText, Users, Plus, CheckCircle2, Hash } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Avatar } from "@/components/ui/Avatar";
 import type { Card, Board, Department } from "@/types";
 
 interface CommandPaletteProps {
@@ -13,18 +14,34 @@ interface CommandPaletteProps {
   onSelectCard?: (card: Card) => void;
 }
 
-const QUICK_ACTIONS = [
-  { icon: <Plus size={13} />,       label: "New Card",       shortcut: "N",     color: "#0454FC" },
-  { icon: <LayoutGrid size={13} />, label: "New Board",      shortcut: "B",     color: "#888" },
-  { icon: <Users size={13} />,      label: "Invite Member",  shortcut: "I",     color: "#888" },
+interface ResultItem {
+  id: string;
+  type: "action" | "card" | "board" | "department";
+  label: string;
+  sublabel?: string;
+  icon: React.ReactNode;
+  shortcut?: string;
+  onSelect: () => void;
+}
+
+const QUICK_ACTIONS: { icon: React.ReactNode; label: string; shortcut: string }[] = [
+  { icon: <Plus size={14} />,       label: "New Card",       shortcut: "N" },
+  { icon: <LayoutGrid size={14} />, label: "New Board",      shortcut: "B" },
+  { icon: <Users size={14} />,      label: "Invite Member",  shortcut: "I" },
 ];
 
 export function CommandPalette({ open, onClose, cards = [], boards = [], departments = [], onSelectCard }: CommandPaletteProps) {
   const [query, setQuery] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (open) { setQuery(""); setTimeout(() => inputRef.current?.focus(), 50); }
+    if (open) {
+      setQuery("");
+      setSelectedIndex(0);
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
   }, [open]);
 
   useEffect(() => {
@@ -49,152 +66,217 @@ export function CommandPalette({ open, onClose, cards = [], boards = [], departm
     ? departments.filter(d => d.name.toLowerCase().includes(q)).slice(0, 3)
     : [];
 
-  const hasResults = filteredCards.length + filteredBoards.length + filteredDepts.length > 0;
+  // Build flat list for keyboard navigation
+  const flatItems: ResultItem[] = useMemo(() => {
+    const items: ResultItem[] = [];
+
+    // Quick actions when no query
+    if (!q) {
+      QUICK_ACTIONS.forEach(a => {
+        items.push({
+          id: `action-${a.label}`,
+          type: "action",
+          label: a.label,
+          icon: <span className="text-primary">{a.icon}</span>,
+          shortcut: a.shortcut,
+          onSelect: onClose,
+        });
+      });
+    }
+
+    // Cards (tasks)
+    filteredCards.forEach(card => {
+      const dept = typeof card.board === "string" ? undefined : card.board;
+      const priorityLabel = card.priority !== "none" ? card.priority.charAt(0).toUpperCase() + card.priority.slice(1) + " Priority" : "";
+      const sub = [priorityLabel].filter(Boolean).join(" \u00B7 ");
+      items.push({
+        id: card._id,
+        type: "card",
+        label: card.title,
+        sublabel: sub || undefined,
+        icon: <CheckCircle2 size={15} className="text-info" />,
+        onSelect: () => { onSelectCard?.(card); onClose(); },
+      });
+    });
+
+    // Boards
+    filteredBoards.forEach(board => {
+      items.push({
+        id: board._id,
+        type: "board",
+        label: board.name,
+        sublabel: `${board.columns?.length ?? 0} Columns`,
+        icon: <LayoutGrid size={15} className="text-text-muted" />,
+        onSelect: onClose,
+      });
+    });
+
+    // Departments (people section)
+    filteredDepts.forEach(dept => {
+      items.push({
+        id: dept._id,
+        type: "department",
+        label: dept.name,
+        sublabel: `${dept.members?.length ?? 0} Members`,
+        icon: <span className="text-[14px]">{dept.icon}</span>,
+        onSelect: onClose,
+      });
+    });
+
+    return items;
+  }, [q, filteredCards, filteredBoards, filteredDepts, onClose, onSelectCard]);
+
+  // Clamp selectedIndex
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [query]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev + 1) % Math.max(flatItems.length, 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev - 1 + flatItems.length) % Math.max(flatItems.length, 1));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      flatItems[selectedIndex]?.onSelect();
+    }
+  }, [flatItems, selectedIndex]);
+
+  // Scroll selected item into view
+  useEffect(() => {
+    const container = resultsRef.current;
+    if (!container) return;
+    const el = container.querySelector(`[data-index="${selectedIndex}"]`);
+    if (el) el.scrollIntoView({ block: "nearest" });
+  }, [selectedIndex]);
+
+  const hasResults = flatItems.length > 0;
 
   if (!open) return null;
+
+  // Group items by type for rendering with section headers
+  let currentIndex = 0;
+
+  const renderSection = (type: ResultItem["type"], label: string, items: ResultItem[]) => {
+    if (items.length === 0) return null;
+    const section = (
+      <div key={type}>
+        <div className="px-4 pt-3 pb-1.5 text-[10px] font-bold text-text-muted uppercase tracking-wider">
+          {label}
+        </div>
+        {items.map(item => {
+          const idx = currentIndex++;
+          return (
+            <button
+              key={item.id}
+              data-index={idx}
+              onClick={item.onSelect}
+              onMouseEnter={() => setSelectedIndex(idx)}
+              className={cn(
+                "w-full flex items-center gap-3 px-4 py-2.5 bg-transparent border-none cursor-pointer text-left transition-colors",
+                selectedIndex === idx ? "bg-primary-ghost" : "hover:bg-bg-elevated"
+              )}
+            >
+              <span className="shrink-0 w-6 flex justify-center">{item.icon}</span>
+              <div className="flex-1 min-w-0">
+                <span className="text-[14px] font-medium text-text-primary block truncate">
+                  {item.label}
+                </span>
+                {item.sublabel && (
+                  <span className="text-[12px] text-text-muted block truncate">
+                    {item.sublabel}
+                  </span>
+                )}
+              </div>
+              {item.shortcut && (
+                <kbd className="text-[10px] text-text-muted bg-bg-elevated border border-border px-1.5 py-0.5 rounded font-mono shrink-0">
+                  {item.shortcut}
+                </kbd>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    );
+    return section;
+  };
+
+  const actionItems = flatItems.filter(i => i.type === "action");
+  const cardItems = flatItems.filter(i => i.type === "card");
+  const boardItems = flatItems.filter(i => i.type === "board");
+  const deptItems = flatItems.filter(i => i.type === "department");
+
+  // Reset currentIndex for rendering
+  currentIndex = 0;
 
   return (
     <>
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] animate-fade-in"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] animate-fade-in"
       />
 
       {/* Palette */}
-      <div className="fixed top-[18%] left-1/2 -translate-x-1/2 w-[560px] max-h-[420px] bg-bg-surface border border-border rounded-[14px] z-[101] shadow-modal animate-fade-up overflow-hidden">
+      <div
+        className="fixed top-[20%] left-1/2 -translate-x-1/2 w-[520px] bg-bg-surface border border-border rounded-2xl z-[101] shadow-modal animate-fade-up overflow-hidden"
+        onKeyDown={handleKeyDown}
+      >
 
         {/* Search input */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border">
-          <Search size={16} className="text-text-muted" />
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-border">
+          <Search size={18} className="text-text-muted shrink-0" />
           <input
             ref={inputRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search cards, boards, departments..."
-            className="flex-1 bg-transparent border-none outline-none text-[14px] text-text-primary placeholder:text-text-muted"
+            onKeyDown={handleKeyDown}
+            placeholder="Search organization..."
+            className="flex-1 bg-transparent border-none outline-none text-[16px] text-text-primary placeholder:text-text-muted"
           />
-          <kbd className="text-[10px] text-text-muted bg-bg-elevated border border-border px-1.5 py-0.5 rounded font-mono">ESC</kbd>
+          <kbd className="text-[11px] text-text-muted bg-bg-elevated border border-border px-2 py-0.5 rounded-md font-mono shrink-0">
+            ESC
+          </kbd>
         </div>
 
         {/* Results */}
-        <div className="overflow-y-auto max-h-[360px]">
-
-          {/* Quick actions — shown when no query */}
-          {!q && (
-            <Section label="Quick Actions">
-              {QUICK_ACTIONS.map(a => (
-                <ResultRow key={a.label}
-                  icon={<span style={{ color: a.color }}>{a.icon}</span>}
-                  label={a.label}
-                  right={<kbd className="text-[10px] text-text-muted bg-bg-elevated border border-border px-1.5 py-0.5 rounded font-mono">{a.shortcut}</kbd>}
-                  onClick={onClose}
-                />
-              ))}
-            </Section>
-          )}
-
-          {/* Cards */}
-          {filteredCards.length > 0 && (
-            <Section label="Cards">
-              {filteredCards.map(card => (
-                <ResultRow
-                  key={card._id}
-                  icon={<FileText size={13} className="text-text-muted" />}
-                  label={card.title}
-                  sublabel={card.priority !== "none" ? card.priority : undefined}
-                  right={<ArrowRight size={12} className="text-text-muted" />}
-                  onClick={() => { onSelectCard?.(card); onClose(); }}
-                />
-              ))}
-            </Section>
-          )}
-
-          {/* Boards */}
-          {filteredBoards.length > 0 && (
-            <Section label="Boards">
-              {filteredBoards.map(board => (
-                <ResultRow
-                  key={board._id}
-                  icon={<LayoutGrid size={13} className="text-text-muted" />}
-                  label={board.name}
-                  right={<ArrowRight size={12} className="text-text-muted" />}
-                  onClick={onClose}
-                />
-              ))}
-            </Section>
-          )}
-
-          {/* Departments */}
-          {filteredDepts.length > 0 && (
-            <Section label="Departments">
-              {filteredDepts.map(dept => (
-                <ResultRow
-                  key={dept._id}
-                  icon={<span className="text-[13px]">{dept.icon}</span>}
-                  label={dept.name}
-                  right={<ArrowRight size={12} className="text-text-muted" />}
-                  onClick={onClose}
-                />
-              ))}
-            </Section>
-          )}
+        <div ref={resultsRef} className="overflow-y-auto max-h-[360px]">
+          {/* Render grouped sections */}
+          {renderSection("action", "Quick Actions", actionItems)}
+          {renderSection("card", "Tasks", cardItems)}
+          {renderSection("board", "Boards", boardItems)}
+          {renderSection("department", "People", deptItems)}
 
           {/* No results */}
           {q && !hasResults && (
-            <div className="px-4 py-8 text-center">
-              <Hash size={20} className="text-text-muted mx-auto mb-2" />
-              <p className="text-[13px] text-text-muted">No results for &ldquo;{query}&rdquo;</p>
+            <div className="px-4 py-10 text-center">
+              <Search size={28} className="text-text-muted mx-auto mb-3 opacity-30" />
+              <p className="text-[14px] text-text-muted">
+                No results for &ldquo;{query}&rdquo;
+              </p>
+              <p className="text-[12px] text-text-muted mt-1">Try a different search term</p>
             </div>
           )}
+        </div>
 
-          {/* Footer hint */}
-          <div className="px-4 py-2 border-t border-border-subtle flex gap-4 items-center">
-            {[["↑↓", "navigate"], ["↵", "select"], ["esc", "close"]].map(([key, label]) => (
-              <span key={key} className="flex items-center gap-1 text-[11px] text-text-muted">
-                <kbd className="text-[10px] bg-bg-elevated border border-border px-1 py-0.5 rounded-[3px] font-mono text-text-secondary">
-                  {key}
-                </kbd>
-                {label}
-              </span>
-            ))}
-          </div>
+        {/* Footer hints */}
+        <div className="px-5 py-2.5 border-t border-border-subtle flex gap-5 items-center">
+          {([
+            ["\u2191\u2193", "to navigate"],
+            ["\u21B5", "to select"],
+            ["esc", "to close"],
+          ] as const).map(([key, label]) => (
+            <span key={key} className="flex items-center gap-1.5 text-[11px] text-text-muted">
+              <kbd className="text-[10px] bg-bg-elevated border border-border px-1.5 py-0.5 rounded font-mono text-text-secondary">
+                {key}
+              </kbd>
+              {label}
+            </span>
+          ))}
         </div>
       </div>
     </>
-  );
-}
-
-function Section({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <div className="px-4 pt-2 pb-1 text-[10px] font-semibold text-text-muted uppercase tracking-wide">
-        {label}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function ResultRow({ icon, label, sublabel, right, onClick }: {
-  icon: React.ReactNode; label: string; sublabel?: string;
-  right?: React.ReactNode; onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full flex items-center gap-2.5 px-4 py-2 bg-transparent border-none cursor-pointer text-left hover:bg-bg-elevated transition-colors"
-    >
-      <span className="shrink-0 w-5 flex justify-center">{icon}</span>
-      <span className="flex-1 text-[13px] text-text-primary overflow-hidden text-ellipsis whitespace-nowrap">
-        {label}
-      </span>
-      {sublabel && (
-        <span className="text-[10px] text-text-muted bg-bg-elevated px-1.5 py-0.5 rounded border border-border-subtle">
-          {sublabel}
-        </span>
-      )}
-      <span className="shrink-0">{right}</span>
-    </button>
   );
 }

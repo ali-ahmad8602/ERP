@@ -2,9 +2,19 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutGrid, LayoutDashboard, ChevronDown, ChevronRight, Building2, Settings, LogOut, Plus } from "lucide-react";
+import {
+  LayoutDashboard,
+  Building2,
+  FileText,
+  Settings,
+  LogOut,
+  Plus,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
 import { useAuthStore } from "@/store/auth.store";
 import { cn } from "@/lib/utils";
+import { Avatar } from "@/components/ui/Avatar";
 import type { Department } from "@/types";
 
 interface SidebarProps {
@@ -16,205 +26,255 @@ interface SidebarProps {
 export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { logout } = useAuthStore();
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({ [departments[0]?._id ?? ""]: true });
-  const isAdmin  = ["super_admin", "org_admin"].includes(userOrgRole);
+  const { user, logout } = useAuthStore();
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({
+    [departments[0]?._id ?? ""]: true,
+  });
+  const isAdmin = ["super_admin", "org_admin"].includes(userOrgRole);
   const isTopMgmt = ["super_admin", "org_admin", "top_management"].includes(userOrgRole);
 
-  const handleLogout = () => { logout(); router.push("/login"); };
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
+  const toggle = (id: string) =>
+    setExpanded((p) => ({ ...p, [id]: !p[id] }));
 
-  const toggle = (id: string) => setExpanded(p => ({ ...p, [id]: !p[id] }));
+  const isDeptActive = pathname.startsWith("/dept/");
 
   return (
-    <aside className="w-[228px] h-screen bg-bg-base border-r border-border-subtle flex flex-col shrink-0">
-
-      {/* Logo */}
-      <div className="h-14 flex items-center px-3.5 border-b border-border-subtle shrink-0">
-        <div className="flex items-center gap-[9px]">
-          <div className="w-7 h-7 rounded-btn bg-gradient-to-br from-primary to-primary-light flex items-center justify-center shadow-[0_2px_8px_var(--color-primary-ghost)]">
-            <LayoutGrid size={14} className="text-white" />
+    <aside className="w-[240px] h-screen bg-bg-base border-r border-border flex flex-col shrink-0">
+      {/* ── Logo Area ──────────────────────────────────────────────────────── */}
+      <div className="h-14 flex items-center px-5 shrink-0 border-b border-border-subtle">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent text-white flex items-center justify-center shadow-sm">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="1" y="1" width="6" height="6" rx="1.5" fill="white" />
+              <rect x="9" y="1" width="6" height="6" rx="1.5" fill="white" fillOpacity="0.6" />
+              <rect x="1" y="9" width="6" height="6" rx="1.5" fill="white" fillOpacity="0.6" />
+              <rect x="9" y="9" width="6" height="6" rx="1.5" fill="white" fillOpacity="0.4" />
+            </svg>
           </div>
           <div>
-            <div className="text-[13px] font-bold text-text-primary tracking-tight">InvoiceMate</div>
-            <div className="text-[9px] text-text-muted uppercase tracking-widest">Workspace</div>
+            <div className="text-[14px] font-bold text-text-primary tracking-tight leading-none">
+              InvoiceMate
+            </div>
+            <div className="text-[9px] uppercase tracking-[0.12em] text-text-muted font-semibold mt-0.5">
+              Workspace
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto p-[10px_8px]">
-
+      {/* ── Main Navigation ────────────────────────────────────────────────── */}
+      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
         {/* Dashboard */}
         <NavItem
           href="/dashboard"
-          icon={<LayoutDashboard size={14} />}
+          icon={<LayoutDashboard size={16} />}
           label="Dashboard"
           active={pathname === "/dashboard"}
         />
 
-        {/* Company Board */}
-        {isTopMgmt && (
+        {/* Departments link — active when on any dept page */}
+        <NavItem
+          href={departments[0] ? `/dept/${departments[0].slug}` : "#"}
+          icon={<Building2 size={16} />}
+          label="Departments"
+          active={isDeptActive}
+        />
+
+        {/* Reports placeholder */}
+        <NavItem
+          href="#"
+          icon={<FileText size={16} />}
+          label="Reports"
+          active={false}
+        />
+
+        {/* Settings */}
+        {isAdmin && (
           <NavItem
-            href="/company"
-            icon={<Building2 size={14} />}
-            label="Company Board"
-            active={pathname === "/company"}
+            href="/settings/invites"
+            icon={<Settings size={16} />}
+            label="Settings"
+            active={pathname.startsWith("/settings")}
           />
         )}
 
-        {/* Dept section label */}
+        {/* ── Departments Section ────────────────────────────────────────── */}
         {departments.length > 0 && (
-          <div className="px-2 pt-3.5 pb-[5px] text-[9.5px] font-bold text-text-muted uppercase tracking-widest">
+          <div className="px-2 pt-6 pb-1.5 text-[10px] font-semibold text-text-muted uppercase tracking-[0.08em]">
             Departments
           </div>
         )}
 
-        {/* Departments */}
-        {departments.map(dept => {
+        {departments.map((dept) => {
           const isActive = pathname.startsWith(`/dept/${dept.slug}`);
-          const isOpen   = expanded[dept._id];
+          const isOpen = expanded[dept._id];
+          const memberCount = dept.members?.length ?? 0;
+
           return (
-            <div key={dept._id} className="mb-px">
-              {/* Dept row */}
+            <div key={dept._id} className="mb-0.5">
               <button
                 onClick={() => toggle(dept._id)}
                 className={cn(
-                  "w-full flex items-center gap-2 py-[7px] px-2 rounded-btn border-none cursor-pointer relative transition-colors",
+                  "w-full flex items-center gap-2.5 py-[7px] px-2 rounded-lg border-none cursor-pointer transition-all duration-150 group",
                   isActive
-                    ? "bg-bg-elevated text-text-primary"
-                    : "bg-transparent text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
+                    ? "bg-primary-ghost text-text-primary font-medium"
+                    : "bg-transparent text-text-secondary hover:bg-black/5 dark:hover:bg-white/5 hover:text-text-primary"
                 )}
               >
-                {/* Active indicator */}
-                {isActive && (
-                  <div
-                    className="absolute left-0 top-[20%] bottom-[20%] w-[3px] rounded-r-[3px]"
-                    style={{ background: dept.color || "var(--color-primary)" }}
-                  />
-                )}
-
-                {/* Dept icon with color tint */}
+                {/* Colored icon circle */}
                 <div
-                  className="w-[22px] h-[22px] rounded-badge shrink-0 flex items-center justify-center text-xs transition-colors"
+                  className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] shrink-0"
                   style={{
-                    background: isActive
-                      ? `${dept.color || "var(--color-primary)"}18`
-                      : "var(--color-bg-elevated)",
+                    color: dept.color || "var(--color-primary)",
+                    background: `${dept.color || "var(--color-primary)"}1A`,
                   }}
                 >
                   {dept.icon}
                 </div>
 
-                <span className="flex-1 text-[13px] text-left overflow-hidden text-ellipsis whitespace-nowrap tracking-tight">
+                <span className="flex-1 text-[13px] text-left truncate">
                   {dept.name}
                 </span>
 
                 {/* Member count badge */}
-                {dept.members?.length > 0 && (
-                  <span className="text-[10px] text-text-muted bg-bg-elevated px-[5px] rounded-full shrink-0">
-                    {dept.members.length}
+                {memberCount > 0 && (
+                  <span className="text-[10px] text-text-muted bg-black/5 dark:bg-white/10 rounded-full px-1.5 py-0.5 font-medium leading-none">
+                    {memberCount}
                   </span>
                 )}
 
-                {isOpen
-                  ? <ChevronDown size={11} className="text-text-muted shrink-0" />
-                  : <ChevronRight size={11} className="text-text-muted shrink-0" />
-                }
+                {isOpen ? (
+                  <ChevronDown size={14} className="text-text-muted shrink-0" />
+                ) : (
+                  <ChevronRight size={14} className="text-text-muted shrink-0" />
+                )}
               </button>
 
               {/* Sub-items */}
               {isOpen && (
-                <div className="ml-3.5 pl-3 border-l border-border-subtle mt-0.5 mb-1">
-                  <SubNavItem href={`/dept/${dept.slug}`} label="All Boards" active={pathname === `/dept/${dept.slug}`} />
-                  <SubNavItem href={`/dept/${dept.slug}/members`} label="Members" active={pathname.includes("/members")} />
+                <div className="ml-[18px] pl-3 border-l border-border-subtle mt-1 mb-2 space-y-0.5">
+                  <SubNavItem
+                    href={`/dept/${dept.slug}`}
+                    label="All Boards"
+                    active={pathname === `/dept/${dept.slug}`}
+                  />
+                  <SubNavItem
+                    href={`/dept/${dept.slug}/members`}
+                    label="Members"
+                    active={pathname === `/dept/${dept.slug}/members`}
+                  />
                 </div>
               )}
             </div>
           );
         })}
 
-        {/* Add dept */}
+        {/* Add Department */}
         {isAdmin && (
           <button
             onClick={onAddDept}
-            className="w-full flex items-center gap-2 py-[7px] px-2 rounded-btn border-none cursor-pointer bg-transparent text-text-muted text-xs mt-1 transition-colors hover:bg-bg-elevated hover:text-text-primary"
+            className="w-full flex items-center gap-2.5 py-[7px] px-2 rounded-lg cursor-pointer bg-transparent text-text-muted transition-all duration-150 hover:bg-black/5 dark:hover:bg-white/5 hover:text-text-primary mt-1 border border-dashed border-border"
           >
-            <div className="w-[22px] h-[22px] rounded-badge bg-bg-elevated border border-dashed border-border flex items-center justify-center">
-              <Plus size={11} className="text-text-muted" />
+            <div className="w-6 h-6 rounded-full flex items-center justify-center">
+              <Plus size={14} />
             </div>
-            <span>Add Department</span>
+            <span className="text-[13px]">Add Department</span>
           </button>
         )}
       </nav>
 
-      {/* Bottom bar */}
-      <div className="border-t border-border-subtle p-2">
-        {isAdmin && (
-          <BottomItem href="/settings/invites" icon={<Settings size={13} />} label="Settings" />
-        )}
-        <BottomItem onClick={handleLogout} icon={<LogOut size={13} />} label="Sign out" danger />
+      {/* ── Bottom Profile Section ─────────────────────────────────────────── */}
+      <div className="p-3 border-t border-border-subtle">
+        <div className="flex items-center gap-2.5 px-2 py-2">
+          <Avatar name={user?.name ?? "User"} size="md" />
+          <div className="flex-1 min-w-0">
+            <div className="text-[13px] font-semibold text-text-primary truncate leading-tight">
+              {user?.name ?? "User"}
+            </div>
+            <div className="text-[11px] text-text-muted truncate leading-tight mt-0.5">
+              {formatRole(userOrgRole)}
+            </div>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-text-muted hover:text-danger hover:bg-danger/10 transition-colors duration-150 cursor-pointer bg-transparent border-none shrink-0"
+            title="Sign out"
+          >
+            <LogOut size={14} />
+          </button>
+        </div>
       </div>
     </aside>
   );
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function NavItem({ href, icon, label, active }: {
-  href: string; icon: React.ReactNode; label: string; active: boolean;
+function formatRole(role: string): string {
+  return role
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+function NavItem({
+  href,
+  icon,
+  label,
+  active,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+  active: boolean;
 }) {
   return (
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-2 py-[7px] px-2 rounded-btn no-underline mb-px relative transition-colors",
+        "flex items-center gap-2.5 py-[7px] px-2 rounded-lg no-underline transition-all duration-150 relative",
         active
-          ? "bg-bg-elevated text-text-primary"
-          : "bg-transparent text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
+          ? "bg-primary-ghost text-primary font-medium"
+          : "bg-transparent text-text-secondary hover:bg-black/5 dark:hover:bg-white/5 hover:text-text-primary"
       )}
     >
+      {/* Left active indicator */}
       {active && (
-        <div className="absolute left-0 top-[20%] bottom-[20%] w-[3px] rounded-r-[3px] bg-primary" />
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-primary" />
       )}
-      <span className={cn(active ? "text-primary" : "text-inherit")}>{icon}</span>
+      <span className={cn(active ? "text-primary" : "text-text-secondary")}>
+        {icon}
+      </span>
       <span className="text-[13px]">{label}</span>
     </Link>
   );
 }
 
-function SubNavItem({ href, label, active }: { href: string; label: string; active: boolean }) {
+function SubNavItem({
+  href,
+  label,
+  active,
+}: {
+  href: string;
+  label: string;
+  active: boolean;
+}) {
   return (
     <Link
       href={href}
       className={cn(
-        "block py-[5px] px-2 rounded-badge text-xs no-underline transition-colors",
+        "block py-1 px-2.5 rounded-md text-[12px] no-underline transition-colors duration-150",
         active
-          ? "text-primary bg-primary-ghost"
-          : "text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
+          ? "bg-primary-ghost text-primary font-medium"
+          : "text-text-secondary hover:bg-black/5 dark:hover:bg-white/5 hover:text-text-primary"
       )}
     >
       {label}
-    </Link>
-  );
-}
-
-function BottomItem({ href, onClick, icon, label, danger }: {
-  href?: string; onClick?: () => void; icon: React.ReactNode; label: string; danger?: boolean;
-}) {
-  const classes = cn(
-    "flex items-center gap-2 py-[7px] px-2 rounded-btn no-underline text-xs border-none cursor-pointer w-full transition-colors",
-    "text-text-secondary bg-transparent",
-    danger
-      ? "hover:bg-danger/5 hover:text-danger"
-      : "hover:bg-bg-elevated hover:text-text-primary"
-  );
-
-  if (onClick) {
-    return <button onClick={onClick} className={classes}>{icon}{label}</button>;
-  }
-  return (
-    <Link href={href!} className={classes}>
-      {icon}{label}
     </Link>
   );
 }

@@ -10,10 +10,15 @@ import { CommandPalette } from "@/components/ui/CommandPalette";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { SectionLabel } from "@/components/ui/SectionLabel";
-import { Plus, LayoutGrid, List, Settings2, Columns3, X, Loader2 } from "lucide-react";
+import {
+  Plus, LayoutGrid, List, Settings2, Columns3, X, Loader2,
+  Filter, ArrowUpDown, Clock, FolderOpen
+} from "lucide-react";
 import { useBoardStore } from "@/store/board.store";
 import { useDeptStore } from "@/store/dept.store";
 import { cn } from "@/lib/utils";
+
+type ViewMode = "board" | "list" | "timeline" | "files";
 
 export default function DeptBoardPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -22,12 +27,13 @@ export default function DeptBoardPage() {
 
   const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null);
   const [paletteOpen, setPaletteOpen]         = useState(false);
-  const [viewMode, setViewMode]               = useState<"board" | "list">("board");
+  const [viewMode, setViewMode]               = useState<ViewMode>("board");
   const [configOpen, setConfigOpen]           = useState(false);
   const [addBoardOpen, setAddBoardOpen]       = useState(false);
   const [newBoardName, setNewBoardName]       = useState("");
   const [creatingBoard, setCreatingBoard]     = useState(false);
   const [deptLoading, setDeptLoading]         = useState(true);
+  const [comingSoonToast, setComingSoonToast] = useState<string | null>(null);
 
   const dept = activeDept?.slug === slug ? activeDept : departments.find((d: { slug: string }) => d.slug === slug) ?? null;
 
@@ -57,6 +63,13 @@ export default function DeptBoardPage() {
   // Fetch board details + cards when board is selected
   useEffect(() => { if (selectedBoardId) { fetchBoard(selectedBoardId); fetchCards(selectedBoardId); } }, [selectedBoardId, fetchBoard, fetchCards]);
 
+  // Auto-dismiss coming soon toast
+  useEffect(() => {
+    if (!comingSoonToast) return;
+    const t = setTimeout(() => setComingSoonToast(null), 2000);
+    return () => clearTimeout(t);
+  }, [comingSoonToast]);
+
   const isLoading = deptLoading || loadingBoards || loadingCards;
 
   const handleCardMove = (cardId: string, colId: string) => {
@@ -81,6 +94,22 @@ export default function DeptBoardPage() {
     } catch { /* ignore */ }
     finally { setCreatingBoard(false); }
   };
+
+  const handleViewChange = (mode: ViewMode) => {
+    if (mode === "timeline" || mode === "files") {
+      setComingSoonToast(mode === "timeline" ? "Timeline" : "Files");
+      return;
+    }
+    setViewMode(mode);
+  };
+
+  // View toggle items
+  const viewItems: { icon: React.ReactNode; label: string; mode: ViewMode; disabled?: boolean }[] = [
+    { icon: <LayoutGrid size={14} />, label: "Kanban",   mode: "board" },
+    { icon: <List size={14} />,       label: "Table",    mode: "list" },
+    { icon: <Clock size={14} />,      label: "Timeline", mode: "timeline", disabled: true },
+    { icon: <FolderOpen size={14} />, label: "Files",    mode: "files",    disabled: true },
+  ];
 
   // Loading state
   if (isLoading && !activeBoard) {
@@ -111,78 +140,105 @@ export default function DeptBoardPage() {
         onSearchClick={() => setPaletteOpen(true)}
       />
 
-      {/* Toolbar */}
-      <div className="flex items-center justify-between px-5 h-11 border-b border-border-subtle bg-bg-surface shrink-0">
-        {/* Board tabs */}
-        <div className="flex items-center gap-0.5">
-          {boards.map(b => {
-            const isActive = selectedBoardId === b._id;
-            return (
-              <button
-                key={b._id}
-                onClick={() => setSelectedBoardId(b._id)}
-                className={cn(
-                  "px-3 py-1.5 rounded-[7px] text-xs border-none cursor-pointer transition-all duration-100",
-                  isActive
-                    ? "bg-bg-elevated text-text-primary font-medium"
-                    : "bg-transparent text-text-muted hover:text-text-secondary hover:bg-bg-elevated"
-                )}
-              >
-                {b.name}
-              </button>
-            );
-          })}
-          <button
-            onClick={() => setAddBoardOpen(true)}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-[7px] text-xs border-none cursor-pointer bg-transparent text-text-muted hover:bg-bg-elevated hover:text-text-secondary transition-all duration-100"
-          >
-            <Plus size={11} /> Board
-          </button>
+      {/* ── Header: Department name + description + view toggle ── */}
+      <div className="flex items-start justify-between px-6 pt-5 pb-3 shrink-0">
+        <div className="flex flex-col gap-0.5">
+          <h1 className="text-[28px] font-bold text-text-primary tracking-tight leading-tight">
+            {dept?.name}
+          </h1>
+          {dept?.description && (
+            <p className="text-[14px] text-text-secondary truncate max-w-[520px]">
+              {dept.description}
+            </p>
+          )}
         </div>
 
-        {/* Right actions */}
-        <div className="flex items-center gap-1">
-          {([
-            { icon: <LayoutGrid size={13} />, label: "Board", mode: "board" as const },
-            { icon: <List size={13} />,       label: "List",  mode: "list"  as const },
-          ] as const).map(item => (
+        {/* View toggle pill group */}
+        <div className="flex items-center bg-black/[0.04] dark:bg-white/[0.06] rounded-xl p-0.5 gap-0.5 shrink-0">
+          {viewItems.map(item => (
             <button
               key={item.label}
-              onClick={() => setViewMode(item.mode)}
+              onClick={() => handleViewChange(item.mode)}
+              title={item.disabled ? "Coming Soon" : item.label}
               className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-[7px] text-xs border-none cursor-pointer transition-all duration-100",
-                viewMode === item.mode
-                  ? "bg-bg-elevated text-text-primary"
-                  : "bg-transparent text-text-muted hover:text-text-secondary hover:bg-bg-elevated"
+                "relative flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[13px] font-medium border-none cursor-pointer transition-all duration-150 select-none",
+                viewMode === item.mode && !item.disabled
+                  ? "bg-bg-surface text-text-primary shadow-sm"
+                  : item.disabled
+                    ? "bg-transparent text-text-muted/50 cursor-default"
+                    : "bg-transparent text-text-muted hover:text-text-secondary"
               )}
             >
-              {item.icon} {item.label}
+              {item.icon}
+              {item.label}
             </button>
           ))}
+        </div>
+      </div>
 
-          <div className="w-px h-4 bg-border-subtle mx-1" />
+      {/* ── Board tabs row ── */}
+      <div className="flex items-center gap-1 px-6 shrink-0 border-b border-border-subtle">
+        {boards.map(b => {
+          const isActive = selectedBoardId === b._id;
+          return (
+            <button
+              key={b._id}
+              onClick={() => setSelectedBoardId(b._id)}
+              className={cn(
+                "relative px-3 py-2.5 text-[13px] border-none cursor-pointer transition-all duration-150 bg-transparent",
+                isActive
+                  ? "text-text-primary font-semibold"
+                  : "text-text-muted hover:text-text-secondary font-medium"
+              )}
+            >
+              {b.name}
+              {isActive && (
+                <div className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-primary" />
+              )}
+            </button>
+          );
+        })}
+        <button
+          onClick={() => setAddBoardOpen(true)}
+          className="flex items-center gap-1 px-3 py-2.5 text-[13px] border-none cursor-pointer bg-transparent text-text-muted hover:text-primary transition-colors font-medium"
+        >
+          <Plus size={13} /> Add Board
+        </button>
+      </div>
 
+      {/* ── Toolbar row ── */}
+      <div className="flex items-center justify-between px-6 h-12 shrink-0">
+        <div className="flex items-center gap-1">
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium text-text-secondary bg-transparent border-none cursor-pointer hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors">
+            <Filter size={14} />
+            Filter
+          </button>
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium text-text-secondary bg-transparent border-none cursor-pointer hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors">
+            <ArrowUpDown size={14} />
+            Sort
+          </button>
           {activeBoard && (
             <button
               onClick={() => setConfigOpen(true)}
               className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-[7px] text-xs border-none cursor-pointer transition-all duration-100",
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium border-none cursor-pointer transition-colors",
                 configOpen
-                  ? "bg-bg-elevated text-text-secondary"
-                  : "bg-transparent text-text-muted hover:bg-bg-elevated hover:text-text-secondary"
+                  ? "bg-black/[0.06] dark:bg-white/[0.08] text-text-primary"
+                  : "bg-transparent text-text-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
               )}
             >
-              <Settings2 size={13} /> Configure
+              <Settings2 size={14} />
+              Board Settings
             </button>
           )}
-
-          <Button variant="primary" size="sm" onClick={() => setPaletteOpen(true)}>
-            <Plus size={12} /> New Card
-          </Button>
         </div>
+
+        <Button variant="primary" size="sm" onClick={() => setPaletteOpen(true)}>
+          <Plus size={14} /> New Task
+        </Button>
       </div>
 
-      {/* Stats */}
+      {/* ── Stats bar ── */}
       {activeBoard && (
         <BoardStatsBar cards={cards} columns={activeBoard.columns} />
       )}
@@ -195,7 +251,7 @@ export default function DeptBoardPage() {
         </div>
       )}
 
-      {/* Board / List view */}
+      {/* ── Board / List view ── */}
       {activeBoard && !(loadingCards && !cards.length) && (
         <div className="flex-1 overflow-hidden flex flex-col">
           {viewMode === "board" ? (
@@ -215,7 +271,7 @@ export default function DeptBoardPage() {
         </div>
       )}
 
-      {/* Empty — no boards yet */}
+      {/* Empty -- no boards yet */}
       {!loadingBoards && boards.length === 0 && !deptLoading && dept && (
         <div className="flex-1 flex items-center justify-center flex-col gap-3">
           <Columns3 size={32} className="text-border" />
@@ -236,14 +292,14 @@ export default function DeptBoardPage() {
         <>
           <div
             onClick={() => setAddBoardOpen(false)}
-            className="fixed inset-0 bg-black/70 z-[100] backdrop-blur-sm animate-[fadeIn_0.12s_ease-out]"
+            className="fixed inset-0 bg-black/40 dark:bg-black/70 z-[100] backdrop-blur-sm animate-[fadeIn_0.12s_ease-out]"
           />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] bg-bg-overlay border border-border rounded-[14px] z-[101] p-6 shadow-[0_40px_80px_rgba(0,0,0,0.9)] animate-[fadeUp_0.18s_cubic-bezier(0.16,1,0.3,1)]">
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] bg-bg-surface border border-border rounded-2xl z-[101] p-6 shadow-modal animate-[fadeUp_0.18s_cubic-bezier(0.16,1,0.3,1)]">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-[15px] font-semibold text-text-primary">New Board</h2>
+              <h2 className="text-[17px] font-semibold text-text-primary tracking-tight">New Board</h2>
               <button
                 onClick={() => setAddBoardOpen(false)}
-                className="w-7 h-7 flex items-center justify-center rounded-[7px] bg-transparent border-none cursor-pointer text-text-muted hover:bg-bg-elevated hover:text-text-secondary transition-colors"
+                className="w-7 h-7 flex items-center justify-center rounded-lg bg-transparent border-none cursor-pointer text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.08] hover:text-text-secondary transition-colors"
               >
                 <X size={14} />
               </button>
@@ -259,8 +315,8 @@ export default function DeptBoardPage() {
                   required
                 />
               </div>
-              <p className="text-xs text-text-muted">
-                Creates with default columns (Ideas → Backlog → In Progress → In Review → Done).
+              <p className="text-[13px] text-text-muted leading-relaxed">
+                Creates with default columns (Ideas, Backlog, In Progress, In Review, Done).
               </p>
               <Button
                 type="submit"
@@ -275,6 +331,15 @@ export default function DeptBoardPage() {
             </form>
           </div>
         </>
+      )}
+
+      {/* Coming Soon Toast */}
+      {comingSoonToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] px-4 py-2.5 bg-bg-elevated border border-border rounded-xl shadow-card-hover animate-[fadeUp_0.2s_cubic-bezier(0.16,1,0.3,1)]">
+          <p className="text-[13px] font-medium text-text-primary">
+            {comingSoonToast} view is coming soon
+          </p>
+        </div>
       )}
 
       {/* Command Palette */}

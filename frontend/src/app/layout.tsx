@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import { Lato } from "next/font/google";
+import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 
-const lato = Lato({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["300", "400", "700", "900"],
-  variable: "--font-lato",
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -17,9 +16,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${lato.variable} h-full`} suppressHydrationWarning>
-      <body className="min-h-full bg-bg-base text-text-primary antialiased font-sans">
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+    <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
+      <body className="min-h-full bg-bg-base text-text-primary antialiased font-sans flex flex-col">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true}>
           {children}
         </ThemeProvider>
       </body>

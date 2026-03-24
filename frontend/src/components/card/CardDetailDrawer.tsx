@@ -1,7 +1,10 @@
 "use client";
-import { useState } from "react";
-import { useRef } from "react";
-import { X, Calendar, User, Tag, ShieldCheck, Clock, Send, MoreHorizontal, CheckCircle2, XCircle, Loader2, Paperclip, FileText, Image, File, Download, Trash2, Upload } from "lucide-react";
+import { useState, useRef, Fragment } from "react";
+import {
+  X, Calendar, User, Tag, ShieldCheck, Clock, Send, CheckCircle2,
+  XCircle, Loader2, Paperclip, FileText, Image, File, Download,
+  Trash2, Upload, Archive, MoreHorizontal,
+} from "lucide-react";
 import { cn, PRIORITY_CONFIG } from "@/lib/utils";
 import { cardApi } from "@/lib/api";
 import { useBoardStore } from "@/store/board.store";
@@ -9,6 +12,7 @@ import { format } from "date-fns";
 import { Avatar } from "@/components/ui/Avatar";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
 import type { Board, Card, Comment } from "@/types";
 
 interface CardDetailDrawerProps {
@@ -27,15 +31,32 @@ function getFileIcon(name: string) {
   return <File size={14} />;
 }
 
+/** Render inline `code` blocks inside comment text */
+function renderCommentText(text: string) {
+  const parts = text.split(/(`[^`]+`)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("`") && part.endsWith("`")) {
+      return (
+        <code key={i} className="font-mono bg-black/5 dark:bg-white/10 px-1 rounded text-[12px]">
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    return <Fragment key={i}>{part}</Fragment>;
+  });
+}
+
 export function CardDetailDrawer({ card, board, onClose }: CardDetailDrawerProps) {
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [localComments, setLocalComments] = useState<Comment[]>(card.comments ?? []);
   const [tab, setTab] = useState<"details" | "activity">("details");
   const [uploading, setUploading] = useState(false);
+  const [description, setDescription] = useState(card.description ?? "");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadAttachment, deleteAttachment } = useBoardStore();
   const priority = PRIORITY_CONFIG[card.priority];
+  const taskId = `ERP-${card._id.slice(-4).toUpperCase()}`;
 
   const handleCommentSubmit = async () => {
     if (!comment.trim() || submitting) return;
@@ -52,11 +73,11 @@ export function CardDetailDrawer({ card, board, onClose }: CardDetailDrawerProps
   };
 
   return (
-    <Modal open={true} onClose={onClose} variant="drawer-right" width="440px">
+    <Modal open={true} onClose={onClose} variant="drawer-right" width="480px">
       <div className="flex flex-col h-full">
-        {/* Header */}
-        <div className="px-[18px] pt-[18px] pb-3.5 border-b border-border">
 
+        {/* ── Header ─────────────────────────────────────────────────────── */}
+        <div className="px-5 pt-5 pb-4 border-b border-border">
           {/* Priority strip */}
           {card.priority !== "none" && (
             <div
@@ -66,21 +87,27 @@ export function CardDetailDrawer({ card, board, onClose }: CardDetailDrawerProps
           )}
 
           <div className="flex items-start justify-between gap-3">
-            <h2 className="flex-1 text-[15px] font-semibold text-text-primary leading-[1.45] tracking-tight">
-              {card.title}
-            </h2>
+            <div className="flex items-start gap-2.5 flex-1 min-w-0">
+              <CheckCircle2 size={20} className="text-primary shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <h2 className="text-[18px] font-bold text-text-primary leading-tight tracking-tight truncate">
+                  {card.title}
+                </h2>
+                <p className="text-[13px] text-text-muted mt-0.5">{taskId}</p>
+              </div>
+            </div>
             <div className="flex gap-1 shrink-0">
-              <button className="w-7 h-7 flex items-center justify-center rounded-[7px] bg-transparent border-none cursor-pointer text-text-muted hover:bg-bg-elevated hover:text-text-secondary transition-colors">
-                <MoreHorizontal size={14} />
+              <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-transparent border-none cursor-pointer text-text-muted hover:bg-bg-elevated hover:text-text-secondary transition-colors">
+                <MoreHorizontal size={16} />
               </button>
-              <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-[7px] bg-transparent border-none cursor-pointer text-text-muted hover:bg-bg-elevated hover:text-text-primary transition-colors">
-                <X size={14} />
+              <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-transparent border-none cursor-pointer text-text-muted hover:bg-bg-elevated hover:text-text-primary transition-colors">
+                <X size={16} />
               </button>
             </div>
           </div>
 
           {/* Status badges */}
-          <div className="flex flex-wrap gap-[5px] mt-2.5">
+          <div className="flex flex-wrap gap-1.5 mt-3">
             {card.priority !== "none" && (
               <Chip color={priority.color} bg={priority.bg} label={priority.label} />
             )}
@@ -98,14 +125,14 @@ export function CardDetailDrawer({ card, board, onClose }: CardDetailDrawerProps
           </div>
         </div>
 
-        {/* Tabs */}
+        {/* ── Tabs ────────────────────────────────────────────────────────── */}
         <div className="flex border-b border-border shrink-0">
           {(["details", "activity"] as const).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={cn(
-                "flex-1 py-2.5 text-[12px] font-semibold bg-transparent border-none cursor-pointer capitalize tracking-[0.02em] transition-colors",
+                "flex-1 py-2.5 text-[13px] font-semibold bg-transparent border-none cursor-pointer capitalize tracking-[0.02em] transition-colors",
                 tab === t
                   ? "border-b-2 border-primary text-primary"
                   : "border-b-2 border-transparent text-text-muted hover:text-text-secondary"
@@ -116,75 +143,87 @@ export function CardDetailDrawer({ card, board, onClose }: CardDetailDrawerProps
           ))}
         </div>
 
-        {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto p-[18px]">
+        {/* ── Scrollable body ─────────────────────────────────────────────── */}
+        <div className="flex-1 overflow-y-auto px-5 py-5">
           {tab === "details" ? (
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-6">
 
-              {/* Description */}
-              {card.description ? (
+              {/* Assignee + Due Date row */}
+              <div className="grid grid-cols-2 gap-5">
                 <div>
-                  <SectionLabel>Description</SectionLabel>
-                  <p className="text-[13px] text-text-secondary leading-[1.65]">{card.description}</p>
+                  <SectionLabel icon={<User size={10} />}>Assignee</SectionLabel>
+                  {(card.assignees?.length ?? 0) > 0 ? (
+                    card.assignees.map(u => (
+                      <div key={u._id} className="inline-flex items-center gap-2 bg-bg-elevated rounded-full px-3 py-1.5 mb-1.5 mr-1.5">
+                        <Avatar name={u.name} size="xs" />
+                        <span className="text-[13px] text-text-primary font-medium">{u.name}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-[13px] text-text-muted">Unassigned</p>
+                  )}
                 </div>
-              ) : (
-                <div className="py-3">
-                  <p className="text-[13px] text-text-muted italic">No description — click to add</p>
+
+                <div>
+                  <SectionLabel icon={<Calendar size={10} />}>Due Date</SectionLabel>
+                  {card.dueDate ? (
+                    <div className="inline-flex items-center gap-2 bg-bg-elevated rounded-full px-3 py-1.5">
+                      <Calendar size={13} className="text-text-muted" />
+                      <span className="text-[13px] text-text-primary font-medium">
+                        {format(new Date(card.dueDate), "MMM d, yyyy")}
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="text-[13px] text-text-muted">Not set</p>
+                  )}
                 </div>
-              )}
+              </div>
 
               <Divider />
 
-              {/* Assignees + Due date grid */}
-              <div className="grid grid-cols-2 gap-5">
-                <Field label="Assignees" icon={<User size={10} />}>
-                  {(card.assignees?.length ?? 0) > 0
-                    ? card.assignees.map(u => (
-                        <div key={u._id} className="flex items-center gap-[7px] mb-[5px]">
-                          <Avatar name={u.name} size="sm" />
-                          <span className="text-[13px] text-text-secondary">{u.name}</span>
-                        </div>
-                      ))
-                    : <p className="text-[13px] text-text-muted">Unassigned</p>
-                  }
-                </Field>
-
-                <Field label="Due Date" icon={<Calendar size={10} />}>
-                  {card.dueDate
-                    ? <span className="text-[13px] text-text-secondary font-mono">
-                        {format(new Date(card.dueDate), "MMM d, yyyy")}
-                      </span>
-                    : <p className="text-[13px] text-text-muted">Not set</p>
-                  }
-                </Field>
+              {/* Description */}
+              <div>
+                <SectionLabel>Description</SectionLabel>
+                <textarea
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  placeholder="Add details..."
+                  rows={4}
+                  className="w-full bg-black/5 dark:bg-white/10 border border-transparent rounded-xl px-4 py-3 text-[14px] text-text-primary placeholder:text-text-muted resize-none outline-none transition-all duration-200 focus:bg-bg-surface focus:border-primary focus:ring-[3px] focus:ring-primary/20"
+                />
               </div>
+
+              <Divider />
 
               {/* Labels */}
               {(card.labels?.length ?? 0) > 0 && (
-                <div>
-                  <SectionLabel icon={<Tag size={10} />}>Labels</SectionLabel>
-                  <div className="flex flex-wrap gap-[5px]">
-                    {card.labels.map(l => (
-                      <span key={l} className="px-2.5 py-[3px] rounded-[6px] bg-bg-elevated border border-border-subtle text-[12px] text-text-secondary">
-                        {l}
-                      </span>
-                    ))}
+                <>
+                  <div>
+                    <SectionLabel icon={<Tag size={10} />}>Labels</SectionLabel>
+                    <div className="flex flex-wrap gap-1.5">
+                      {card.labels.map(l => (
+                        <span key={l} className="px-2.5 py-1 rounded-lg bg-bg-elevated border border-border-subtle text-[12px] text-text-secondary font-medium">
+                          {l}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                  <Divider />
+                </>
               )}
 
               {/* Attachments */}
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-2.5">
                   <SectionLabel icon={<Paperclip size={10} />} className="mb-0">
                     Attachments ({card.attachments?.length || 0})
                   </SectionLabel>
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
-                    className="flex items-center gap-1 text-[10px] font-semibold text-primary bg-transparent border-none cursor-pointer"
+                    className="flex items-center gap-1.5 text-[11px] font-semibold text-primary bg-transparent border-none cursor-pointer hover:text-primary-light transition-colors"
                   >
-                    {uploading ? <Loader2 size={10} className="animate-spin" /> : <Upload size={10} />}
+                    {uploading ? <Loader2 size={11} className="animate-spin" /> : <Upload size={11} />}
                     {uploading ? "Uploading..." : "Upload"}
                   </button>
                   <input
@@ -201,53 +240,48 @@ export function CardDetailDrawer({ card, board, onClose }: CardDetailDrawerProps
                 </div>
 
                 {(card.attachments?.length ?? 0) > 0 ? (
-                  <div className="flex flex-col gap-1.5">
+                  <div className="flex flex-col gap-2">
                     {card.attachments.map(att => (
-                      <div key={att._id} className="flex items-center gap-2.5 p-2 bg-bg-elevated rounded-lg border border-border-subtle">
-                        {/* Thumbnail or icon */}
+                      <div key={att._id} className="flex items-center gap-3 p-2.5 bg-bg-elevated rounded-xl border border-border-subtle">
                         {isImage(att.name) ? (
-                          <div className="w-9 h-9 rounded-[6px] overflow-hidden bg-bg-overlay shrink-0">
+                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-bg-overlay shrink-0">
                             <img src={`${API_URL}${att.url}`} alt={att.name} className="w-full h-full object-cover" />
                           </div>
                         ) : (
-                          <div className="w-9 h-9 rounded-[6px] shrink-0 bg-bg-overlay flex items-center justify-center text-text-muted">
+                          <div className="w-10 h-10 rounded-lg shrink-0 bg-bg-overlay flex items-center justify-center text-text-muted">
                             {getFileIcon(att.name)}
                           </div>
                         )}
-
-                        {/* Name */}
                         <div className="flex-1 min-w-0">
-                          <div className="text-[12px] text-text-primary overflow-hidden text-ellipsis whitespace-nowrap">
+                          <div className="text-[13px] text-text-primary font-medium overflow-hidden text-ellipsis whitespace-nowrap">
                             {att.name}
                           </div>
                           {att.uploadedBy && (
-                            <div className="text-[10px] text-text-muted mt-0.5">
+                            <div className="text-[11px] text-text-muted mt-0.5">
                               by {typeof att.uploadedBy === "object" ? att.uploadedBy.name : "Unknown"}
                             </div>
                           )}
                         </div>
-
-                        {/* Actions */}
                         <a
                           href={`${API_URL}${att.url}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           download
-                          className="w-[26px] h-[26px] rounded-[6px] flex items-center justify-center text-text-muted bg-transparent no-underline hover:bg-bg-overlay hover:text-text-secondary transition-colors"
+                          className="w-7 h-7 rounded-lg flex items-center justify-center text-text-muted bg-transparent no-underline hover:bg-bg-overlay hover:text-text-secondary transition-colors"
                         >
-                          <Download size={12} />
+                          <Download size={13} />
                         </a>
                         <button
                           onClick={() => deleteAttachment(card._id, att._id)}
-                          className="w-[26px] h-[26px] rounded-[6px] flex items-center justify-center text-text-muted bg-transparent border-none cursor-pointer hover:bg-danger/10 hover:text-danger transition-colors"
+                          className="w-7 h-7 rounded-lg flex items-center justify-center text-text-muted bg-transparent border-none cursor-pointer hover:bg-danger/10 hover:text-danger transition-colors"
                         >
-                          <Trash2 size={12} />
+                          <Trash2 size={13} />
                         </button>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-[12px] text-text-muted italic">No attachments yet</p>
+                  <p className="text-[13px] text-text-muted italic">No attachments yet</p>
                 )}
               </div>
 
@@ -262,7 +296,7 @@ export function CardDetailDrawer({ card, board, onClose }: CardDetailDrawerProps
                       <div key={field._id} className="flex items-center justify-between py-2.5 border-b border-border-subtle">
                         <span className="text-[13px] text-text-muted">{field.name}</span>
                         <span className={cn("text-[13px] font-mono", val != null ? "text-text-primary" : "text-text-muted")}>
-                          {val != null ? String(val) : "—"}
+                          {val != null ? String(val) : "\u2014"}
                         </span>
                       </div>
                     );
@@ -275,7 +309,7 @@ export function CardDetailDrawer({ card, board, onClose }: CardDetailDrawerProps
                 <>
                   <Divider />
                   <div
-                    className="rounded-[10px] p-3.5 border"
+                    className="rounded-xl p-4 border"
                     style={{
                       background: card.approval.status === "approved" ? "rgba(0,229,160,0.04)"
                         : card.approval.status === "rejected" ? "rgba(255,68,68,0.04)"
@@ -285,32 +319,32 @@ export function CardDetailDrawer({ card, board, onClose }: CardDetailDrawerProps
                         : "rgba(245,166,35,0.15)",
                     }}
                   >
-                    <div className="text-[12px] font-semibold text-text-primary mb-1.5">Approval Required</div>
-                    <div className="text-[12px] text-text-secondary">
+                    <div className="text-[13px] font-semibold text-text-primary mb-1.5">Approval Required</div>
+                    <div className="text-[13px] text-text-secondary">
                       Approvers: {card.approval.approvers?.map(a => a.name).join(", ") || "None set"}
                     </div>
                     {card.approval.rejectionReason && (
-                      <div className="text-[12px] text-danger mt-1.5">{card.approval.rejectionReason}</div>
+                      <div className="text-[13px] text-danger mt-1.5">{card.approval.rejectionReason}</div>
                     )}
                   </div>
                 </>
               )}
             </div>
           ) : (
-            /* Activity */
-            <div className="flex flex-col gap-2.5">
+            /* ── Activity ──────────────────────────────────────────────── */
+            <div className="flex flex-col gap-4">
               {localComments.map(c => (
-                <div key={c._id} className="flex gap-2.5">
-                  <Avatar name={c.author?.name ?? "?"} size="md" className="mt-px" />
-                  <div className="flex-1">
-                    <div className="flex items-baseline gap-2 mb-1">
-                      <span className="text-[13px] font-medium text-text-primary">{c.author?.name}</span>
+                <div key={c._id} className="flex gap-3">
+                  <Avatar name={c.author?.name ?? "?"} size="md" className="mt-0.5 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[13px] font-semibold text-text-primary">{c.author?.name}</span>
                       <span className="text-[11px] text-text-muted font-mono">
-                        {format(new Date(c.createdAt), "MMM d · HH:mm")}
+                        {format(new Date(c.createdAt), "MMM d, HH:mm")}
                       </span>
                     </div>
-                    <div className="text-[13px] text-text-secondary leading-[1.55] bg-bg-elevated rounded-lg px-2.5 py-2 border border-border-subtle">
-                      {c.text}
+                    <div className="text-[13px] text-text-secondary leading-[1.6] bg-bg-elevated rounded-xl p-4 border border-border-subtle">
+                      {renderCommentText(c.text)}
                     </div>
                   </div>
                 </div>
@@ -318,22 +352,23 @@ export function CardDetailDrawer({ card, board, onClose }: CardDetailDrawerProps
 
               {/* Audit entries */}
               {card.auditLog?.map(entry => (
-                <div key={entry._id} className="flex items-center gap-2 py-0.5">
-                  <div className="w-[26px] flex justify-center">
-                    <Clock size={11} className="text-text-muted" />
+                <div key={entry._id} className="flex items-center gap-2.5 py-1">
+                  <div className="w-7 flex justify-center shrink-0">
+                    <Clock size={12} className="text-text-muted" />
                   </div>
-                  <span className="text-[11px] text-text-muted font-mono">
-                    {format(new Date(entry.createdAt), "MMM d · HH:mm")}
+                  <span className="text-[11px] text-text-muted font-mono shrink-0">
+                    {format(new Date(entry.createdAt), "MMM d, HH:mm")}
                   </span>
                   <span className="text-[12px] text-text-muted">
-                    <span className="text-text-secondary">{entry.user?.name}</span> {entry.action}
-                    {entry.detail && <span className="text-text-muted"> — {entry.detail}</span>}
+                    <span className="text-text-secondary font-medium">{entry.user?.name}</span> {entry.action}
+                    {entry.detail && <span className="text-text-muted"> &mdash; {entry.detail}</span>}
                   </span>
                 </div>
               ))}
 
               {!localComments.length && !card.auditLog?.length && (
-                <div className="py-8 text-center">
+                <div className="py-12 text-center">
+                  <Clock size={24} className="text-text-muted mx-auto mb-2 opacity-40" />
                   <p className="text-[13px] text-text-muted">No activity yet</p>
                 </div>
               )}
@@ -341,28 +376,49 @@ export function CardDetailDrawer({ card, board, onClose }: CardDetailDrawerProps
           )}
         </div>
 
-        {/* Comment box */}
-        <div className="px-4 py-3 border-t border-border bg-bg-base">
-          <div className="flex gap-2 items-end">
-            <textarea
-              value={comment} onChange={e => setComment(e.target.value)}
-              placeholder="Add a comment..." rows={2}
-              onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleCommentSubmit(); }}
-              className="flex-1 bg-bg-surface border border-border rounded-lg px-3 py-2 text-[13px] text-text-primary placeholder:text-text-muted outline-none resize-none font-[inherit] transition-colors duration-150 focus:border-primary/60 focus:ring-2 focus:ring-primary/10"
-            />
+        {/* ── Comment input ───────────────────────────────────────────────── */}
+        <div className="px-5 py-3 border-t border-border bg-bg-base">
+          <div className="flex gap-2.5 items-center">
+            <Avatar name="You" size="sm" className="shrink-0" />
+            <div className="flex-1 flex items-center gap-2 bg-bg-surface border border-border rounded-full px-4 py-2 focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/10 transition-all duration-150">
+              <input
+                value={comment}
+                onChange={e => setComment(e.target.value)}
+                placeholder="Write a comment..."
+                onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleCommentSubmit(); }}
+                className="flex-1 bg-transparent border-none outline-none text-[13px] text-text-primary placeholder:text-text-muted"
+              />
+            </div>
             <button
               onClick={handleCommentSubmit}
               disabled={!comment.trim() || submitting}
               className={cn(
-                "w-9 h-9 rounded-[9px] border-none shrink-0 flex items-center justify-center transition-all duration-150",
+                "w-8 h-8 rounded-full border-none shrink-0 flex items-center justify-center transition-all duration-150",
                 comment.trim() && !submitting
                   ? "bg-primary text-white cursor-pointer hover:bg-primary-light"
                   : "bg-bg-elevated text-text-muted cursor-not-allowed"
               )}
             >
-              {submitting ? <Loader2 size={13} className="animate-spin" /> : <Send size={14} />}
+              {submitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
             </button>
           </div>
+        </div>
+
+        {/* ── Footer bar ──────────────────────────────────────────────────── */}
+        <div className="px-5 py-3 border-t border-border bg-bg-surface flex items-center gap-2">
+          <Button variant="secondary" size="sm">
+            <Archive size={14} />
+            Archive
+          </Button>
+          <button
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-danger bg-transparent border-none cursor-pointer hover:bg-danger/10 transition-colors"
+          >
+            <Trash2 size={15} />
+          </button>
+          <div className="flex-1" />
+          <Button variant="primary" size="sm">
+            Save Changes
+          </Button>
         </div>
       </div>
     </Modal>
@@ -373,7 +429,7 @@ export function CardDetailDrawer({ card, board, onClose }: CardDetailDrawerProps
 function Chip({ color, bg, label, icon }: { color: string; bg: string; label: string; icon?: React.ReactNode }) {
   return (
     <span
-      className="inline-flex items-center gap-1 px-2 py-[3px] rounded-[6px] text-[11px] font-medium"
+      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold"
       style={{ color, background: bg }}
     >
       {icon}{label}
@@ -383,13 +439,4 @@ function Chip({ color, bg, label, icon }: { color: string; bg: string; label: st
 
 function Divider() {
   return <div className="h-px bg-border-subtle" />;
-}
-
-function Field({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <div>
-      <SectionLabel icon={icon}>{label}</SectionLabel>
-      {children}
-    </div>
-  );
 }
