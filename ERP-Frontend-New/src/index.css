@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary:        #0454FC;
+  --color-primary-light:  #3B7BFF;
+  --color-accent:         #00E5A0;
+  --color-danger:         #FF4444;
+  --color-warning:        #F5A623;
+
+  --color-bg-base:        #050505;
+  --color-bg-surface:     #0F0F0F;
+  --color-bg-elevated:    #1A1A1A;
+  --color-bg-overlay:     #242424;
+
+  --color-border:         #2A2A2A;
+  --color-border-subtle:  #1E1E1E;
+
+  --color-text-primary:   #F3F3F3;
+  --color-text-secondary: #888888;
+  --color-text-muted:     #444444;
+
+  /* Fonts */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: "Manrope", sans-serif;
+
+  /* Shadows */
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.5);
+  --shadow-card-hover: 0 0 0 1px rgba(4,84,252,0.35), 0 8px 24px rgba(0,0,0,0.5);
+  --shadow-ambient: 0 32px 64px rgba(0,0,0,0.9);
+  
+  /* Radii */
+  --radius-card: 12px;
+  --radius-btn: 8px;
+  --radius-badge: 6px;
+  --radius-modal: 14px;
+}
+
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-sans);
+    background-color: var(--color-bg-base);
+    color: var(--color-text-primary);
+  }
+
+  /* Headings typically use Manrope as per requirements */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+}
