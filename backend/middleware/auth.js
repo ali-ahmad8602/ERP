@@ -71,13 +71,18 @@ const requireDeptAccess = (minRole = 'member') => async (req, res, next) => {
 const requireBoardAccess = (minRole = 'viewer') => async (req, res, next) => {
   const { orgRole, departments, boardPermissions } = req.user;
 
-  if (orgRole === 'super_admin') return next();
-
   const boardId = req.params.boardId || req.body.board;
   if (!boardId) return res.status(400).json({ message: 'Board not specified' });
 
   const board = await Board.findById(boardId);
   if (!board || !board.isActive) return res.status(404).json({ message: 'Board not found' });
+
+  // Super admin can access all boards
+  if (orgRole === 'super_admin') {
+    req.board = board;
+    req.boardRole = 'board_owner';
+    return next();
+  }
 
   // Company board: top_management + super_admin only
   if (board.isCompanyBoard) {
