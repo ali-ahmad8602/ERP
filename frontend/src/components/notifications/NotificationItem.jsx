@@ -49,6 +49,7 @@ export default function NotificationItem({ notification, index = 0, onNavigate }
   const navigate = useNavigate()
   const config = iconConfig[notification.icon] || iconConfig.card_created
   const Icon = config.icon
+  const isDueReminder = notification.icon === 'due_date_reminder'
 
   const handleClick = () => {
     markAsRead(notification.id)
@@ -66,6 +67,7 @@ export default function NotificationItem({ notification, index = 0, onNavigate }
         'w-full flex items-start gap-3 px-4 py-3.5 text-left transition-colors cursor-pointer',
         'hover:bg-glass-hover',
         notification.read ? 'opacity-50' : '',
+        isDueReminder && !notification.read ? 'bg-danger/[0.03]' : '',
       ].join(' ')}
     >
       {/* Icon */}
@@ -79,7 +81,12 @@ export default function NotificationItem({ notification, index = 0, onNavigate }
           <span className="text-sm font-medium text-text-primary truncate">
             {notification.title}
           </span>
-          {!notification.read && (
+          {isDueReminder && !notification.read && (
+            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-danger/15 text-danger shrink-0">
+              URGENT
+            </span>
+          )}
+          {!notification.read && !isDueReminder && (
             <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
           )}
         </div>

@@ -1,56 +1,66 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Plus, Loader2 } from 'lucide-react'
 import useBoardStore from '../../store/useBoardStore'
-import * as boardsApi from '../../api/boards'
+import CustomFieldsForm, { validateCustomFields } from './CustomFieldsForm'
 
-const icons = ['📋', '💳', '📄', '🏦', '🛡️', '🤝', '📊', '🎯', '⚡', '🔧']
-const colors = ['#0EA5E9', '#10B981', '#8B5CF6', '#F59E0B', '#EC4899', '#FF3B3B']
+const priorities = [
+  { value: 'none', label: 'None', color: 'bg-glass border-glass-border text-text-muted' },
+  { value: 'low', label: 'Low', color: 'bg-text-muted/10 border-text-muted/20 text-text-muted' },
+  { value: 'medium', label: 'Medium', color: 'bg-primary-light/10 border-primary-light/20 text-primary-light' },
+  { value: 'high', label: 'High', color: 'bg-amber/10 border-amber/20 text-amber' },
+  { value: 'urgent', label: 'Urgent', color: 'bg-danger/10 border-danger/20 text-danger' },
+]
 
-export default function CreateBoardModal({ open, onClose }) {
-  const addBoard = useBoardStore((s) => s.addBoard)
-  const [name, setName] = useState('')
+export default function CreateCardModal({ open, onClose, boardId, columnId, columnName }) {
+  const createCard = useBoardStore((s) => s.createCard)
+  const customFields = useBoardStore((s) => s.getCustomFields(boardId))
+  const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [icon, setIcon] = useState('📋')
-  const [color, setColor] = useState('#0EA5E9')
-  const [departmentId, setDepartmentId] = useState('')
-  const [departments, setDepartments] = useState([])
+  const [priority, setPriority] = useState('none')
+  const [fieldValues, setFieldValues] = useState({})
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
 
-  // Fetch departments when modal opens
-  useEffect(() => {
-    if (open) {
-      boardsApi.getDepartments().then((data) => {
-        setDepartments(data.departments || [])
-        if (data.departments?.length) {
-          setDepartmentId(data.departments[0]._id)
-        }
-      }).catch(() => {
-        setError('Failed to load departments')
-      })
-    }
-  }, [open])
+  const handleFieldChange = (fieldId, value) => {
+    setFieldValues((prev) => ({ ...prev, [fieldId]: value }))
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!name.trim() || !departmentId) return
+    if (!title.trim()) return
+
+    // Validate custom fields
+    if (customFields.length > 0) {
+      const fieldErrors = validateCustomFields(customFields, fieldValues)
+      if (fieldErrors) {
+        const firstError = Object.values(fieldErrors)[0]
+        setError(firstError)
+        return
+      }
+    }
+
     setSaving(true)
     setError(null)
     try {
-      await addBoard({
-        name: name.trim(),
+      // Convert field values to backend format: [{ field: id, value }]
+      const cfPayload = Object.entries(fieldValues)
+        .filter(([, v]) => v !== undefined && v !== null && v !== '')
+        .map(([fieldId, value]) => ({ field: fieldId, value }))
+
+      await createCard(boardId, columnId, {
+        title: title.trim(),
         description: description.trim(),
-        department: departmentId,
+        priority,
+        customFields: cfPayload.length > 0 ? cfPayload : undefined,
       })
-      setName('')
+      setTitle('')
       setDescription('')
-      setIcon('📋')
-      setColor('#0EA5E9')
-      setError(null)
+      setPriority('none')
+      setFieldValues({})
       onClose()
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create board. Please try again.')
+    } catch {
+      setError('Failed to create card. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -76,13 +86,18 @@ export default function CreateBoardModal({ open, onClose }) {
           >
             <form
               onSubmit={handleSubmit}
-              className="w-full max-w-md bg-surface/95 backdrop-blur-2xl border border-glass-border rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.6)] pointer-events-auto overflow-hidden"
+              className="w-full max-w-md bg-surface/95 backdrop-blur-2xl border border-glass-border rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.6)] pointer-events-auto overflow-hidden max-h-[85vh] flex flex-col"
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-glass-border">
-                <h2 className="text-lg font-heading font-semibold text-text-primary">
-                  Create Board
-                </h2>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-glass-border shrink-0">
+                <div>
+                  <h2 className="text-lg font-heading font-semibold text-text-primary">
+                    Create Card
+                  </h2>
+                  <p className="text-xs text-text-muted mt-0.5">
+                    Adding to <span className="text-text-secondary font-medium">{columnName}</span>
+                  </p>
+                </div>
                 <button
                   type="button"
                   onClick={onClose}
@@ -92,43 +107,23 @@ export default function CreateBoardModal({ open, onClose }) {
                 </button>
               </div>
 
-              <div className="px-6 py-5 space-y-5">
-                {/* Error */}
+              <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
                 {error && (
                   <div className="px-3 py-2 rounded-lg bg-danger/10 border border-danger/20 text-xs text-danger">
                     {error}
                   </div>
                 )}
 
-                {/* Department */}
+                {/* Title */}
                 <div>
                   <label className="block text-xs font-medium text-text-muted uppercase tracking-wider mb-2">
-                    Department
-                  </label>
-                  <select
-                    value={departmentId}
-                    onChange={(e) => setDepartmentId(e.target.value)}
-                    disabled={saving}
-                    className="w-full px-4 py-2.5 rounded-xl bg-glass border border-glass-border text-sm text-text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
-                  >
-                    {departments.map((d) => (
-                      <option key={d._id} value={d._id}>
-                        {d.icon} {d.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Name */}
-                <div>
-                  <label className="block text-xs font-medium text-text-muted uppercase tracking-wider mb-2">
-                    Board Name
+                    Title
                   </label>
                   <input
                     type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Credit Review Pipeline"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="e.g. Review Q1 credit application"
                     className="w-full px-4 py-2.5 rounded-xl bg-glass border border-glass-border text-sm text-text-primary placeholder:text-text-muted/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
                     autoFocus
                     disabled={saving}
@@ -143,61 +138,48 @@ export default function CreateBoardModal({ open, onClose }) {
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="What is this board for?"
+                    placeholder="Add details..."
                     rows={3}
                     className="w-full px-4 py-2.5 rounded-xl bg-glass border border-glass-border text-sm text-text-primary placeholder:text-text-muted/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all resize-none"
                     disabled={saving}
                   />
                 </div>
 
-                {/* Icon picker */}
+                {/* Priority */}
                 <div>
                   <label className="block text-xs font-medium text-text-muted uppercase tracking-wider mb-2">
-                    Icon
+                    Priority
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {icons.map((ic) => (
+                    {priorities.map((p) => (
                       <button
-                        key={ic}
+                        key={p.value}
                         type="button"
-                        onClick={() => setIcon(ic)}
+                        onClick={() => setPriority(p.value)}
                         className={[
-                          'w-9 h-9 rounded-lg flex items-center justify-center text-base transition-all cursor-pointer',
-                          icon === ic
-                            ? 'bg-glass-hover border border-glass-border-hover scale-110'
-                            : 'bg-glass border border-glass-border hover:bg-glass-hover',
+                          'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer',
+                          priority === p.value
+                            ? `${p.color} ring-1 ring-white/10`
+                            : 'bg-glass border-glass-border text-text-muted hover:bg-glass-hover',
                         ].join(' ')}
                       >
-                        {ic}
+                        {p.label}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Color picker */}
-                <div>
-                  <label className="block text-xs font-medium text-text-muted uppercase tracking-wider mb-2">
-                    Accent Color
-                  </label>
-                  <div className="flex gap-2">
-                    {colors.map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        onClick={() => setColor(c)}
-                        className={[
-                          'w-8 h-8 rounded-full transition-all cursor-pointer',
-                          color === c ? 'ring-2 ring-offset-2 ring-offset-surface scale-110' : 'hover:scale-105',
-                        ].join(' ')}
-                        style={{ backgroundColor: c, ringColor: c }}
-                      />
-                    ))}
-                  </div>
-                </div>
+                {/* Custom Fields */}
+                <CustomFieldsForm
+                  fields={customFields}
+                  values={fieldValues}
+                  onChange={handleFieldChange}
+                  disabled={saving}
+                />
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-4 border-t border-glass-border flex items-center justify-end gap-3">
+              <div className="px-6 py-4 border-t border-glass-border flex items-center justify-end gap-3 shrink-0">
                 <button
                   type="button"
                   onClick={onClose}
@@ -208,7 +190,7 @@ export default function CreateBoardModal({ open, onClose }) {
                 </button>
                 <button
                   type="submit"
-                  disabled={!name.trim() || !departmentId || saving}
+                  disabled={!title.trim() || saving}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-primary text-white hover:bg-primary/90 transition-all cursor-pointer shadow-[0_0_20px_rgba(4,84,252,0.3)] disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {saving ? (
@@ -216,7 +198,7 @@ export default function CreateBoardModal({ open, onClose }) {
                   ) : (
                     <Plus className="w-4 h-4" />
                   )}
-                  {saving ? 'Creating...' : 'Create Board'}
+                  {saving ? 'Creating...' : 'Create Card'}
                 </button>
               </div>
             </form>

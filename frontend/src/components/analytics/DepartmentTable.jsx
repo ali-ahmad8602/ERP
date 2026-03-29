@@ -29,7 +29,9 @@ function ProgressBar({ done, total, color }) {
   )
 }
 
-export default function DepartmentTable({ departments }) {
+export default function DepartmentTable({ departments, loading }) {
+  const isLoading = loading || departments === null
+
   return (
     <GlassCard className="overflow-hidden" glow="none">
       <div className="px-6 py-4 border-b border-glass-border">
@@ -48,7 +50,28 @@ export default function DepartmentTable({ departments }) {
         <span>Completion</span>
       </div>
 
-      {/* Rows */}
+      {isLoading ? (
+        <div>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1.5fr] gap-2 px-6 py-3.5 items-center border-t border-glass-border/50">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-white/5 animate-pulse" />
+                <div className="h-4 w-28 rounded bg-white/5 animate-pulse" />
+              </div>
+              {[1, 2, 3, 4].map((j) => (
+                <div key={j} className="flex justify-center">
+                  <div className="h-4 w-8 rounded bg-white/5 animate-pulse" />
+                </div>
+              ))}
+              <div className="h-1.5 rounded-full bg-white/5 animate-pulse" />
+            </div>
+          ))}
+        </div>
+      ) : !departments?.length ? (
+        <div className="px-6 py-12 text-center">
+          <p className="text-sm text-text-muted">No departments found</p>
+        </div>
+      ) : (
       <motion.div variants={container} initial="hidden" animate="show">
         {departments.map((dept) => (
           <motion.div
@@ -80,7 +103,10 @@ export default function DepartmentTable({ departments }) {
             <span className="text-center text-sm font-mono text-primary-light">
               {dept.inProgressCount}
             </span>
-            <span className="text-center text-sm font-mono text-danger">
+            <span className="text-center text-sm font-mono text-danger flex items-center justify-center gap-1">
+              {dept.overdueCount > 0 && (
+                <span className="w-1.5 h-1.5 rounded-full bg-danger animate-pulse" />
+              )}
               {dept.overdueCount}
             </span>
 
@@ -93,6 +119,7 @@ export default function DepartmentTable({ departments }) {
           </motion.div>
         ))}
       </motion.div>
+      )}
     </GlassCard>
   )
 }

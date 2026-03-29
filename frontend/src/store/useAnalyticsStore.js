@@ -1,28 +1,13 @@
 import { create } from 'zustand'
-import {
-  overviewStats as mockOverview,
-  departmentBreakdown as mockDepartments,
-  activityFeed as mockActivity,
-  statusDistribution as mockStatusDist,
-} from '../data/mockAnalytics'
-import {
-  dashboardStats as mockDashboardStats,
-  performanceSummary as mockPerformance,
-  recentItems as mockRecentItems,
-} from '../data/mockDashboard'
 import * as analyticsApi from '../api/analytics'
 
-const useAnalyticsStore = create((set) => ({
-  // Analytics page data
-  overview: mockOverview,
-  departments: mockDepartments,
-  activities: mockActivity,
-  statusDistribution: mockStatusDist,
-
-  // Dashboard page data
-  dashboardStats: mockDashboardStats,
-  performanceSummary: mockPerformance,
-  recentItems: mockRecentItems,
+const useAnalyticsStore = create((set, get) => ({
+  // Live API data — null means "never fetched", triggering skeleton loaders
+  overview: null,
+  departments: null,
+  activities: null,
+  hasMoreActivities: true,
+  loadingMore: false,
 
   loading: false,
   error: null,
@@ -31,17 +16,7 @@ const useAnalyticsStore = create((set) => ({
     set({ loading: true, error: null })
     try {
       const data = await analyticsApi.getOverview()
-      set({
-        overview: data,
-        dashboardStats: {
-          totalCards: data.totalCards,
-          inProgressCount: data.inProgressCount,
-          overdueCount: data.overdueCount,
-          pendingApprovals: data.pendingApprovals,
-          complianceItems: data.complianceItems,
-        },
-        loading: false,
-      })
+      set({ overview: data, loading: false })
     } catch {
       set({ loading: false, error: 'Failed to load overview' })
     }
@@ -61,9 +36,26 @@ const useAnalyticsStore = create((set) => ({
     set({ loading: true, error: null })
     try {
       const data = await analyticsApi.getActivity(params)
-      set({ activities: data.activities, loading: false })
+      set({ activities: data.activities, loading: false, hasMoreActivities: data.activities.length >= (params.limit || 50) })
     } catch {
       set({ loading: false, error: 'Failed to load activity' })
+    }
+  },
+
+  loadMoreActivities: async () => {
+    const { activities, loadingMore } = get()
+    if (loadingMore || !activities?.length) return
+    set({ loadingMore: true })
+    try {
+      const lastDate = activities[activities.length - 1].createdAt
+      const data = await analyticsApi.getActivity({ before: lastDate, limit: 20 })
+      set((state) => ({
+        activities: [...(state.activities || []), ...data.activities],
+        hasMoreActivities: data.activities.length >= 20,
+        loadingMore: false,
+      }))
+    } catch {
+      set({ loadingMore: false })
     }
   },
 
@@ -76,16 +68,9 @@ const useAnalyticsStore = create((set) => ({
         analyticsApi.getActivity(),
       ])
 
-      const updates = {}
+      const updates = { loading: false }
       if (overview.status === 'fulfilled') {
         updates.overview = overview.value
-        updates.dashboardStats = {
-          totalCards: overview.value.totalCards,
-          inProgressCount: overview.value.inProgressCount,
-          overdueCount: overview.value.overdueCount,
-          pendingApprovals: overview.value.pendingApprovals,
-          complianceItems: overview.value.complianceItems,
-        }
       }
       if (departments.status === 'fulfilled') {
         updates.departments = departments.value.departments
@@ -94,9 +79,57 @@ const useAnalyticsStore = create((set) => ({
         updates.activities = activity.value.activities
       }
 
-      set({ ...updates, loading: false })
+      const anyFailed = [overview, departments, activity].some(
+        (r) => r.status === 'rejected'
+      )
+      if (anyFailed) {
+        updates.error = 'Some data failed to load'
+      }
+
+      set(updates)
     } catch {
       set({ loading: false, error: 'Failed to load analytics' })
+    }
+  },
+
+  // Derived selectors — compute from live data without duplicating state
+  getDashboardStats: () => {
+    const o = get().overview
+    if (!o) return null
+    return {
+      totalCards: o.totalCards,
+      inProgressCount: o.inProgressCount,
+      overdueCount: o.overdueCount,
+      pendingApprovals: o.pendingApprovals,
+      complianceItems: o.complianceItems,
+    }
+  },
+
+  getStatusDistribution: () => {
+    const o = get().overview
+    if (!o) return []
+    const backlog = o.totalCards - o.doneCount - o.inProgressCount - o.overdueCount
+    return [
+      { name: 'Done', value: o.doneCount, color: '#10B981' },
+      { name: 'In Progress', value: o.inProgressCount, color: '#0EA5E9' },
+      { name: 'Backlog', value: Math.max(0, backlog), color: '#6B7280' },
+      { name: 'Overdue', value: o.overdueCount, color: '#FF3B3B' },
+    ]
+  },
+
+  getPerformanceSummary: () => {
+    const o = get().overview
+    if (!o) return null
+    const total = o.totalCards || 1
+    const completionRate = Math.round((o.doneCount / total) * 100 * 10) / 10
+    return {
+      completionRate,
+      totalCards: o.totalCards,
+      doneCount: o.doneCount,
+      createdThisWeek: o.createdThisWeek,
+      createdThisMonth: o.createdThisMonth,
+      pendingApprovals: o.pendingApprovals,
+      complianceItems: o.complianceItems,
     }
   },
 }))

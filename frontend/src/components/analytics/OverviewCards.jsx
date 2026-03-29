@@ -66,7 +66,33 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
 }
 
+function SkeletonCard({ glow, bgRing }) {
+  return (
+    <GlassCard glow={glow} className="p-5 cursor-default">
+      <div className="flex items-start justify-between mb-3">
+        <div className={`p-2.5 rounded-xl ${bgRing}`}>
+          <div className="w-5 h-5 rounded bg-white/5 animate-pulse" />
+        </div>
+      </div>
+      <div className="h-9 w-20 rounded-lg bg-white/5 animate-pulse mb-2" />
+      <div className="h-3 w-24 rounded bg-white/5 animate-pulse" />
+    </GlassCard>
+  )
+}
+
 export default function OverviewCards({ data }) {
+  const isLoading = !data
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        {cards.map(({ key, glow, bgRing }) => (
+          <SkeletonCard key={key} glow={glow} bgRing={bgRing} />
+        ))}
+      </div>
+    )
+  }
+
   return (
     <motion.div
       className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"

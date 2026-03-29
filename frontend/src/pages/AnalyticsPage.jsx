@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { AlertCircle } from 'lucide-react'
 import OverviewCards from '../components/analytics/OverviewCards'
 import DepartmentTable from '../components/analytics/DepartmentTable'
 import ChartsSection from '../components/analytics/ChartsSection'
@@ -7,15 +8,22 @@ import ActivityTimeline from '../components/analytics/ActivityTimeline'
 import useAnalyticsStore from '../store/useAnalyticsStore'
 
 export default function AnalyticsPage() {
-  const overviewStats = useAnalyticsStore((s) => s.overview)
-  const departmentBreakdown = useAnalyticsStore((s) => s.departments)
-  const statusDistribution = useAnalyticsStore((s) => s.statusDistribution)
-  const activityFeed = useAnalyticsStore((s) => s.activities)
+  const overview = useAnalyticsStore((s) => s.overview)
+  const departments = useAnalyticsStore((s) => s.departments)
+  const activities = useAnalyticsStore((s) => s.activities)
+  const loading = useAnalyticsStore((s) => s.loading)
+  const loadingMore = useAnalyticsStore((s) => s.loadingMore)
+  const hasMoreActivities = useAnalyticsStore((s) => s.hasMoreActivities)
+  const error = useAnalyticsStore((s) => s.error)
   const fetchAll = useAnalyticsStore((s) => s.fetchAll)
+  const loadMoreActivities = useAnalyticsStore((s) => s.loadMoreActivities)
+
+  // Derived from live overview — no mock needed
+  const statusDistribution = useAnalyticsStore((s) => s.getStatusDistribution())
 
   useEffect(() => {
     fetchAll()
-  }, [])
+  }, [fetchAll])
 
   return (
     <motion.div
@@ -34,27 +42,44 @@ export default function AnalyticsPage() {
         </p>
       </div>
 
+      {/* Error Banner */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 flex items-center gap-3 px-4 py-3 rounded-xl bg-danger/10 border border-danger/20 text-sm text-danger"
+        >
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          {error}
+        </motion.div>
+      )}
+
       {/* KPI Cards */}
       <section className="mb-6">
-        <OverviewCards data={overviewStats} />
+        <OverviewCards data={overview} />
       </section>
 
       {/* Department Table */}
       <section className="mb-6">
-        <DepartmentTable departments={departmentBreakdown} />
+        <DepartmentTable departments={departments} loading={loading && !departments} />
       </section>
 
-      {/* Charts */}
+      {/* Charts — status distribution derived from live overview data */}
       <section className="mb-6">
         <ChartsSection
           statusData={statusDistribution}
-          departments={departmentBreakdown}
+          departments={departments}
         />
       </section>
 
       {/* Activity Feed */}
       <section className="mb-6">
-        <ActivityTimeline activities={activityFeed} />
+        <ActivityTimeline
+          activities={activities}
+          loading={(loading && !activities) || loadingMore}
+          onLoadMore={loadMoreActivities}
+          hasMore={hasMoreActivities}
+        />
       </section>
     </motion.div>
   )

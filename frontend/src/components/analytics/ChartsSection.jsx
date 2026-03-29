@@ -114,6 +114,9 @@ function DeptBarChart({ departments }) {
 }
 
 export default function ChartsSection({ statusData, departments }) {
+  const hasStatus = statusData && statusData.length > 0
+  const hasDepts = departments && departments.length > 0
+
   return (
     <motion.div
       className="grid grid-cols-1 lg:grid-cols-2 gap-4"
@@ -122,10 +125,30 @@ export default function ChartsSection({ statusData, departments }) {
       animate="show"
     >
       <motion.div variants={fadeUp}>
-        <DonutChart data={statusData} />
+        {hasStatus ? (
+          <DonutChart data={statusData} />
+        ) : (
+          <GlassCard className="p-6 flex flex-col items-center justify-center min-h-[340px]" glow="none">
+            <div className="h-[260px] w-full flex items-center justify-center">
+              <div className="w-[210px] h-[210px] rounded-full border-4 border-dashed border-glass-border animate-pulse" />
+            </div>
+            <p className="text-xs text-text-muted mt-4">Loading chart data...</p>
+          </GlassCard>
+        )}
       </motion.div>
       <motion.div variants={fadeUp}>
-        <DeptBarChart departments={departments} />
+        {hasDepts ? (
+          <DeptBarChart departments={departments} />
+        ) : (
+          <GlassCard className="p-6 flex flex-col items-center justify-center min-h-[340px]" glow="none">
+            <div className="flex gap-3 items-end h-[260px]">
+              {[80, 120, 60, 100, 90].map((h, i) => (
+                <div key={i} className="w-10 rounded-t bg-white/5 animate-pulse" style={{ height: h }} />
+              ))}
+            </div>
+            <p className="text-xs text-text-muted mt-4">Loading department data...</p>
+          </GlassCard>
+        )}
       </motion.div>
     </motion.div>
   )

@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion'
-import { CheckCheck } from 'lucide-react'
+import { CheckCheck, Loader2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import useNotificationStore from '../../store/useNotificationStore'
 import NotificationItem from './NotificationItem'
 
 export default function NotificationDropdown({ onClose }) {
   const notifications = useNotificationStore((s) => s.notifications)
+  const loading = useNotificationStore((s) => s.loading)
   const markAllAsRead = useNotificationStore((s) => s.markAllAsRead)
   const unreadCount = useNotificationStore((s) => s.unreadCount)
   const navigate = useNavigate()
@@ -45,7 +46,12 @@ export default function NotificationDropdown({ onClose }) {
 
       {/* Notification List */}
       <div className="max-h-[400px] overflow-y-auto divide-y divide-glass-border/40">
-        {displayedNotifications.length === 0 ? (
+        {loading && notifications.length === 0 ? (
+          <div className="px-5 py-10 text-center">
+            <Loader2 className="w-5 h-5 text-text-muted animate-spin mx-auto mb-2" />
+            <p className="text-xs text-text-muted">Loading...</p>
+          </div>
+        ) : displayedNotifications.length === 0 ? (
           <div className="px-5 py-10 text-center">
             <p className="text-sm text-text-muted">No notifications yet</p>
           </div>

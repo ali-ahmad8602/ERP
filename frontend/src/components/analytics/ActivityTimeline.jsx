@@ -50,7 +50,9 @@ const item = {
   show: { opacity: 1, x: 0, transition: { duration: 0.35, ease: 'easeOut' } },
 }
 
-export default function ActivityTimeline({ activities }) {
+export default function ActivityTimeline({ activities, loading, onLoadMore, hasMore }) {
+  const isLoading = loading || activities === null
+
   return (
     <GlassCard className="overflow-hidden" glow="none">
       <div className="px-6 py-4 border-b border-glass-border">
@@ -59,6 +61,24 @@ export default function ActivityTimeline({ activities }) {
         </h2>
       </div>
 
+      {isLoading ? (
+        <div className="divide-y divide-glass-border/50">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex items-start gap-4 px-6 py-4">
+              <div className="w-9 h-9 rounded-xl bg-white/5 animate-pulse shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-40 rounded bg-white/5 animate-pulse" />
+                <div className="h-3 w-56 rounded bg-white/5 animate-pulse" />
+              </div>
+              <div className="h-3 w-12 rounded bg-white/5 animate-pulse" />
+            </div>
+          ))}
+        </div>
+      ) : !activities?.length ? (
+        <div className="px-6 py-12 text-center">
+          <p className="text-sm text-text-muted">No recent activity</p>
+        </div>
+      ) : (
       <motion.div
         className="divide-y divide-glass-border/50"
         variants={container}
@@ -115,13 +135,20 @@ export default function ActivityTimeline({ activities }) {
           )
         })}
       </motion.div>
+      )}
 
-      {/* Load more placeholder */}
-      <div className="px-6 py-3 border-t border-glass-border text-center">
-        <button className="text-xs text-primary-light hover:text-primary-light/80 font-medium transition-colors">
-          Load more activity...
-        </button>
-      </div>
+      {/* Load more */}
+      {onLoadMore && hasMore !== false && activities?.length > 0 && (
+        <div className="px-6 py-3 border-t border-glass-border text-center">
+          <button
+            onClick={onLoadMore}
+            disabled={loading}
+            className="text-xs text-primary-light hover:text-primary-light/80 font-medium transition-colors cursor-pointer disabled:opacity-40"
+          >
+            {loading ? 'Loading...' : 'Load more activity'}
+          </button>
+        </div>
+      )}
     </GlassCard>
   )
 }

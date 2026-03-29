@@ -1,8 +1,11 @@
 import { AnimatePresence } from 'framer-motion'
+import { Plus } from 'lucide-react'
 import KanbanCard from './KanbanCard'
 
 const columnColors = {
+  Ideas: 'bg-text-muted',
   Submitted: 'bg-primary-light',
+  Backlog: 'bg-text-muted',
   Todo: 'bg-primary-light',
   'In Review': 'bg-amber',
   'In Progress': 'bg-amber',
@@ -11,7 +14,7 @@ const columnColors = {
   Done: 'bg-accent-emerald',
 }
 
-export default function KanbanColumn({ column, boardId, onCardClick }) {
+export default function KanbanColumn({ column, boardId, onCardClick, onAddCard, readOnly }) {
   const dotColor = columnColors[column.title] || 'bg-primary-light'
 
   return (
@@ -27,6 +30,15 @@ export default function KanbanColumn({ column, boardId, onCardClick }) {
             {column.cards.length}
           </span>
         </div>
+        {onAddCard && (
+          <button
+            onClick={() => onAddCard(column.id, column.title)}
+            className="p-1 rounded-lg hover:bg-glass-hover transition-colors text-text-muted hover:text-text-primary cursor-pointer"
+            title={`Add card to ${column.title}`}
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* Cards Container */}
@@ -40,14 +52,25 @@ export default function KanbanColumn({ column, boardId, onCardClick }) {
               columnId={column.id}
               boardId={boardId}
               onClick={onCardClick}
+              readOnly={readOnly}
             />
           ))}
         </AnimatePresence>
 
         {column.cards.length === 0 && (
-          <div className="flex items-center justify-center h-24 text-xs text-text-muted/50 border border-dashed border-glass-border rounded-xl">
-            Drop cards here
-          </div>
+          onAddCard ? (
+            <button
+              onClick={() => onAddCard(column.id, column.title)}
+              className="flex items-center justify-center gap-2 w-full h-24 text-xs text-text-muted/50 border border-dashed border-glass-border rounded-xl hover:bg-glass-hover hover:text-text-muted hover:border-glass-border-hover transition-all cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add a card
+            </button>
+          ) : (
+            <div className="flex items-center justify-center h-24 text-xs text-text-muted/50 border border-dashed border-glass-border rounded-xl">
+              No cards
+            </div>
+          )
         )}
       </div>
     </div>

@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   headers: { 'Content-Type': 'application/json' },
   timeout: 15000,
 })
@@ -22,13 +22,13 @@ apiClient.interceptors.response.use(
     const status = error.response?.status
     const message = error.response?.data?.message || error.message
 
-    // Auto-redirect on auth failure
     if (status === 401) {
+      // Clear stale token — the auth store / RequireAuth will handle redirect
       localStorage.removeItem('token')
-      // Only redirect if not already on a public page
-      if (!window.location.pathname.startsWith('/login')) {
-        window.location.href = '/login'
-      }
+      // Dynamically import to avoid circular deps
+      import('../store/useAuthStore').then((mod) => {
+        mod.default.getState().logout()
+      })
     }
 
     console.error(`[API ${status || 'NETWORK'}] ${message}`)

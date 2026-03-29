@@ -1,21 +1,19 @@
 import { create } from 'zustand'
-import { mockNotifications } from '../data/mockNotifications'
 import * as notificationsApi from '../api/notifications'
 
 /**
- * Normalize backend notification shape to match what UI components expect.
- * Backend: { _id, type, title, message, isRead, createdAt, entityType, entityId, sender, department }
- * UI:      { id, icon, title, message, read, timestamp, type, meta }
+ * Normalize backend notification to UI shape.
+ * Works for both REST responses and Socket.io payloads.
  */
 function normalize(n) {
   return {
     id: n._id,
-    icon: n.type,                       // backend type values match iconConfig keys
+    icon: n.type,
     title: n.title,
     message: n.message,
-    read: n.isRead,
+    read: n.isRead ?? false,
     timestamp: n.createdAt,
-    type: n.entityType,                 // card | board | department
+    type: n.entityType,
     meta: buildMeta(n),
     sender: n.sender,
     department: n.department,
@@ -23,8 +21,6 @@ function normalize(n) {
 }
 
 function buildMeta(n) {
-  // For card entities, entityId is the card ID — not a board ID.
-  // We can't resolve card→board without an extra API call, so route to notifications.
   if (n.entityType === 'card') return { boardId: null, cardId: n.entityId }
   if (n.entityType === 'board') return { id: n.entityId }
   if (n.entityType === 'department') return { slug: n.department?.slug || '' }
@@ -32,9 +28,11 @@ function buildMeta(n) {
 }
 
 const useNotificationStore = create((set, get) => ({
-  notifications: mockNotifications,
+  notifications: [],
   loading: false,
   error: null,
+  // Tracks if we have a new unread notification that hasn't been "seen" in the dropdown
+  hasNewNotification: false,
 
   unreadCount: () => get().notifications.filter((n) => !n.read).length,
 
@@ -47,13 +45,25 @@ const useNotificationStore = create((set, get) => ({
         loading: false,
       })
     } catch {
-      // Keep existing (mock) data as fallback
       set({ loading: false, error: 'Failed to load notifications' })
     }
   },
 
+  /**
+   * Called by the socket listener when a new notification arrives in real-time.
+   * Prepends to the list so it appears at the top.
+   */
+  addRealtimeNotification: (rawNotification) => {
+    const notification = normalize(rawNotification)
+    set((state) => ({
+      notifications: [notification, ...state.notifications],
+      hasNewNotification: true,
+    }))
+  },
+
+  clearNewFlag: () => set({ hasNewNotification: false }),
+
   markAsRead: async (id) => {
-    // Optimistic update
     set((state) => ({
       notifications: state.notifications.map((n) =>
         n.id === id ? { ...n, read: true } : n
@@ -61,21 +71,16 @@ const useNotificationStore = create((set, get) => ({
     }))
     try {
       await notificationsApi.markAsRead(id)
-    } catch {
-      // Revert on failure is optional — notification already visually read
-    }
+    } catch { /* keep optimistic state */ }
   },
 
   markAllAsRead: async () => {
-    // Optimistic update
     set((state) => ({
       notifications: state.notifications.map((n) => ({ ...n, read: true })),
     }))
     try {
       await notificationsApi.markAllAsRead()
-    } catch {
-      // Fallback: keep optimistic state
-    }
+    } catch { /* keep optimistic state */ }
   },
 }))
 

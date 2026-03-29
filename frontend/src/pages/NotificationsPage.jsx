@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Bell, CheckCheck } from 'lucide-react'
+import { Bell, CheckCheck, Loader2 } from 'lucide-react'
 import useNotificationStore from '../store/useNotificationStore'
 import NotificationItem from '../components/notifications/NotificationItem'
 import GlassCard from '../components/ui/GlassCard'
@@ -13,13 +13,14 @@ const tabs = [
 export default function NotificationsPage() {
   const [activeTab, setActiveTab] = useState('all')
   const notifications = useNotificationStore((s) => s.notifications)
+  const loading = useNotificationStore((s) => s.loading)
   const markAllAsRead = useNotificationStore((s) => s.markAllAsRead)
   const unreadCount = useNotificationStore((s) => s.unreadCount)
   const fetchNotifications = useNotificationStore((s) => s.fetchNotifications)
 
   useEffect(() => {
     fetchNotifications()
-  }, [])
+  }, [fetchNotifications])
 
   const filtered =
     activeTab === 'unread'
@@ -41,9 +42,11 @@ export default function NotificationsPage() {
             Notifications
           </h1>
           <p className="text-sm text-text-muted mt-1">
-            {unreadCount() > 0
-              ? `You have ${unreadCount()} unread notification${unreadCount() > 1 ? 's' : ''}`
-              : 'You\'re all caught up'}
+            {loading
+              ? 'Loading...'
+              : unreadCount() > 0
+                ? `You have ${unreadCount()} unread notification${unreadCount() > 1 ? 's' : ''}`
+                : 'You\'re all caught up'}
           </p>
         </div>
 
@@ -86,7 +89,12 @@ export default function NotificationsPage() {
       {/* Notification List */}
       <GlassCard className="overflow-hidden" glow="none">
         <div className="divide-y divide-glass-border/40">
-          {filtered.length === 0 ? (
+          {loading && notifications.length === 0 ? (
+            <div className="px-6 py-16 text-center">
+              <Loader2 className="w-6 h-6 text-text-muted animate-spin mx-auto mb-3" />
+              <p className="text-sm text-text-muted">Loading notifications...</p>
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="px-6 py-16 text-center">
               <Bell className="w-10 h-10 text-text-muted mx-auto mb-3 opacity-40" />
               <p className="text-sm text-text-muted">
@@ -106,7 +114,6 @@ export default function NotificationsPage() {
           )}
         </div>
 
-        {/* Infinite Scroll Sentinel */}
         {filtered.length > 0 && (
           <div className="px-6 py-4 border-t border-glass-border text-center">
             <p className="text-xs text-text-muted">
