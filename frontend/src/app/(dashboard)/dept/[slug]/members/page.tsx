@@ -196,7 +196,7 @@ export default function DeptMembersPage() {
                   {rc.icon}{rc.label}
                 </span>
                 <span className="text-[10px] text-text-muted bg-bg-elevated px-1.5 py-0.5 rounded">
-                  {member.orgRole.replace("_", " ")}
+                  {(member.orgRole ?? "user").replace("_", " ")}
                 </span>
                 <button
                   onClick={() => handleRemove(member._id)}
