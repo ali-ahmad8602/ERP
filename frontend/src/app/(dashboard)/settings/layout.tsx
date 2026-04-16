@@ -1,15 +1,20 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, UserPlus } from "lucide-react";
+import { Settings, UserPlus, UserCircle, Building } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/auth.store";
 
-const tabs = [
-  { href: "/settings/invites", label: "Invite Users", icon: <UserPlus size={13} /> },
-];
+const profileTab = { href: "/settings/profile", label: "Profile", icon: <UserCircle size={13} /> };
+const inviteTab = { href: "/settings/invites", label: "Invite Users", icon: <UserPlus size={13} /> };
+const orgTab = { href: "/settings/org", label: "Organization", icon: <Building size={13} /> };
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { user } = useAuthStore();
+  const isAdmin = ["super_admin", "org_admin"].includes(user?.orgRole ?? "");
+
+  const tabs = isAdmin ? [profileTab, inviteTab, orgTab] : [profileTab];
 
   return (
     <div className="flex flex-col h-full bg-bg-base">

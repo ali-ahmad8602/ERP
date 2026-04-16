@@ -13,6 +13,8 @@ interface ListViewProps {
   board: Board;
   cards: Card[];
   onCardCreate?: (columnId: string, title: string) => void;
+  canEdit?: boolean;
+  canComment?: boolean;
 }
 
 const COL_ACCENT: Record<string, string> = {
@@ -35,7 +37,7 @@ const PRIORITY_BADGE: Record<string, { bg: string; text: string; label: string }
 const HEADERS = ["Title", "Priority", "Assignees", "Due Date", "Labels"];
 const GRID = "minmax(280px,1fr) 100px 120px 120px 1fr";
 
-export function ListView({ board, cards, onCardCreate }: ListViewProps) {
+export function ListView({ board, cards, onCardCreate, canEdit = true, canComment = true }: ListViewProps) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [addingIn, setAddingIn]   = useState<string | null>(null);
   const [newTitle, setNewTitle]   = useState("");
@@ -99,7 +101,7 @@ export function ListView({ board, cards, onCardCreate }: ListViewProps) {
                   ))}
 
                   {/* Add card */}
-                  {addingIn === col._id ? (
+                  {onCardCreate && addingIn === col._id && (
                     <div className="flex items-center gap-2 py-2 px-3 pl-10">
                       <Input
                         autoFocus
@@ -119,7 +121,8 @@ export function ListView({ board, cards, onCardCreate }: ListViewProps) {
                         Cancel
                       </Button>
                     </div>
-                  ) : (
+                  )}
+                  {onCardCreate && addingIn !== col._id && (
                     <button
                       onClick={() => { setAddingIn(col._id); setNewTitle(""); }}
                       className="flex items-center gap-1.5 py-2 px-3 pl-10 w-full bg-transparent border-none cursor-pointer text-text-muted text-[12px] font-medium hover:text-primary transition-colors rounded-lg"
@@ -139,7 +142,8 @@ export function ListView({ board, cards, onCardCreate }: ListViewProps) {
           card={selected}
           board={board}
           onClose={() => setSelected(null)}
-          canEdit
+          canEdit={canEdit}
+          canComment={canComment}
         />
       )}
     </>

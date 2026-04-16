@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { boardApi, cardApi } from "@/lib/api";
+import { toast } from "@/components/ui/Toast";
 import type { Board, Card } from "@/types";
 
 interface BoardState {
@@ -45,7 +46,9 @@ export const useBoardStore = create<BoardState>((set, get) => ({
       const { boards } = await boardApi.list(deptId, companyBoards);
       set({ boards });
     } catch (err: unknown) {
-      set({ error: err instanceof Error ? err.message : "Failed to fetch boards" });
+      const msg = err instanceof Error ? err.message : "Failed to fetch boards";
+      set({ error: msg });
+      toast("error", msg);
     } finally {
       set({ loadingBoards: false });
     }
@@ -56,7 +59,9 @@ export const useBoardStore = create<BoardState>((set, get) => ({
       const { board } = await boardApi.get(boardId);
       set({ activeBoard: board });
     } catch (err: unknown) {
-      set({ error: err instanceof Error ? err.message : "Failed to fetch board" });
+      const msg = err instanceof Error ? err.message : "Failed to fetch board";
+      set({ error: msg });
+      toast("error", msg);
     }
   },
 
@@ -66,7 +71,9 @@ export const useBoardStore = create<BoardState>((set, get) => ({
       const { cards } = await cardApi.list(boardId);
       set({ cards });
     } catch (err: unknown) {
-      set({ error: err instanceof Error ? err.message : "Failed to fetch cards" });
+      const msg = err instanceof Error ? err.message : "Failed to fetch cards";
+      set({ error: msg });
+      toast("error", msg);
     } finally {
       set({ loadingCards: false });
     }

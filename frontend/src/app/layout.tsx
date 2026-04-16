@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { ToastContainer } from "@/components/ui/Toast";
 import "./globals.css";
 
 const inter = Inter({
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-full bg-bg-base text-text-primary antialiased font-sans flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true}>
           {children}
+          <ToastContainer />
         </ThemeProvider>
       </body>
     </html>

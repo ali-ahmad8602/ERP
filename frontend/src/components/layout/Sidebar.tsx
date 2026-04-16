@@ -31,7 +31,6 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
     [departments[0]?._id ?? ""]: true,
   });
   const isAdmin = ["super_admin", "org_admin"].includes(userOrgRole);
-  const isTopMgmt = ["super_admin", "org_admin", "top_management"].includes(userOrgRole);
 
   const handleLogout = () => {
     logout();
@@ -84,23 +83,21 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
           active={isDeptActive}
         />
 
-        {/* Reports placeholder */}
+        {/* Reports */}
         <NavItem
-          href="#"
+          href="/reports"
           icon={<FileText size={16} />}
           label="Reports"
-          active={false}
+          active={pathname === "/reports"}
         />
 
         {/* Settings */}
-        {isAdmin && (
-          <NavItem
-            href="/settings/invites"
-            icon={<Settings size={16} />}
-            label="Settings"
-            active={pathname.startsWith("/settings")}
-          />
-        )}
+        <NavItem
+          href="/settings/profile"
+          icon={<Settings size={16} />}
+          label="Settings"
+          active={pathname.startsWith("/settings")}
+        />
 
         {/* ── Departments Section ────────────────────────────────────────── */}
         {departments.length > 0 && (

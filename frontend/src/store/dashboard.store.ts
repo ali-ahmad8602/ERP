@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { analyticsApi } from "@/lib/api";
+import { toast } from "@/components/ui/Toast";
 import type { OrgOverview, DeptStats, ActivityEntry } from "@/types";
 
 interface DashboardState {
@@ -59,7 +60,9 @@ export const useDashboardStore = create<DashboardState>((set) => ({
       ]);
       set({ overview, deptStats: departments, activities });
     } catch (err: unknown) {
-      set({ error: err instanceof Error ? err.message : "Failed to fetch dashboard data" });
+      const msg = err instanceof Error ? err.message : "Failed to fetch dashboard data";
+      set({ error: msg });
+      toast("error", msg);
     } finally {
       set({ loading: false });
     }

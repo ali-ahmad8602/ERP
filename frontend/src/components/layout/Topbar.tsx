@@ -6,8 +6,6 @@ import {
   Sun,
   Moon,
   ChevronRight,
-  LayoutGrid,
-  HelpCircle,
   Zap,
 } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -103,27 +101,16 @@ export function Topbar({
       <div className="flex items-center gap-2">
         <NotificationBell />
 
-        {/* Apps grid button */}
-        <button
-          className="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:bg-black/5 dark:hover:bg-white/10 transition-colors duration-150 cursor-pointer bg-transparent border-none"
-          aria-label="Apps"
-        >
-          <LayoutGrid size={16} />
-        </button>
-
-        {/* Help button */}
-        <button
-          className="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:bg-black/5 dark:hover:bg-white/10 transition-colors duration-150 cursor-pointer bg-transparent border-none"
-          aria-label="Help"
-        >
-          <HelpCircle size={16} />
-        </button>
-
-        {/* Quick Action button */}
-        <button className="flex items-center gap-1.5 bg-primary text-white text-[12px] font-semibold rounded-full px-3.5 py-1.5 hover:bg-primary-light active:scale-[0.97] transition-all duration-150 cursor-pointer border-none shadow-sm">
-          <Zap size={12} />
-          Quick Action
-        </button>
+        {/* Quick Action → opens command palette */}
+        {handleSearchClick && (
+          <button
+            onClick={handleSearchClick}
+            className="flex items-center gap-1.5 bg-primary text-white text-[12px] font-semibold rounded-full px-3.5 py-1.5 hover:bg-primary-light active:scale-[0.97] transition-all duration-150 cursor-pointer border-none shadow-sm"
+          >
+            <Zap size={12} />
+            Quick Action
+          </button>
+        )}
 
         <div className="w-px h-5 bg-border-subtle mx-0.5" />
 

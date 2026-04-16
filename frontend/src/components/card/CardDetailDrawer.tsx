@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/Button";
 import type { Board, Card, Comment } from "@/types";
 
 interface CardDetailDrawerProps {
-  card: Card; board: Board; onClose: () => void; canEdit: boolean;
+  card: Card; board: Board; onClose: () => void; canEdit: boolean; canComment?: boolean;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -46,7 +46,7 @@ function renderCommentText(text: string) {
   });
 }
 
-export function CardDetailDrawer({ card, board, onClose }: CardDetailDrawerProps) {
+export function CardDetailDrawer({ card, board, onClose, canEdit, canComment = true }: CardDetailDrawerProps) {
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [localComments, setLocalComments] = useState<Comment[]>(card.comments ?? []);
@@ -189,7 +189,11 @@ export function CardDetailDrawer({ card, board, onClose }: CardDetailDrawerProps
                   onChange={e => setDescription(e.target.value)}
                   placeholder="Add details..."
                   rows={4}
-                  className="w-full bg-black/5 dark:bg-white/10 border border-transparent rounded-xl px-4 py-3 text-[14px] text-text-primary placeholder:text-text-muted resize-none outline-none transition-all duration-200 focus:bg-bg-surface focus:border-primary focus:ring-[3px] focus:ring-primary/20"
+                  disabled={!canEdit}
+                  className={cn(
+                    "w-full bg-black/5 dark:bg-white/10 border border-transparent rounded-xl px-4 py-3 text-[14px] text-text-primary placeholder:text-text-muted resize-none outline-none transition-all duration-200 focus:bg-bg-surface focus:border-primary focus:ring-[3px] focus:ring-primary/20",
+                    !canEdit && "opacity-60 cursor-not-allowed"
+                  )}
                 />
               </div>
 
@@ -220,8 +224,11 @@ export function CardDetailDrawer({ card, board, onClose }: CardDetailDrawerProps
                   </SectionLabel>
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
-                    className="flex items-center gap-1.5 text-[11px] font-semibold text-primary bg-transparent border-none cursor-pointer hover:text-primary-light transition-colors"
+                    disabled={uploading || !canEdit}
+                    className={cn(
+                      "flex items-center gap-1.5 text-[11px] font-semibold text-primary bg-transparent border-none cursor-pointer hover:text-primary-light transition-colors",
+                      !canEdit && "opacity-40 cursor-not-allowed"
+                    )}
                   >
                     {uploading ? <Loader2 size={11} className="animate-spin" /> : <Upload size={11} />}
                     {uploading ? "Uploading..." : "Upload"}
@@ -332,39 +339,62 @@ export function CardDetailDrawer({ card, board, onClose }: CardDetailDrawerProps
             </div>
           ) : (
             /* ── Activity ──────────────────────────────────────────────── */
-            <div className="flex flex-col gap-4">
-              {localComments.map(c => (
-                <div key={c._id} className="flex gap-3">
-                  <Avatar name={c.author?.name ?? "?"} size="md" className="mt-0.5 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-[13px] font-semibold text-text-primary">{c.author?.name}</span>
-                      <span className="text-[11px] text-text-muted font-mono">
-                        {format(new Date(c.createdAt), "MMM d, HH:mm")}
-                      </span>
-                    </div>
-                    <div className="text-[13px] text-text-secondary leading-[1.6] bg-bg-elevated rounded-xl p-4 border border-border-subtle">
-                      {renderCommentText(c.text)}
-                    </div>
+            <div className="flex flex-col gap-0">
+              {/* Comments */}
+              {localComments.length > 0 && (
+                <div className="mb-4">
+                  <div className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-3">Comments</div>
+                  <div className="flex flex-col gap-3">
+                    {localComments.map(c => (
+                      <div key={c._id} className="flex gap-3">
+                        <Avatar name={c.author?.name ?? "?"} size="md" className="mt-0.5 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-[13px] font-semibold text-text-primary">{c.author?.name}</span>
+                            <span className="text-[11px] text-text-muted font-mono">
+                              {format(new Date(c.createdAt), "MMM d, HH:mm")}
+                            </span>
+                          </div>
+                          <div className="text-[13px] text-text-secondary leading-[1.6] bg-bg-elevated rounded-xl p-4 border border-border-subtle">
+                            {renderCommentText(c.text)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
+              )}
 
-              {/* Audit entries */}
-              {card.auditLog?.map(entry => (
-                <div key={entry._id} className="flex items-center gap-2.5 py-1">
-                  <div className="w-7 flex justify-center shrink-0">
-                    <Clock size={12} className="text-text-muted" />
+              {/* Audit Log Timeline */}
+              {(card.auditLog?.length ?? 0) > 0 && (
+                <div>
+                  <div className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-3">Audit Trail</div>
+                  <div className="relative pl-5">
+                    {/* Vertical line */}
+                    <div className="absolute left-[7px] top-2 bottom-2 w-px bg-border-subtle" />
+                    <div className="flex flex-col gap-0">
+                      {card.auditLog.map(entry => (
+                        <div key={entry._id} className="relative flex items-start gap-3 py-2.5 group">
+                          {/* Dot on timeline */}
+                          <div className="absolute left-[-13px] top-3.5 w-2.5 h-2.5 rounded-full bg-bg-surface border-2 border-border group-hover:border-primary transition-colors shrink-0 z-10" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-[12px] font-semibold text-text-primary">{entry.user?.name ?? "System"}</span>
+                              <span className="text-[12px] text-text-secondary">{entry.action}</span>
+                            </div>
+                            {entry.detail && (
+                              <p className="text-[11px] text-text-muted mt-0.5">{entry.detail}</p>
+                            )}
+                            <span className="text-[10px] text-text-muted font-mono mt-0.5 block">
+                              {format(new Date(entry.createdAt), "MMM d, yyyy 'at' HH:mm")}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <span className="text-[11px] text-text-muted font-mono shrink-0">
-                    {format(new Date(entry.createdAt), "MMM d, HH:mm")}
-                  </span>
-                  <span className="text-[12px] text-text-muted">
-                    <span className="text-text-secondary font-medium">{entry.user?.name}</span> {entry.action}
-                    {entry.detail && <span className="text-text-muted"> &mdash; {entry.detail}</span>}
-                  </span>
                 </div>
-              ))}
+              )}
 
               {!localComments.length && !card.auditLog?.length && (
                 <div className="py-12 text-center">
@@ -377,48 +407,63 @@ export function CardDetailDrawer({ card, board, onClose }: CardDetailDrawerProps
         </div>
 
         {/* ── Comment input ───────────────────────────────────────────────── */}
-        <div className="px-5 py-3 border-t border-border bg-bg-base">
-          <div className="flex gap-2.5 items-center">
-            <Avatar name="You" size="sm" className="shrink-0" />
-            <div className="flex-1 flex items-center gap-2 bg-bg-surface border border-border rounded-full px-4 py-2 focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/10 transition-all duration-150">
-              <input
-                value={comment}
-                onChange={e => setComment(e.target.value)}
-                placeholder="Write a comment..."
-                onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleCommentSubmit(); }}
-                className="flex-1 bg-transparent border-none outline-none text-[13px] text-text-primary placeholder:text-text-muted"
-              />
+        {canComment ? (
+          <div className="px-5 py-3 border-t border-border bg-bg-base">
+            <div className="flex gap-2.5 items-center">
+              <Avatar name="You" size="sm" className="shrink-0" />
+              <div className="flex-1 flex items-center gap-2 bg-bg-surface border border-border rounded-full px-4 py-2 focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/10 transition-all duration-150">
+                <input
+                  value={comment}
+                  onChange={e => setComment(e.target.value)}
+                  placeholder="Write a comment..."
+                  onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleCommentSubmit(); }}
+                  className="flex-1 bg-transparent border-none outline-none text-[13px] text-text-primary placeholder:text-text-muted"
+                />
+              </div>
+              <button
+                onClick={handleCommentSubmit}
+                disabled={!comment.trim() || submitting}
+                className={cn(
+                  "w-8 h-8 rounded-full border-none shrink-0 flex items-center justify-center transition-all duration-150",
+                  comment.trim() && !submitting
+                    ? "bg-primary text-white cursor-pointer hover:bg-primary-light"
+                    : "bg-bg-elevated text-text-muted cursor-not-allowed"
+                )}
+              >
+                {submitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+              </button>
             </div>
-            <button
-              onClick={handleCommentSubmit}
-              disabled={!comment.trim() || submitting}
-              className={cn(
-                "w-8 h-8 rounded-full border-none shrink-0 flex items-center justify-center transition-all duration-150",
-                comment.trim() && !submitting
-                  ? "bg-primary text-white cursor-pointer hover:bg-primary-light"
-                  : "bg-bg-elevated text-text-muted cursor-not-allowed"
-              )}
-            >
-              {submitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-            </button>
           </div>
-        </div>
+        ) : (
+          <div className="px-5 py-2.5 border-t border-border bg-bg-base">
+            <p className="text-[12px] text-text-muted text-center">You do not have permission to comment</p>
+          </div>
+        )}
 
         {/* ── Footer bar ──────────────────────────────────────────────────── */}
         <div className="px-5 py-3 border-t border-border bg-bg-surface flex items-center gap-2">
-          <Button variant="secondary" size="sm">
-            <Archive size={14} />
-            Archive
-          </Button>
-          <button
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-danger bg-transparent border-none cursor-pointer hover:bg-danger/10 transition-colors"
-          >
-            <Trash2 size={15} />
-          </button>
+          {canEdit && (
+            <>
+              <Button variant="secondary" size="sm">
+                <Archive size={14} />
+                Archive
+              </Button>
+              <button
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-danger bg-transparent border-none cursor-pointer hover:bg-danger/10 transition-colors"
+              >
+                <Trash2 size={15} />
+              </button>
+            </>
+          )}
           <div className="flex-1" />
-          <Button variant="primary" size="sm">
-            Save Changes
-          </Button>
+          {canEdit && (
+            <Button variant="primary" size="sm">
+              Save Changes
+            </Button>
+          )}
+          {!canEdit && (
+            <span className="text-[12px] text-text-muted font-medium">Read-only access</span>
+          )}
         </div>
       </div>
     </Modal>

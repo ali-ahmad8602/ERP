@@ -19,6 +19,7 @@ interface KanbanBoardProps {
   onCardMove?: (cardId: string, columnId: string) => void;
   onCardCreate?: (columnId: string, title: string) => void;
   canEdit?: boolean;
+  canComment?: boolean;
 }
 
 const COLUMN_ACCENT: Record<string, string> = {
@@ -34,7 +35,7 @@ function getColumnAccent(name: string) {
   return COLUMN_ACCENT[name.toLowerCase()] ?? "#86868B";
 }
 
-export function KanbanBoard({ board, cards, onCardMove, onCardCreate, canEdit = true }: KanbanBoardProps) {
+export function KanbanBoard({ board, cards, onCardMove, onCardCreate, canEdit = true, canComment = true }: KanbanBoardProps) {
   const [activeCard, setActiveCard] = useState<Card | null>(null);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [addingIn, setAddingIn] = useState<string | null>(null);
@@ -118,6 +119,7 @@ export function KanbanBoard({ board, cards, onCardMove, onCardCreate, canEdit = 
           board={board}
           onClose={() => setSelectedCard(null)}
           canEdit={canEdit}
+          canComment={canComment}
         />
       )}
     </>

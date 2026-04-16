@@ -1,8 +1,7 @@
 "use client";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { Search, LayoutGrid, FileText, Users, Plus, CheckCircle2, Hash } from "lucide-react";
+import { Search, LayoutGrid, Users, Plus, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Avatar } from "@/components/ui/Avatar";
 import type { Card, Board, Department } from "@/types";
 
 interface CommandPaletteProps {
@@ -12,6 +11,9 @@ interface CommandPaletteProps {
   boards?: Board[];
   departments?: Department[];
   onSelectCard?: (card: Card) => void;
+  onNewCard?: () => void;
+  onNewBoard?: () => void;
+  onInvite?: () => void;
 }
 
 interface ResultItem {
@@ -30,7 +32,7 @@ const QUICK_ACTIONS: { icon: React.ReactNode; label: string; shortcut: string }[
   { icon: <Users size={14} />,      label: "Invite Member",  shortcut: "I" },
 ];
 
-export function CommandPalette({ open, onClose, cards = [], boards = [], departments = [], onSelectCard }: CommandPaletteProps) {
+export function CommandPalette({ open, onClose, cards = [], boards = [], departments = [], onSelectCard, onNewCard, onNewBoard, onInvite }: CommandPaletteProps) {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -72,21 +74,26 @@ export function CommandPalette({ open, onClose, cards = [], boards = [], departm
 
     // Quick actions when no query
     if (!q) {
+      const actionHandlers: Record<string, (() => void) | undefined> = {
+        "New Card": onNewCard,
+        "New Board": onNewBoard,
+        "Invite Member": onInvite,
+      };
       QUICK_ACTIONS.forEach(a => {
+        const handler = actionHandlers[a.label];
         items.push({
           id: `action-${a.label}`,
           type: "action",
           label: a.label,
           icon: <span className="text-primary">{a.icon}</span>,
           shortcut: a.shortcut,
-          onSelect: onClose,
+          onSelect: () => { handler?.(); onClose(); },
         });
       });
     }
 
     // Cards (tasks)
     filteredCards.forEach(card => {
-      const dept = typeof card.board === "string" ? undefined : card.board;
       const priorityLabel = card.priority !== "none" ? card.priority.charAt(0).toUpperCase() + card.priority.slice(1) + " Priority" : "";
       const sub = [priorityLabel].filter(Boolean).join(" \u00B7 ");
       items.push({
@@ -124,7 +131,7 @@ export function CommandPalette({ open, onClose, cards = [], boards = [], departm
     });
 
     return items;
-  }, [q, filteredCards, filteredBoards, filteredDepts, onClose, onSelectCard]);
+  }, [q, filteredCards, filteredBoards, filteredDepts, onClose, onSelectCard, onNewCard, onNewBoard, onInvite]);
 
   // Clamp selectedIndex
   useEffect(() => {

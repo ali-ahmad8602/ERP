@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useBoardStore } from "@/store/board.store";
 import { useDeptStore } from "@/store/dept.store";
+import { useBoardPermissions } from "@/hooks/usePermissions";
 import { cn } from "@/lib/utils";
 
 type ViewMode = "board" | "list" | "timeline" | "files";
@@ -69,6 +70,8 @@ export default function DeptBoardPage() {
     const t = setTimeout(() => setComingSoonToast(null), 2000);
     return () => clearTimeout(t);
   }, [comingSoonToast]);
+
+  const permissions = useBoardPermissions(activeBoard?._id);
 
   const isLoading = deptLoading || loadingBoards || loadingCards;
 
@@ -217,7 +220,7 @@ export default function DeptBoardPage() {
             <ArrowUpDown size={14} />
             Sort
           </button>
-          {activeBoard && (
+          {activeBoard && permissions.canManageBoard && (
             <button
               onClick={() => setConfigOpen(true)}
               className={cn(
@@ -233,9 +236,11 @@ export default function DeptBoardPage() {
           )}
         </div>
 
-        <Button variant="primary" size="sm" onClick={() => setPaletteOpen(true)}>
-          <Plus size={14} /> New Task
-        </Button>
+        {permissions.canEdit && (
+          <Button variant="primary" size="sm" onClick={() => setPaletteOpen(true)}>
+            <Plus size={14} /> New Task
+          </Button>
+        )}
       </div>
 
       {/* ── Stats bar ── */}
@@ -258,14 +263,18 @@ export default function DeptBoardPage() {
             <KanbanBoard
               board={activeBoard}
               cards={cards}
-              onCardMove={handleCardMove}
-              onCardCreate={handleCardCreate}
+              onCardMove={permissions.canMove ? handleCardMove : undefined}
+              onCardCreate={permissions.canEdit ? handleCardCreate : undefined}
+              canEdit={permissions.canEdit}
+              canComment={permissions.canComment}
             />
           ) : (
             <ListView
               board={activeBoard}
               cards={cards}
-              onCardCreate={handleCardCreate}
+              onCardCreate={permissions.canEdit ? handleCardCreate : undefined}
+              canEdit={permissions.canEdit}
+              canComment={permissions.canComment}
             />
           )}
         </div>
@@ -349,6 +358,15 @@ export default function DeptBoardPage() {
         cards={cards}
         boards={boards}
         departments={departments}
+        onNewCard={() => {
+          const firstCol = activeBoard?.columns?.[0];
+          if (firstCol) {
+            const title = prompt("Task title:");
+            if (title?.trim()) handleCardCreate(firstCol._id, title.trim());
+          }
+        }}
+        onNewBoard={() => setAddBoardOpen(true)}
+        onInvite={() => { window.location.href = "/settings/invites"; }}
       />
     </div>
   );
