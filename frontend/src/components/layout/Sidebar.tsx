@@ -38,7 +38,7 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-1">
+      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
         <NavItem href="/dashboard" icon={<LayoutDashboard size={15} />} label="Dashboard" active={pathname === "/dashboard"} />
         <NavItem href={departments[0] ? `/dept/${departments[0].slug}` : "#"} icon={<Building2 size={15} />} label="Departments" active={pathname.startsWith("/dept/")} />
         <NavItem href="/reports" icon={<BarChart3 size={15} />} label="Reports" active={pathname === "/reports"} />

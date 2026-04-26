@@ -159,26 +159,27 @@ export default function ReportsPage() {
 
   if (loading && !overview) {
     return (
-      <div className="h-full overflow-auto bg-bg-base p-6">
-        <div className="mb-6">
+      <div className="h-full overflow-auto bg-bg-base">
+        <div className="max-w-[1280px] mx-auto px-8 py-8">
           <div className="h-7 w-48 bg-bg-elevated animate-pulse rounded-lg mb-2" />
-          <div className="h-4 w-72 bg-bg-elevated animate-pulse rounded-md" />
-        </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {[1,2,3,4].map(i => <div key={i} className="h-24 rounded-2xl bg-bg-elevated animate-pulse" />)}
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="h-56 rounded-2xl bg-bg-elevated animate-pulse" />
-          <div className="h-56 rounded-2xl bg-bg-elevated animate-pulse" />
+          <div className="h-4 w-72 bg-bg-elevated animate-pulse rounded-md mb-8" />
+          <div className="grid grid-cols-4 gap-4 mb-8">
+            {[1,2,3,4].map(i => <div key={i} className="h-16 rounded-[10px] bg-bg-elevated animate-pulse" />)}
+          </div>
+          <div className="grid grid-cols-2 gap-6">
+            <div className="h-56 rounded-[10px] bg-bg-elevated animate-pulse" />
+            <div className="h-56 rounded-[10px] bg-bg-elevated animate-pulse" />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full overflow-auto bg-bg-base p-6">
+    <div className="h-full overflow-auto bg-bg-base">
+      <div className="max-w-[1280px] mx-auto px-8 py-8">
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-8">
         <div className="flex items-center gap-2 mb-1">
           <BarChart3 size={18} className="text-primary" />
           <h1 className="text-[20px] font-bold text-text-primary tracking-tight">Reports & Analytics</h1>
@@ -313,6 +314,7 @@ export default function ReportsPage() {
           </div>
         </Card>
       )}
+      </div>
     </div>
   );
 }

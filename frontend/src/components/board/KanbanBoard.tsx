@@ -93,7 +93,7 @@ export function KanbanBoard({ board, cards, onCardMove, onCardCreate, canEdit = 
 
         <DragOverlay dropAnimation={{ duration: 180, easing: "cubic-bezier(0.16,1,0.3,1)" }}>
           {activeCard && (
-            <div className="rotate-[1deg] scale-[1.02] opacity-80 w-[300px]">
+            <div className="rotate-[1deg] scale-[1.02] opacity-80 w-[280px]">
               <KanbanCard card={activeCard} isDragging />
             </div>
           )}
@@ -138,7 +138,7 @@ interface ColumnPanelProps {
 
 function ColumnPanel({ column, cards, accent, isLocked, canEdit, onCardClick, isAdding, newCardTitle, onNewTitleChange, onAddStart, onAddConfirm, onAddCancel }: ColumnPanelProps) {
   return (
-    <div className="w-[300px] shrink-0 flex flex-col">
+    <div className="w-[280px] shrink-0 flex flex-col">
 
       {/* Column header */}
       <div className="flex items-center justify-between mb-2 px-1">

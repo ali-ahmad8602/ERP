@@ -111,7 +111,8 @@ export default function DeptMembersPage() {
     <div className="flex flex-col h-full overflow-hidden bg-bg-base">
       <Topbar department={dept} title="Members" />
 
-      <div className="flex-1 overflow-y-auto px-8 py-6 max-w-[760px]">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-[720px] mx-auto px-8 py-8">
 
         {/* Back */}
         <Link
@@ -237,6 +238,7 @@ export default function DeptMembersPage() {
               </div>
             );
           })}
+        </div>
         </div>
       </div>
     </div>

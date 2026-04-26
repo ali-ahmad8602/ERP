@@ -123,7 +123,7 @@ export default function DeptBoardPage() {
         <div className="h-8 w-64 bg-bg-elevated animate-pulse rounded-lg mb-3" />
         <div className="h-10 w-full bg-bg-elevated animate-pulse rounded-lg mb-4" />
         <div className="flex-1 flex gap-3">
-          {[1,2,3,4].map(i => <div key={i} className="w-[300px] h-full bg-bg-elevated/50 animate-pulse rounded-xl" />)}
+          {[1,2,3,4].map(i => <div key={i} className="w-[280px] h-full bg-bg-elevated/50 animate-pulse rounded-xl" />)}
         </div>
       </div>
     );
@@ -149,9 +149,9 @@ export default function DeptBoardPage() {
       />
 
       {/* ── Header: Department name + description + view toggle ── */}
-      <div className="flex items-start justify-between px-5 pt-4 pb-2 shrink-0">
+      <div className="flex items-start justify-between px-6 pt-4 pb-2 shrink-0 max-w-[1280px]">
         <div className="flex flex-col gap-0.5">
-          <h1 className="text-[24px] font-bold text-text-primary tracking-tight leading-tight">
+          <h1 className="text-lg font-semibold text-text-primary tracking-tight leading-tight">
             {dept?.name}
           </h1>
           {dept?.description && (
@@ -257,7 +257,7 @@ export default function DeptBoardPage() {
       {loadingCards && !cards.length && (
         <div className="flex-1 flex gap-3 px-5 py-3">
           {[1,2,3,4].map(i => (
-            <div key={i} className="w-[300px] shrink-0 flex flex-col gap-2">
+            <div key={i} className="w-[280px] shrink-0 flex flex-col gap-2">
               <div className="h-6 w-24 bg-bg-elevated animate-pulse rounded-md" />
               <div className="flex-1 rounded-xl bg-bg-elevated/30 animate-pulse min-h-[200px]" />
             </div>

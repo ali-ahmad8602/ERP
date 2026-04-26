@@ -103,7 +103,7 @@ export default function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="max-w-2xl space-y-8">
+    <div className="space-y-6">
       {/* Profile Info */}
       <Card padding="lg">
         <div className="flex items-center gap-2 mb-6">

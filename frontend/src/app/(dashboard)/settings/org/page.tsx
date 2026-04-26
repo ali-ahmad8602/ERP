@@ -39,7 +39,7 @@ export default function OrgSettingsPage() {
   if (!isAdmin) return null;
 
   return (
-    <div className="max-w-2xl space-y-8">
+    <div className="space-y-6">
       {/* Organization Info */}
       <Card padding="lg">
         <div className="flex items-center gap-2 mb-6">

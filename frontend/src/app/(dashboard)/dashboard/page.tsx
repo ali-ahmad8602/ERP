@@ -5,7 +5,7 @@ import Link from "next/link";
 import { format, isToday as isDateToday, isYesterday } from "date-fns";
 import { useDashboardStore } from "@/store/dashboard.store";
 import { useAuth } from "@/hooks/useAuth";
-import { ClipboardList, AlertTriangle, Clock, Shield, ArrowUpRight, ArrowRight } from "lucide-react";
+import { ClipboardList, AlertTriangle, Clock, Shield, ArrowUpRight } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
@@ -52,10 +52,15 @@ export default function DashboardPage() {
 
   if (loading && !overview) {
     return (
-      <div className="h-full bg-bg-base p-6">
-        <div className="h-8 w-48 bg-bg-elevated animate-pulse rounded mb-6" />
-        <div className="grid grid-cols-4 gap-3 mb-6">{[1,2,3,4].map(i => <div key={i} className="h-20 rounded-[10px] bg-bg-elevated animate-pulse" />)}</div>
-        <div className="grid grid-cols-5 gap-3">{[1,2,3].map(i => <div key={i} className="h-40 rounded-[10px] bg-bg-elevated animate-pulse col-span-1" />)}<div className="h-80 rounded-[10px] bg-bg-elevated animate-pulse col-span-2" /></div>
+      <div className="h-full overflow-auto bg-bg-base">
+        <div className="max-w-[1280px] mx-auto px-8 py-8">
+          <div className="h-6 w-48 bg-bg-elevated animate-pulse rounded mb-8" />
+          <div className="grid grid-cols-4 gap-4 mb-8">{[1,2,3,4].map(i => <div key={i} className="h-16 rounded-[10px] bg-bg-elevated animate-pulse" />)}</div>
+          <div className="grid grid-cols-12 gap-6">
+            <div className="col-span-8 grid grid-cols-2 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-24 rounded-[10px] bg-bg-elevated animate-pulse" />)}</div>
+            <div className="col-span-4 h-80 rounded-[10px] bg-bg-elevated animate-pulse" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -63,75 +68,75 @@ export default function DashboardPage() {
   const firstName = user?.name?.split(" ")[0] ?? "there";
 
   return (
-    <div className="h-full overflow-auto bg-bg-base p-6">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-5">
-        <div>
-          <h1 className="text-lg font-semibold text-text-primary">{new Date().getHours() < 12 ? "Good morning" : new Date().getHours() < 17 ? "Good afternoon" : "Good evening"}, {firstName}</h1>
-          <p className="text-[12px] text-text-muted mt-0.5">{format(new Date(), "EEEE, MMMM d, yyyy")}</p>
-        </div>
-        <div className="flex gap-2">
+    <div className="h-full overflow-auto bg-bg-base">
+      <div className="max-w-[1280px] mx-auto px-8 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-lg font-semibold text-text-primary">{new Date().getHours() < 12 ? "Good morning" : new Date().getHours() < 17 ? "Good afternoon" : "Good evening"}, {firstName}</h1>
+            <p className="text-[12px] text-text-muted mt-1">{format(new Date(), "EEEE, MMMM d, yyyy")}</p>
+          </div>
           <Button variant="secondary" size="sm"><ArrowUpRight size={13} /> Export</Button>
         </div>
-      </div>
 
-      {/* KPIs */}
-      {overview && (
-        <div className="grid grid-cols-4 gap-3 mb-6">
-          <KpiCard icon={<ClipboardList size={14} />} label="Total Tasks" value={overview.totalCards} sub={`${overview.createdThisWeek} this week`} />
-          <KpiCard icon={<AlertTriangle size={14} />} label="Overdue" value={overview.overdueCount} sub={overview.overdueCount > 0 ? "Needs attention" : "All clear"} variant={overview.overdueCount > 0 ? "danger" : undefined} />
-          <KpiCard icon={<Clock size={14} />} label="Pending Approvals" value={overview.pendingApprovals} sub={`${overview.complianceItems} compliance`} />
-          <KpiCard icon={<Shield size={14} />} label="Done" value={overview.doneCount} sub={overview.totalCards > 0 ? `${Math.round((overview.doneCount / overview.totalCards) * 100)}% complete` : "0%"} variant="accent" />
-        </div>
-      )}
-
-      {/* Main grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">
-        {/* Departments */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[13px] font-semibold text-text-primary">Departments</h2>
+        {/* KPIs — fixed height, centered content */}
+        {overview && (
+          <div className="grid grid-cols-4 gap-4 mb-8">
+            <KpiCard icon={<ClipboardList size={15} />} label="Total Tasks" value={overview.totalCards} sub={`${overview.createdThisWeek} this week`} />
+            <KpiCard icon={<AlertTriangle size={15} />} label="Overdue" value={overview.overdueCount} sub={overview.overdueCount > 0 ? "Needs attention" : "All clear"} variant={overview.overdueCount > 0 ? "danger" : undefined} />
+            <KpiCard icon={<Clock size={15} />} label="Approvals" value={overview.pendingApprovals} sub={`${overview.complianceItems} compliance`} />
+            <KpiCard icon={<Shield size={15} />} label="Done" value={overview.doneCount} sub={overview.totalCards > 0 ? `${Math.round((overview.doneCount / overview.totalCards) * 100)}% complete` : "0%"} variant="accent" />
           </div>
-          {deptStats.length === 0 && !loading && (
-            <Card className="py-10 text-center">
-              <p className="text-[13px] text-text-muted">No departments yet</p>
-            </Card>
-          )}
-          <div className="grid grid-cols-2 gap-3">
-            {deptStats.map(ds => <DeptCard key={ds.department._id} stats={ds} />)}
-          </div>
-        </div>
+        )}
 
-        {/* Activity */}
-        <div>
-          <h2 className="text-[13px] font-semibold text-text-primary mb-3">Activity</h2>
-          <Card padding="none" className="max-h-[480px] overflow-auto">
-            {activities.length === 0 && <div className="py-10 text-center text-[12px] text-text-muted">No activity yet</div>}
-            <ActivityFeed activities={activities} />
-          </Card>
+        {/* Main — 12-col grid: 8 left + 4 right */}
+        <div className="grid grid-cols-12 gap-6">
+          {/* Departments — col 1-8 */}
+          <div className="col-span-8">
+            <h2 className="text-[13px] font-semibold text-text-primary mb-4">Departments</h2>
+            {deptStats.length === 0 && !loading && (
+              <Card className="py-8 text-center"><p className="text-[13px] text-text-muted">No departments yet</p></Card>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              {deptStats.map(ds => <DeptCard key={ds.department._id} stats={ds} />)}
+            </div>
+          </div>
+
+          {/* Activity — col 9-12 */}
+          <div className="col-span-4">
+            <h2 className="text-[13px] font-semibold text-text-primary mb-4">Activity</h2>
+            <div className="bg-bg-surface border border-border rounded-[10px] overflow-hidden">
+              <div className="max-h-[520px] overflow-auto">
+                {activities.length === 0 && <div className="py-8 text-center text-[12px] text-text-muted">No activity yet</div>}
+                <ActivityFeed activities={activities} />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
+/* ── KPI Card: fixed height, vertically centered ── */
 function KpiCard({ icon, label, value, sub, variant }: {
   icon: React.ReactNode; label: string; value: number | string; sub?: string; variant?: "danger" | "accent";
 }) {
   return (
-    <Card padding="sm" className="flex items-center gap-3">
-      <div className="w-8 h-8 rounded-lg bg-bg-elevated flex items-center justify-center shrink-0 text-text-muted">{icon}</div>
-      <div className="flex-1 min-w-0">
+    <div className="h-[88px] bg-bg-surface border border-border rounded-[10px] shadow-card px-4 flex items-center gap-3">
+      <div className="w-9 h-9 rounded-lg bg-bg-elevated flex items-center justify-center shrink-0 text-text-muted">{icon}</div>
+      <div>
         <div className="flex items-baseline gap-2">
           <span className={cn("text-xl font-semibold tabular-nums leading-none", variant === "danger" ? "text-danger" : variant === "accent" ? "text-accent" : "text-text-primary")}>{value}</span>
-          <span className="text-[11px] font-medium text-text-muted uppercase tracking-wider truncate">{label}</span>
+          <span className="text-[11px] font-medium text-text-muted uppercase tracking-wider">{label}</span>
         </div>
-        {sub && <p className="text-[10px] text-text-muted mt-0.5">{sub}</p>}
+        {sub && <p className="text-[10px] text-text-muted mt-1">{sub}</p>}
       </div>
-    </Card>
+    </div>
   );
 }
 
+/* ── Dept Card ── */
 function DeptCard({ stats }: { stats: DeptStats }) {
   const { department: d, totalCards, doneCount, memberCount } = stats;
   const pct = totalCards > 0 ? Math.round((doneCount / totalCards) * 100) : 0;
@@ -139,8 +144,8 @@ function DeptCard({ stats }: { stats: DeptStats }) {
   return (
     <Link href={`/dept/${d.slug}`} className="no-underline">
       <Card hover className="group">
-        <div className="flex items-center gap-2 mb-2.5">
-          <span className="text-[15px]">{d.icon}</span>
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-[14px]">{d.icon}</span>
           <div className="flex-1 min-w-0">
             <div className="text-[13px] font-medium text-text-primary truncate">{d.name}</div>
             <div className="text-[11px] text-text-muted">{memberCount} members</div>
@@ -158,6 +163,7 @@ function DeptCard({ stats }: { stats: DeptStats }) {
   );
 }
 
+/* ── Activity Feed ── */
 function ActivityFeed({ activities }: { activities: ActivityEntry[] }) {
   let lastGroup = "";
   return (
@@ -168,21 +174,19 @@ function ActivityFeed({ activities }: { activities: ActivityEntry[] }) {
         lastGroup = group;
         return (
           <div key={a._id}>
-            {showHeader && <div className="px-3.5 py-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider bg-bg-elevated/50 border-y border-border">{group}</div>}
-            <div className="flex gap-3 px-3.5 py-2.5 border-b border-border-subtle hover:bg-bg-elevated/30 transition-colors duration-100">
+            {showHeader && <div className="px-4 py-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider bg-bg-elevated/50 border-y border-border">{group}</div>}
+            <div className="flex gap-3 px-4 py-3 border-b border-border-subtle hover:bg-bg-elevated/20 transition-colors duration-100">
               <Avatar name={a.user.name || "?"} size="sm" className="mt-0.5 shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-[12px]" style={{ lineHeight: 1.6 }}>
+                <p className="text-[12px] leading-[1.6]">
                   <span className="font-medium text-text-primary">{a.user.name}</span>{" "}
                   <span className="text-text-muted">{ACTION_LABELS[a.action] || a.action}</span>{" "}
                   <span className="font-medium text-primary">{a.entityTitle}</span>
                   {a.detail && <span className="text-text-muted"> — {a.detail}</span>}
                 </p>
-                <div className="flex items-center gap-2 mt-0.5">
+                <div className="flex items-center gap-2 mt-1">
                   <span className="text-[10px] text-text-muted">{timeAgo(a.createdAt)}</span>
-                  {a.department && (
-                    <span className="text-[10px] text-text-muted">{a.department.name}</span>
-                  )}
+                  {a.department && <span className="text-[10px] text-text-muted">{a.department.name}</span>}
                 </div>
               </div>
             </div>
