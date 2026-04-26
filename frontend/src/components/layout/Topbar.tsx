@@ -1,18 +1,8 @@
 "use client";
-import {
-  Search,
-  Lock,
-  ShieldCheck,
-  Sun,
-  Moon,
-  ChevronRight,
-  Zap,
-} from "lucide-react";
-import { useTheme } from "next-themes";
-import type { Board, Department } from "@/types";
+import { Search, Bell, Settings } from "lucide-react";
 import { useAuthStore } from "@/store/auth.store";
-import { Avatar } from "@/components/ui/Avatar";
 import { NotificationBell } from "./NotificationBell";
+import type { Board, Department } from "@/types";
 
 interface TopbarProps {
   department?: Department;
@@ -22,104 +12,35 @@ interface TopbarProps {
   onCommandPalette?: () => void;
 }
 
-function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  return (
-    <button
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:bg-black/5 dark:hover:bg-white/10 transition-colors duration-150 cursor-pointer bg-transparent border-none"
-      aria-label="Toggle theme"
-    >
-      {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-    </button>
-  );
-}
-
-export function Topbar({
-  department,
-  board,
-  title,
-  onSearchClick,
-  onCommandPalette,
-}: TopbarProps) {
+export function Topbar({ onSearchClick, onCommandPalette }: TopbarProps) {
   const { user } = useAuthStore();
-
-  const handleSearchClick = onCommandPalette ?? onSearchClick;
+  const search = onCommandPalette ?? onSearchClick;
 
   return (
-    <header className="h-14 flex items-center justify-between px-6 border-b border-border-subtle bg-bg-base/80 backdrop-blur-sm sticky top-0 z-20 shrink-0">
-      {/* ── Left: Breadcrumb ───────────────────────────────────────────── */}
-      <div className="flex items-center gap-1.5 min-w-0">
-        {department && (
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-[13px] text-text-secondary font-medium flex items-center gap-1.5">
-              <span style={{ color: department.color }}>{department.icon}</span>
-              {department.name}
-            </span>
-            <ChevronRight size={12} className="text-text-muted" />
-          </div>
-        )}
-        <span className="text-[14px] font-semibold text-text-primary tracking-tight truncate">
-          {board?.name ?? title ?? ""}
-        </span>
-
-        {/* Badges */}
-        <div className="flex items-center gap-1.5 ml-2 shrink-0">
-          {board?.settings.isLocked && (
-            <span className="flex items-center gap-1 py-0.5 px-2 rounded-full bg-warning/10 text-[10px] font-medium text-warning">
-              <Lock size={10} /> Locked
-            </span>
-          )}
-          {board?.settings.complianceTagging && (
-            <span className="flex items-center gap-1 py-0.5 px-2 rounded-full bg-primary/10 text-[10px] font-medium text-primary">
-              <ShieldCheck size={10} /> Compliance
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* ── Center: Search Bar ─────────────────────────────────────────── */}
-      <button
-        onClick={handleSearchClick}
-        className="flex items-center gap-2 bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.07] dark:hover:bg-white/[0.12] rounded-full py-1.5 px-4 w-[40%] max-w-[420px] min-w-[200px] transition-colors duration-150 cursor-pointer border-none"
-      >
-        <Search size={14} className="text-text-muted shrink-0" />
-        <span className="flex-1 text-[13px] text-text-muted text-left truncate">
-          Search resources, files, and tasks...
-        </span>
-        <div className="flex items-center gap-0.5 shrink-0">
-          <kbd className="text-[10px] text-text-muted/60 font-mono bg-black/[0.04] dark:bg-white/[0.08] rounded px-1 py-0.5 leading-none">
-            ⌘
-          </kbd>
-          <kbd className="text-[10px] text-text-muted/60 font-mono bg-black/[0.04] dark:bg-white/[0.08] rounded px-1 py-0.5 leading-none">
-            K
-          </kbd>
-        </div>
-      </button>
-
-      {/* ── Right: Actions ─────────────────────────────────────────────── */}
-      <div className="flex items-center gap-2">
-        <NotificationBell />
-
-        {/* Quick Action → opens command palette */}
-        {handleSearchClick && (
-          <button
-            onClick={handleSearchClick}
-            className="flex items-center gap-1.5 bg-primary text-white text-[12px] font-semibold rounded-full px-3.5 py-1.5 hover:bg-primary-light active:scale-[0.97] transition-all duration-150 cursor-pointer border-none shadow-sm"
-          >
-            <Zap size={12} />
-            Quick Action
-          </button>
-        )}
-
-        <div className="w-px h-5 bg-border-subtle mx-0.5" />
-
-        <ThemeToggle />
-
-        {/* User avatar */}
-        <button className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer bg-transparent border-none p-0 transition-transform duration-150 hover:scale-105">
-          <Avatar name={user?.name ?? "User"} size="md" />
+    <header className="h-12 border-b border-[#ffffff08] bg-[#0A0A0B] shrink-0 sticky top-0 z-20">
+      <div className="h-full px-5 flex items-center justify-between">
+        {/* Search */}
+        <button
+          onClick={search}
+          className="flex items-center gap-2 px-3 py-1.5 bg-[#18181B] rounded-md border border-[#27272A] w-[320px] cursor-pointer transition-colors hover:border-[#3F3F46]"
+        >
+          <Search className="w-3.5 h-3.5 text-[#52525B]" strokeWidth={1.5} />
+          <span className="flex-1 text-[12px] text-[#52525B] text-left">Search...</span>
+          <kbd className="text-[10px] text-[#52525B] px-1.5 py-0.5 bg-[#09090B] rounded border border-[#27272A]">⌘K</kbd>
         </button>
+
+        {/* Actions */}
+        <div className="flex items-center gap-1">
+          <NotificationBell />
+          <button className="p-2 rounded-md hover:bg-[#18181B] transition-colors cursor-pointer bg-transparent border-none">
+            <Settings className="w-4 h-4 text-[#71717A]" strokeWidth={1.5} />
+          </button>
+          <div className="ml-2 w-7 h-7 rounded-full bg-[#18181B] flex items-center justify-center">
+            <span className="text-[11px] font-medium text-[#A1A1AA]">
+              {user?.name ? user.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) : "U"}
+            </span>
+          </div>
+        </div>
       </div>
     </header>
   );

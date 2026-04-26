@@ -17,9 +17,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
-      <body className="min-h-full bg-bg-base text-text-primary antialiased font-sans flex flex-col">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true}>
+    <html lang="en" className={`${inter.variable} h-full dark`} suppressHydrationWarning>
+      <body className="min-h-full bg-[#09090B] text-[#FAFAFA] antialiased font-sans flex flex-col">
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           {children}
           <ToastContainer />
         </ThemeProvider>
