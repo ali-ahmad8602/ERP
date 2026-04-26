@@ -22,9 +22,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         variant === "secondary" && "bg-bg-elevated border border-border text-text-primary hover:bg-bg-overlay hover:border-text-muted/30 hover:-translate-y-px active:translate-y-0",
         variant === "danger" && "bg-danger text-white shadow-sm hover:opacity-90 hover:-translate-y-px active:translate-y-0",
         variant === "ghost" && "bg-transparent text-text-secondary hover:text-text-primary hover:bg-bg-elevated",
-        size === "sm" && "h-8 px-3 text-[12px] gap-1.5",
+        size === "sm" && "h-8 px-4 text-[12px] gap-1.5",
         size === "md" && "h-9 px-4 text-[13px] gap-2",
-        size === "lg" && "h-10 px-5 text-sm gap-2",
+        size === "lg" && "h-10 px-6 text-[13px] gap-2",
         className
       )}
       {...props}

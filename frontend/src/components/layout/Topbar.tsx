@@ -24,9 +24,9 @@ export function Topbar({ department, board, title, onSearchClick, onCommandPalet
   const handleSearchClick = onCommandPalette ?? onSearchClick;
 
   return (
-    <header className="h-12 flex items-center justify-between px-4 border-b border-border bg-bg-surface sticky top-0 z-20 shrink-0">
+    <header className="h-12 flex items-center gap-3 px-4 border-b border-border bg-bg-surface sticky top-0 z-20 shrink-0">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1 min-w-0">
+      <div className="flex items-center gap-1 min-w-0 shrink-0">
         {department && (
           <div className="flex items-center gap-1 shrink-0">
             <span className="text-[12px] text-text-muted">{department.name}</span>
@@ -46,14 +46,15 @@ export function Topbar({ department, board, title, onSearchClick, onCommandPalet
 
       {/* Search */}
       <button onClick={handleSearchClick}
-        className="flex items-center gap-2 bg-bg-elevated border border-border rounded-md py-1.5 px-3 w-[280px] max-w-[320px] transition-colors duration-150 cursor-pointer hover:border-text-muted/40">
+        className="flex items-center gap-2 bg-bg-elevated border border-border rounded-md py-1.5 px-3 w-[320px] shrink-0 transition-colors duration-150 cursor-pointer hover:border-text-muted/40">
         <Search size={13} className="text-text-muted shrink-0" />
         <span className="flex-1 text-[12px] text-text-muted text-left truncate">Search...</span>
         <kbd className="text-[10px] text-text-muted font-mono bg-bg-surface px-1 py-px rounded border border-border-subtle">⌘K</kbd>
       </button>
 
+      <div className="flex-1" />
       {/* Actions */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 shrink-0">
         <NotificationBell />
         {handleSearchClick && (
           <button onClick={handleSearchClick}

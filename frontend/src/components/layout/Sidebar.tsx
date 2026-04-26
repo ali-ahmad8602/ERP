@@ -110,10 +110,10 @@ function formatRole(role: string) { return role.replace(/_/g, " ").replace(/\b\w
 function NavItem({ href, icon, label, active }: { href: string; icon: React.ReactNode; label: string; active: boolean }) {
   return (
     <Link href={href} className={cn(
-      "flex items-center gap-2 h-8 px-2.5 ml-1 rounded-md no-underline transition-colors duration-150",
+      "flex items-center gap-4 h-8 px-3 rounded-md no-underline transition-colors duration-150",
       active ? "bg-bg-elevated text-text-primary font-medium" : "text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
     )}>
-      <span className={cn("shrink-0 w-4 flex justify-center", active ? "text-primary" : "text-text-muted")}>{icon}</span>
+      <span className="shrink-0 w-4 flex justify-center text-text-muted">{icon}</span>
       <span className="text-[13px]">{label}</span>
     </Link>
   );
