@@ -103,12 +103,12 @@ export default function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-2xl space-y-8">
       {/* Profile Info */}
       <Card padding="lg">
         <div className="flex items-center gap-2 mb-6">
           <User size={16} className="text-primary" />
-          <h2 className="text-[15px] font-bold text-text-primary tracking-tight">Profile Information</h2>
+          <h2 className="text-[16px] font-bold text-text-primary tracking-tight">Profile Information</h2>
         </div>
 
         <div className="flex items-center gap-5 mb-6">
@@ -125,7 +125,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <form onSubmit={handleProfileSave} className="flex flex-col gap-3.5">
+        <form onSubmit={handleProfileSave} className="flex flex-col gap-4">
           <div>
             <SectionLabel className="mb-2">Display Name</SectionLabel>
             <Input
@@ -169,10 +169,10 @@ export default function ProfilePage() {
       <Card padding="lg">
         <div className="flex items-center gap-2 mb-6">
           <Lock size={16} className="text-primary" />
-          <h2 className="text-[15px] font-bold text-text-primary tracking-tight">Change Password</h2>
+          <h2 className="text-[16px] font-bold text-text-primary tracking-tight">Change Password</h2>
         </div>
 
-        <form onSubmit={handlePasswordChange} className="flex flex-col gap-3.5">
+        <form onSubmit={handlePasswordChange} className="flex flex-col gap-4">
           <div>
             <SectionLabel className="mb-2">Current Password</SectionLabel>
             <Input
@@ -233,7 +233,7 @@ export default function ProfilePage() {
       {/* Department Memberships */}
       {user.departments.length > 0 && (
         <Card padding="lg">
-          <h2 className="text-[15px] font-bold text-text-primary tracking-tight mb-4">Department Memberships</h2>
+          <h2 className="text-[16px] font-bold text-text-primary tracking-tight mb-4">Department Memberships</h2>
           <div className="flex flex-col gap-2">
             {user.departments.map((d, i) => (
               <div key={i} className="flex items-center gap-3 py-2.5 border-b border-border-subtle last:border-0">

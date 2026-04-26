@@ -7,33 +7,65 @@ interface AvatarProps {
   className?: string;
 }
 
-const sizes = {
-  xs: "w-5 h-5 text-[9px]",
-  sm: "w-6 h-6 text-[10px]",
+const sizeClasses = {
+  xs: "w-5 h-5 text-[8px]",
+  sm: "w-[22px] h-[22px] text-[9px]",
   md: "w-7 h-7 text-[11px]",
-  lg: "w-8 h-8 text-[12px]",
+  lg: "w-9 h-9 text-[13px]",
 };
 
-const palette = ["#6366F1","#8B5CF6","#EC4899","#EF4444","#F97316","#EAB308","#22C55E","#14B8A6","#06B6D4","#3B82F6"];
-
-function color(n: string) { return palette[(n.charCodeAt(0) + (n.charCodeAt(1) || 0)) % palette.length]; }
+function getAvatarColor(name: string) {
+  const hue = (name.charCodeAt(0) * 37) % 360;
+  return `hsl(${hue}, 50%, 35%)`;
+}
 
 export function Avatar({ name, size = "sm", className }: AvatarProps) {
+  const initial = name[0]?.toUpperCase() ?? "?";
   return (
-    <div className={cn("rounded-full shrink-0 flex items-center justify-center font-semibold text-white", sizes[size], className)}
-      style={{ backgroundColor: color(name) }} title={name}>
-      {name[0]?.toUpperCase() ?? "?"}
+    <div
+      className={cn(
+        "rounded-full shrink-0 flex items-center justify-center font-bold text-white",
+        sizeClasses[size],
+        className
+      )}
+      style={{ backgroundColor: getAvatarColor(name) }}
+      title={name}
+    >
+      {initial}
     </div>
   );
 }
 
-export function AvatarGroup({ users, max = 3, size = "xs" }: { users: { _id: string; name: string }[]; max?: number; size?: AvatarProps["size"] }) {
-  const vis = users.slice(0, max);
-  const over = users.length - max;
+interface AvatarGroupProps {
+  users: { _id: string; name: string }[];
+  max?: number;
+  size?: AvatarProps["size"];
+}
+
+export function AvatarGroup({ users, max = 3, size = "xs" }: AvatarGroupProps) {
+  const visible = users.slice(0, max);
+  const overflow = users.length - max;
   return (
     <div className="flex">
-      {vis.map((u, i) => <Avatar key={u._id} name={u.name} size={size} className={cn("ring-2 ring-bg-base", i > 0 && "-ml-1")} />)}
-      {over > 0 && <div className={cn("rounded-full shrink-0 flex items-center justify-center bg-bg-elevated ring-2 ring-bg-base text-text-muted font-medium -ml-1", sizes[size])}>+{over}</div>}
+      {visible.map((u, i) => (
+        <Avatar
+          key={u._id}
+          name={u.name}
+          size={size}
+          className={cn("border-2 border-bg-surface", i > 0 && "-ml-1.5")}
+        />
+      ))}
+      {overflow > 0 && (
+        <div
+          className={cn(
+            "rounded-full shrink-0 flex items-center justify-center",
+            "bg-bg-elevated border-2 border-bg-surface text-text-muted font-semibold -ml-1.5",
+            sizeClasses[size]
+          )}
+        >
+          +{overflow}
+        </div>
+      )}
     </div>
   );
 }

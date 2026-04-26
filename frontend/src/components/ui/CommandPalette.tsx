@@ -228,12 +228,12 @@ export function CommandPalette({ open, onClose, cards = [], boards = [], departm
 
       {/* Palette */}
       <div
-        className="fixed top-[20%] left-1/2 -translate-x-1/2 w-[480px] bg-bg-surface border border-border rounded-[12px] z-[101] shadow-modal animate-fade-up overflow-hidden"
+        className="fixed top-[20%] left-1/2 -translate-x-1/2 w-[520px] bg-bg-surface border border-border rounded-2xl z-[101] shadow-modal animate-fade-up overflow-hidden"
         onKeyDown={handleKeyDown}
       >
 
         {/* Search input */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-border-subtle">
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-border">
           <Search size={18} className="text-text-muted shrink-0" />
           <input
             ref={inputRef}

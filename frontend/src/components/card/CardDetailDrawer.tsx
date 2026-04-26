@@ -77,7 +77,7 @@ export function CardDetailDrawer({ card, board, onClose, canEdit, canComment = t
       <div className="flex flex-col h-full">
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
-        <div className="px-5 pt-4 pb-3 border-b border-border">
+        <div className="px-5 pt-5 pb-4 border-b border-border">
           {/* Priority strip */}
           {card.priority !== "none" && (
             <div
@@ -90,10 +90,10 @@ export function CardDetailDrawer({ card, board, onClose, canEdit, canComment = t
             <div className="flex items-start gap-2.5 flex-1 min-w-0">
               <CheckCircle2 size={20} className="text-primary shrink-0 mt-0.5" />
               <div className="min-w-0">
-                <h2 className="text-[15px] font-bold text-text-primary leading-tight tracking-tight truncate">
+                <h2 className="text-[18px] font-bold text-text-primary leading-tight tracking-tight truncate">
                   {card.title}
                 </h2>
-                <p className="text-[12px] text-text-muted font-mono mt-0.5">{taskId}</p>
+                <p className="text-[13px] text-text-muted mt-0.5">{taskId}</p>
               </div>
             </div>
             <div className="flex gap-1 shrink-0">
@@ -132,7 +132,7 @@ export function CardDetailDrawer({ card, board, onClose, canEdit, canComment = t
               key={t}
               onClick={() => setTab(t)}
               className={cn(
-                "flex-1 py-2 text-[13px] font-semibold bg-transparent border-none cursor-pointer capitalize tracking-[0.02em] transition-colors duration-150",
+                "flex-1 py-2.5 text-[13px] font-semibold bg-transparent border-none cursor-pointer capitalize tracking-[0.02em] transition-colors",
                 tab === t
                   ? "border-b-2 border-primary text-primary"
                   : "border-b-2 border-transparent text-text-muted hover:text-text-secondary"
@@ -146,7 +146,7 @@ export function CardDetailDrawer({ card, board, onClose, canEdit, canComment = t
         {/* ── Scrollable body ─────────────────────────────────────────────── */}
         <div className="flex-1 overflow-y-auto px-5 py-5">
           {tab === "details" ? (
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-6">
 
               {/* Assignee + Due Date row */}
               <div className="grid grid-cols-2 gap-5">
@@ -154,7 +154,7 @@ export function CardDetailDrawer({ card, board, onClose, canEdit, canComment = t
                   <SectionLabel icon={<User size={10} />}>Assignee</SectionLabel>
                   {(card.assignees?.length ?? 0) > 0 ? (
                     card.assignees.map(u => (
-                      <div key={u._id} className="inline-flex items-center gap-1.5 bg-bg-elevated rounded-full px-2.5 py-1 mb-1 mr-1">
+                      <div key={u._id} className="inline-flex items-center gap-2 bg-bg-elevated rounded-full px-3 py-1.5 mb-1.5 mr-1.5">
                         <Avatar name={u.name} size="xs" />
                         <span className="text-[13px] text-text-primary font-medium">{u.name}</span>
                       </div>
@@ -191,7 +191,7 @@ export function CardDetailDrawer({ card, board, onClose, canEdit, canComment = t
                   rows={4}
                   disabled={!canEdit}
                   className={cn(
-                    "w-full bg-bg-elevated border border-border rounded-[6px] px-3 py-2 text-[13px] text-text-primary placeholder:text-text-muted resize-none outline-none transition-colors duration-150 focus:border-primary focus:ring-1 focus:ring-primary/20",
+                    "w-full bg-black/5 dark:bg-white/10 border border-transparent rounded-xl px-4 py-3 text-[14px] text-text-primary placeholder:text-text-muted resize-none outline-none transition-all duration-200 focus:bg-bg-surface focus:border-primary focus:ring-[3px] focus:ring-primary/20",
                     !canEdit && "opacity-60 cursor-not-allowed"
                   )}
                 />
@@ -374,7 +374,7 @@ export function CardDetailDrawer({ card, board, onClose, canEdit, canComment = t
                     <div className="absolute left-[7px] top-2 bottom-2 w-px bg-border-subtle" />
                     <div className="flex flex-col gap-0">
                       {card.auditLog.map(entry => (
-                        <div key={entry._id} className="relative flex items-start gap-3 py-2.5 group even:bg-bg-elevated/20 rounded-md px-1">
+                        <div key={entry._id} className="relative flex items-start gap-3 py-2.5 group">
                           {/* Dot on timeline */}
                           <div className="absolute left-[-13px] top-3.5 w-2.5 h-2.5 rounded-full bg-bg-surface border-2 border-border group-hover:border-primary transition-colors shrink-0 z-10" />
                           <div className="flex-1 min-w-0">

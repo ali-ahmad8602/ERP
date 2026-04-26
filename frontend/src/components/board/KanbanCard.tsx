@@ -76,11 +76,11 @@ export function KanbanCard({ card, onClick, isDragging }: KanbanCardProps) {
         transition: transition ?? undefined,
       }}
       className={cn(
-        "relative rounded-[10px] bg-bg-surface border border-border",
-        "p-3 cursor-grab select-none group/card",
-        "shadow-card transition-all duration-150",
-        "hover:-translate-y-px hover:shadow-card-hover hover:border-text-muted/30",
-        (isSortable || isDragging) ? "opacity-50" : "opacity-100"
+        "relative rounded-xl bg-bg-surface ring-1 ring-black/[0.04] dark:ring-white/[0.06]",
+        "p-3 cursor-grab select-none",
+        "shadow-card transition-all duration-200",
+        "hover:shadow-card-hover hover:-translate-y-0.5",
+        (isSortable || isDragging) ? "opacity-40" : "opacity-100"
       )}
       {...attributes}
       {...listeners}
@@ -89,7 +89,7 @@ export function KanbanCard({ card, onClick, isDragging }: KanbanCardProps) {
       {/* Priority badge */}
       {priorityBadge && (
         <span className={cn(
-          "inline-block text-[10px] font-bold tracking-wider px-1.5 py-px rounded-md mb-1.5",
+          "inline-block text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-md mb-2",
           priorityBadge.bg,
           priorityBadge.text
         )}>
@@ -99,7 +99,7 @@ export function KanbanCard({ card, onClick, isDragging }: KanbanCardProps) {
 
       {/* Category labels */}
       {card.labels.length > 0 && (
-        <div className="flex flex-wrap gap-0.5 mb-1.5">
+        <div className="flex flex-wrap gap-1 mb-2">
           {card.labels.slice(0, 3).map(label => (
             <span
               key={label}
@@ -120,7 +120,7 @@ export function KanbanCard({ card, onClick, isDragging }: KanbanCardProps) {
       )}
 
       {/* Title */}
-      <p className="text-[13px] font-medium text-text-primary leading-snug tracking-tight">
+      <p className="text-[14px] font-medium text-text-primary leading-snug tracking-tight">
         {card.title}
       </p>
 
@@ -144,8 +144,8 @@ export function KanbanCard({ card, onClick, isDragging }: KanbanCardProps) {
             )}
           </div>
 
-          {/* Right: metadata — fades in on hover */}
-          <div className="flex items-center gap-2 opacity-60 group-hover/card:opacity-100 transition-opacity duration-150">
+          {/* Right: metadata */}
+          <div className="flex items-center gap-2.5">
             {dueInfo && (
               <span className={cn("flex items-center gap-1 text-[11px] font-medium", dueInfo.color)}>
                 <DueIcon size={11} />

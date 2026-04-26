@@ -40,7 +40,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-bg-base flex items-center justify-center p-6 sm:p-10">
+    <div className="min-h-screen bg-bg-surface flex items-center justify-center p-6 sm:p-10">
       <div className="w-full max-w-[420px]">
         {/* Logo */}
         <div className="flex items-center gap-2.5 mb-10">

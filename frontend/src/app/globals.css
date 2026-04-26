@@ -1,82 +1,92 @@
 @import "tailwindcss";
 
-/*
- * InvoiceMate ERP — Design System v3
- *
- * Spacing: 4px base (2/4/6/8/12/16/24/32/48)
- * Typography: Inter, 11/12/13/14/16/20/24px
- * Radius: 4/6/8/12px
- * Colors: Zinc palette, blue primary
- */
+/* ─── Apple-Inspired Theme Variables ──────────────────────────────────────────
+   Light mode (default) on :root, dark theme overrides on .dark class.
+───────────────────────────────────────────────────────────────────────────── */
 
 :root {
+  color-scheme: light;
+
+  /* Brand - Apple System Blue */
+  --color-primary: #0071E3;
+  --color-primary-light: #147CE5;
+  --color-primary-dark: #005BB5;
+  --color-primary-ghost: rgba(0, 113, 227, 0.08);
+
+  /* Accents - iOS System Colors */
+  --color-accent: #5E5CE6;
+  /* Indigo */
+  --color-danger: #FF3B30;
+  /* Red */
+  --color-warning: #FF9500;
+  /* Orange */
+  --color-info: #34C759;
+  /* Green */
+
+  /* Backgrounds - Crisp macOS/iOS Whites and Grays */
+  --color-bg-base: #F5F5F7;
+  /* Window background */
+  --color-bg-surface: #FFFFFF;
+  /* Pure white surface */
+  --color-bg-elevated: #FFFFFF;
+  /* Modals */
+  --color-bg-overlay: rgba(255, 255, 255, 0.72);
+  /* Control Center blur base */
+
+  /* Borders */
+  --color-border: #E5E5EA;
+  /* Standard border */
+  --color-border-subtle: #F2F2F7;
+
+  /* Text - High Contrast */
+  --color-text-primary: #1D1D1F;
+  /* True Apple black/gray */
+  --color-text-secondary: #86868B;
+  --color-text-muted: #98989D;
+
+  /* Shadows - Soft, diffuse, airy */
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-modal: 0 20px 40px rgba(0, 0, 0, 0.12);
+}
+
+.dark {
   color-scheme: dark;
 
-  --im-blue: #3B82F6;
-  --im-blue-hover: #2563EB;
-  --im-green: #22C55E;
-  --im-red: #EF4444;
-  --im-amber: #F59E0B;
-  --im-violet: #8B5CF6;
+  /* Brand - Apple System Blue (Dark Mode) */
+  --color-primary: #0A84FF;
+  --color-primary-light: #409CFF;
+  --color-primary-dark: #0062CC;
+  --color-primary-ghost: rgba(10, 132, 255, 0.12);
 
-  --color-primary: var(--im-blue);
-  --color-primary-light: #60A5FA;
-  --color-primary-dark: var(--im-blue-hover);
-  --color-primary-ghost: rgba(59, 130, 246, 0.08);
-  --color-accent: var(--im-green);
-  --color-danger: var(--im-red);
-  --color-warning: var(--im-amber);
-  --color-success: var(--im-green);
-  --color-info: var(--im-green);
+  /* Accents */
+  --color-accent: #5E5CE6;
+  --color-danger: #FF453A;
+  --color-warning: #FF9F0A;
+  --color-info: #30D158;
 
-  --color-bg-base: #09090B;
-  --color-bg-surface: #0C0C0E;
-  --color-bg-elevated: #141416;
-  --color-bg-overlay: #1C1C1F;
-  --color-bg-glass: rgba(20, 20, 22, 0.72);
+  /* Backgrounds - True Black and Deep Grays */
+  --color-bg-base: #000000;
+  --color-bg-surface: #1C1C1E;
+  --color-bg-elevated: #2C2C2E;
+  --color-bg-overlay: rgba(28, 28, 30, 0.72);
 
-  --color-border: #1E1E21;
-  --color-border-subtle: #141416;
+  /* Borders */
+  --color-border: #38383A;
+  --color-border-subtle: #2C2C2E;
 
-  --color-text-primary: #ECECEF;
-  --color-text-secondary: #8B8B93;
-  --color-text-muted: #52525B;
+  /* Text - High Contrast White */
+  --color-text-primary: #F5F5F7;
+  --color-text-secondary: #86868B;
+  --color-text-muted: #636366;
 
-  --shadow-xs: 0 1px 2px rgba(0,0,0,0.32);
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.28);
-  --shadow-md: 0 8px 24px rgba(0,0,0,0.32);
-  --shadow-lg: 0 20px 48px rgba(0,0,0,0.48);
-  --shadow-glow: 0 0 0 1px rgba(59,130,246,0.24), 0 8px 20px rgba(0,0,0,0.36);
+  /* Shadows - Intense dark mode drop shadows + inner borders */
+  --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.4);
+  --shadow-card-hover: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 12px 32px rgba(0, 0, 0, 0.6);
+  --shadow-modal: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 32px 64px rgba(0, 0, 0, 0.7);
 }
 
-.light {
-  color-scheme: light;
-  --color-primary: #2563EB;
-  --color-primary-light: #3B82F6;
-  --color-primary-dark: #1D4ED8;
-  --color-primary-ghost: rgba(37,99,235,0.06);
-  --color-accent: #16A34A;
-  --color-danger: #DC2626;
-  --color-warning: #D97706;
-  --color-success: #16A34A;
-  --color-info: #16A34A;
-  --color-bg-base: #F8F8FA;
-  --color-bg-surface: #FFFFFF;
-  --color-bg-elevated: #F3F3F5;
-  --color-bg-overlay: #E8E8EC;
-  --color-bg-glass: rgba(255,255,255,0.78);
-  --color-border: #E0E0E5;
-  --color-border-subtle: #EDEDF0;
-  --color-text-primary: #0C0C0E;
-  --color-text-secondary: #5C5C66;
-  --color-text-muted: #9C9CA5;
-  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
-  --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
-  --shadow-lg: 0 20px 48px rgba(0,0,0,0.12);
-  --shadow-glow: 0 0 0 1px rgba(37,99,235,0.16), 0 4px 12px rgba(0,0,0,0.08);
-}
-
+/* ─── Tailwind v4 Theme ───────────────────────────────────────────────────── */
 @theme {
   --color-primary: var(--color-primary);
   --color-primary-light: var(--color-primary-light);
@@ -85,43 +95,130 @@
   --color-accent: var(--color-accent);
   --color-danger: var(--color-danger);
   --color-warning: var(--color-warning);
-  --color-success: var(--color-success);
   --color-info: var(--color-info);
+
   --color-bg-base: var(--color-bg-base);
   --color-bg-surface: var(--color-bg-surface);
   --color-bg-elevated: var(--color-bg-elevated);
   --color-bg-overlay: var(--color-bg-overlay);
-  --color-bg-glass: var(--color-bg-glass);
+
   --color-border: var(--color-border);
   --color-border-subtle: var(--color-border-subtle);
+
   --color-text-primary: var(--color-text-primary);
   --color-text-secondary: var(--color-text-secondary);
   --color-text-muted: var(--color-text-muted);
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
-  --shadow-xs: var(--shadow-xs);
-  --shadow-sm: var(--shadow-sm);
-  --shadow-md: var(--shadow-md);
-  --shadow-lg: var(--shadow-lg);
-  --shadow-glow: var(--shadow-glow);
+
+  /* Typography */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", monospace;
+
+  --text-display: 2.5rem;
+  --text-heading: 1.5rem;
+  --text-subheading: 1.125rem;
+  --text-body: 0.875rem;
+  --text-small: 0.8125rem;
+  /* 13px */
+
+  /* Radii - Squircle approximations */
+  --radius-card: 16px;
+  --radius-btn: 8px;
+  --radius-badge: 6px;
+
+  /* Shadows */
+  --shadow-card: var(--shadow-card);
+  --shadow-card-hover: var(--shadow-card-hover);
+  --shadow-modal: var(--shadow-modal);
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ─── Base ─────────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-html, body {
+html,
+body {
   height: 100%;
   background: var(--color-bg-base);
   color: var(--color-text-primary);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  font-size: 13px;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 14px;
   line-height: 1.5;
+  letter-spacing: -0.01em;
+  /* Apple-esque tight tracking */
 }
 
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 4px; }
-::selection { background: var(--color-primary-ghost); color: var(--color-primary); }
+/* ─── Effects & Utilities ──────────────────────────────────────────────────── */
+.glass-panel {
+  background: var(--color-bg-overlay) !important;
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--color-border);
+}
 
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-.animate-fade-in { animation: fadeIn 0.15s ease-out; }
+.card-hover {
+  transition: box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-hover:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+.btn-ghost {
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.btn-ghost:hover {
+  background: var(--color-bg-elevated);
+  /* Use simple contrast, no neon glows. */
+  color: var(--color-text-primary) !important;
+}
+
+.nav-item {
+  transition: background 0.1s ease, color 0.1s ease;
+}
+
+.nav-item:hover {
+  background: var(--color-border-subtle) !important;
+}
+
+.input-field {
+  transition: border-color 0.2s ease, box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.input-field:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px var(--color-primary-ghost);
+  outline: none;
+}
+
+/* ─── Scrollbar - Hidden/Mac style ─────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+::selection {
+  background: var(--color-primary-ghost);
+  color: var(--color-primary);
+}

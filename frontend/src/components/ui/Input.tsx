@@ -12,24 +12,23 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, optional, className, ...props }, ref) => (
     <div>
       {label && (
-        <label className="block text-[12px] font-medium text-text-secondary mb-1">
+        <label className="block text-[15px] font-semibold text-text-primary mb-1.5 tracking-tight">
           {label}
-          {optional && <span className="text-text-muted ml-1">(optional)</span>}
+          {optional && <span className="text-text-muted font-normal ml-1.5 text-[13px]">(optional)</span>}
         </label>
       )}
       <input
         ref={ref}
         className={cn(
-          "w-full h-8 bg-bg-elevated border border-border rounded-[6px] px-2.5",
-          "text-[13px] text-text-primary placeholder:text-text-muted",
-          "outline-none transition-colors duration-150",
-          "focus:border-primary focus:ring-1 focus:ring-primary/15",
-          error && "border-danger focus:border-danger focus:ring-danger/15",
+          "w-full bg-black/5 dark:bg-white/10 border border-transparent rounded-[12px] px-4 py-3.5",
+          "text-[15px] text-text-primary placeholder:text-text-muted transition-all duration-200",
+          "focus:bg-bg-surface focus:border-primary focus:ring-[3px] focus:ring-primary/20 focus:shadow-sm outline-none",
+          error && "border-danger focus:border-danger focus:ring-danger/20 focus:bg-danger/5",
           className
         )}
         {...props}
       />
-      {error && <p className="mt-1 text-[11px] text-danger">{error}</p>}
+      {error && <p className="mt-1.5 text-[13px] text-danger font-medium">{error}</p>}
     </div>
   )
 );
@@ -43,20 +42,21 @@ interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ label, error, className, ...props }, ref) => (
     <div>
-      {label && <label className="block text-[12px] font-medium text-text-secondary mb-1">{label}</label>}
+      {label && (
+        <label className="block text-[15px] font-semibold text-text-primary mb-1.5 tracking-tight">{label}</label>
+      )}
       <textarea
         ref={ref}
         className={cn(
-          "w-full bg-bg-elevated border border-border rounded-[6px] px-2.5 py-2",
-          "text-[13px] text-text-primary placeholder:text-text-muted resize-none",
-          "outline-none transition-colors duration-150",
-          "focus:border-primary focus:ring-1 focus:ring-primary/15",
-          error && "border-danger",
+          "w-full bg-black/5 dark:bg-white/10 border border-transparent rounded-[12px] px-4 py-3.5",
+          "text-[15px] text-text-primary placeholder:text-text-muted transition-all duration-200 resize-none",
+          "focus:bg-bg-surface focus:border-primary focus:ring-[3px] focus:ring-primary/20 outline-none",
+          error && "border-danger focus:border-danger focus:ring-danger/20 focus:bg-danger/5",
           className
         )}
         {...props}
       />
-      {error && <p className="mt-1 text-[11px] text-danger">{error}</p>}
+      {error && <p className="mt-1.5 text-[13px] text-danger font-medium">{error}</p>}
     </div>
   )
 );

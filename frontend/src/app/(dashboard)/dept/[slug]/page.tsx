@@ -118,13 +118,9 @@ export default function DeptBoardPage() {
   // Loading state
   if (isLoading && !activeBoard) {
     return (
-      <div className="flex flex-col h-full bg-bg-base p-5">
-        <div className="h-12 w-full bg-bg-elevated animate-pulse rounded-lg mb-4" />
-        <div className="h-8 w-64 bg-bg-elevated animate-pulse rounded-lg mb-3" />
-        <div className="h-10 w-full bg-bg-elevated animate-pulse rounded-lg mb-4" />
-        <div className="flex-1 flex gap-3">
-          {[1,2,3,4].map(i => <div key={i} className="w-[280px] h-full bg-bg-elevated/50 animate-pulse rounded-xl" />)}
-        </div>
+      <div className="flex flex-col h-full bg-bg-base items-center justify-center gap-3.5">
+        <div className="w-7 h-7 border-2 border-border-subtle border-t-primary rounded-full animate-spin" />
+        <p className="text-[13px] text-text-muted">Loading department...</p>
       </div>
     );
   }
@@ -149,9 +145,9 @@ export default function DeptBoardPage() {
       />
 
       {/* ── Header: Department name + description + view toggle ── */}
-      <div className="flex items-start justify-between px-6 pt-4 pb-2 shrink-0 max-w-[1280px]">
+      <div className="flex items-start justify-between px-6 pt-5 pb-3 shrink-0">
         <div className="flex flex-col gap-0.5">
-          <h1 className="text-lg font-semibold text-text-primary tracking-tight leading-tight">
+          <h1 className="text-[28px] font-bold text-text-primary tracking-tight leading-tight">
             {dept?.name}
           </h1>
           {dept?.description && (
@@ -255,13 +251,9 @@ export default function DeptBoardPage() {
 
       {/* Loading cards */}
       {loadingCards && !cards.length && (
-        <div className="flex-1 flex gap-3 px-5 py-3">
-          {[1,2,3,4].map(i => (
-            <div key={i} className="w-[280px] shrink-0 flex flex-col gap-2">
-              <div className="h-6 w-24 bg-bg-elevated animate-pulse rounded-md" />
-              <div className="flex-1 rounded-xl bg-bg-elevated/30 animate-pulse min-h-[200px]" />
-            </div>
-          ))}
+        <div className="flex-1 flex items-center justify-center flex-col gap-3.5">
+          <div className="w-7 h-7 border-2 border-border-subtle border-t-primary rounded-full animate-spin" />
+          <p className="text-[13px] text-text-muted">Loading board...</p>
         </div>
       )}
 
@@ -310,9 +302,9 @@ export default function DeptBoardPage() {
         <>
           <div
             onClick={() => setAddBoardOpen(false)}
-            className="fixed inset-0 bg-black/60 z-[100] animate-fade-in"
+            className="fixed inset-0 bg-black/40 dark:bg-black/70 z-[100] backdrop-blur-sm animate-[fadeIn_0.12s_ease-out]"
           />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] bg-bg-surface border border-border rounded-[12px] z-[101] p-5 shadow-modal animate-fade-up">
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] bg-bg-surface border border-border rounded-2xl z-[101] p-6 shadow-modal animate-[fadeUp_0.18s_cubic-bezier(0.16,1,0.3,1)]">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-[17px] font-semibold text-text-primary tracking-tight">New Board</h2>
               <button
