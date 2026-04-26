@@ -34,7 +34,7 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
     matchPrefix ? pathname.startsWith(href) : pathname === href;
 
   return (
-    <aside className="w-[220px] h-screen bg-[#0A0A0B] border-r border-[#ffffff08] flex flex-col shrink-0">
+    <aside className="fixed left-0 top-0 h-screen w-[220px] border-r border-[#ffffff08] bg-[#0A0A0B] flex flex-col z-30">
       {/* Logo */}
       <div className="h-12 flex items-center px-4 border-b border-[#ffffff08]">
         <div className="flex items-center gap-2">

@@ -17,7 +17,7 @@ export function Topbar({ onSearchClick, onCommandPalette }: TopbarProps) {
   const search = onCommandPalette ?? onSearchClick;
 
   return (
-    <header className="h-12 border-b border-[#ffffff08] bg-[#0A0A0B] shrink-0 sticky top-0 z-20">
+    <header className="fixed top-0 left-[220px] right-0 h-12 border-b border-[#ffffff08] bg-[#0A0A0B] z-10">
       <div className="h-full px-5 flex items-center justify-between">
         {/* Search */}
         <button

@@ -27,18 +27,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [user, token, connectSocket, disconnectSocket]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#09090B]">
+    <div className="min-h-screen bg-[#09090B] text-[#FAFAFA]">
       <Sidebar
         departments={departments}
         userOrgRole={user?.orgRole ?? "user"}
         onAddDept={() => setAddDeptOpen(true)}
       />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar />
-        <main className="flex-1 overflow-auto">
-          {children}
-        </main>
-      </div>
+      <Topbar />
+      <main className="ml-[220px] pt-12">
+        {children}
+      </main>
 
       {addDeptOpen && (
         <AddDeptModal onClose={() => setAddDeptOpen(false)} />
