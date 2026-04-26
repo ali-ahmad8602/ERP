@@ -55,8 +55,9 @@ export default function DeptBoardPage() {
     return () => document.removeEventListener("keydown", handler);
   }, []);
 
-  // Fetch boards when department is resolved
-  useEffect(() => { if (dept) fetchBoards(dept._id); }, [dept, fetchBoards]);
+  // Fetch boards when department is resolved — use dept._id as dep for stable reference
+  const deptId = dept?._id;
+  useEffect(() => { if (deptId) fetchBoards(deptId); }, [deptId, fetchBoards]);
 
   // Auto-select first board
   useEffect(() => { if (boards.length > 0 && !selectedBoardId) setSelectedBoardId(boards[0]._id); }, [boards, selectedBoardId]);

@@ -56,21 +56,21 @@ export function CommandPalette({ open, onClose, cards = [], boards = [], departm
 
   const q = query.toLowerCase().trim();
 
-  const filteredCards = q
-    ? cards.filter(c => c.title.toLowerCase().includes(q)).slice(0, 5)
-    : cards.slice(0, 4);
-
-  const filteredBoards = q
-    ? boards.filter(b => b.name.toLowerCase().includes(q)).slice(0, 3)
-    : boards.slice(0, 3);
-
-  const filteredDepts = q
-    ? departments.filter(d => d.name.toLowerCase().includes(q)).slice(0, 3)
-    : [];
-
-  // Build flat list for keyboard navigation
+  // Build flat list for keyboard navigation — all filtering inside useMemo for stable deps
   const flatItems: ResultItem[] = useMemo(() => {
     const items: ResultItem[] = [];
+
+    const matchedCards = q
+      ? cards.filter(c => c.title.toLowerCase().includes(q)).slice(0, 5)
+      : cards.slice(0, 4);
+
+    const matchedBoards = q
+      ? boards.filter(b => b.name.toLowerCase().includes(q)).slice(0, 3)
+      : boards.slice(0, 3);
+
+    const matchedDepts = q
+      ? departments.filter(d => d.name.toLowerCase().includes(q)).slice(0, 3)
+      : [];
 
     // Quick actions when no query
     if (!q) {
@@ -93,7 +93,7 @@ export function CommandPalette({ open, onClose, cards = [], boards = [], departm
     }
 
     // Cards (tasks)
-    filteredCards.forEach(card => {
+    matchedCards.forEach(card => {
       const priorityLabel = card.priority !== "none" ? card.priority.charAt(0).toUpperCase() + card.priority.slice(1) + " Priority" : "";
       const sub = [priorityLabel].filter(Boolean).join(" \u00B7 ");
       items.push({
@@ -107,7 +107,7 @@ export function CommandPalette({ open, onClose, cards = [], boards = [], departm
     });
 
     // Boards
-    filteredBoards.forEach(board => {
+    matchedBoards.forEach(board => {
       items.push({
         id: board._id,
         type: "board",
@@ -119,7 +119,7 @@ export function CommandPalette({ open, onClose, cards = [], boards = [], departm
     });
 
     // Departments (people section)
-    filteredDepts.forEach(dept => {
+    matchedDepts.forEach(dept => {
       items.push({
         id: dept._id,
         type: "department",
@@ -131,7 +131,7 @@ export function CommandPalette({ open, onClose, cards = [], boards = [], departm
     });
 
     return items;
-  }, [q, filteredCards, filteredBoards, filteredDepts, onClose, onSelectCard, onNewCard, onNewBoard, onInvite]);
+  }, [q, cards, boards, departments, onClose, onSelectCard, onNewCard, onNewBoard, onInvite]);
 
   // Clamp selectedIndex
   useEffect(() => {

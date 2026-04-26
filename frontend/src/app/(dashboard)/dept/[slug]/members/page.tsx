@@ -1,16 +1,15 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams } from "next/navigation";
 import { ArrowLeft, UserPlus, Trash2, Search, Loader2, Crown, User } from "lucide-react";
 import Link from "next/link";
 import { Topbar } from "@/components/layout/Topbar";
 import { Avatar } from "@/components/ui/Avatar";
-import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Card } from "@/components/ui/Card";
 import { useDeptStore } from "@/store/dept.store";
-import { usersApi, deptApi } from "@/lib/api";
+import { usersApi } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import type { User as UserType, Department } from "@/types";
 
@@ -33,21 +32,48 @@ export default function DeptMembersPage() {
   const [removing, setRemoving]         = useState<string | null>(null);
   const [error, setError]               = useState("");
 
-  const allMembers: UserType[] = dept ? [...(dept.heads ?? []), ...(dept.members ?? []).filter(m => !(dept.heads ?? []).some(h => h._id === m._id))] : [];
+  // Memoize allMembers so the reference is stable between renders
+  const allMembers = useMemo<UserType[]>(() => {
+    if (!dept) return [];
+    const heads = dept.heads ?? [];
+    const members = (dept.members ?? []).filter(m => !heads.some(h => h._id === m._id));
+    return [...heads, ...members];
+  }, [dept]);
 
-  // Debounced search
+  // Debounced search — deps are only searchQuery (stable string) and slug (stable string)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
-    if (searchQuery.length < 2) { setSearchResults([]); return; }
-    const timer = setTimeout(async () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+
+    if (searchQuery.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    timerRef.current = setTimeout(async () => {
       setSearching(true);
       try {
         const { users } = await usersApi.search(searchQuery);
-        setSearchResults(users.filter(u => !allMembers.some(m => m._id === u._id)));
-      } catch { setSearchResults([]); }
-      finally { setSearching(false); }
+        // Use the ref-stable memberIdSet for filtering
+        const currentIds = useDeptStore.getState().departments
+          .find((d: Department) => d.slug === slug);
+        const currentMemberIds = new Set([
+          ...(currentIds?.heads ?? []).map((h: UserType) => h._id),
+          ...(currentIds?.members ?? []).map((m: UserType) => m._id),
+        ]);
+        setSearchResults(users.filter(u => !currentMemberIds.has(u._id)));
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearching(false);
+      }
     }, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery, allMembers]);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [searchQuery, slug]);
 
   const handleAdd = async (user: UserType) => {
     if (!dept || adding) return;
