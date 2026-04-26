@@ -67,7 +67,7 @@ export function KanbanBoard({ board, cards, onCardMove, onCardCreate, canEdit = 
     <>
       <DndContext sensors={sensors} collisionDetection={closestCenter}
         onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <div className="flex gap-3 h-full overflow-x-auto px-6 pt-4 pb-6">
+        <div className="flex gap-2.5 h-full overflow-x-auto px-5 pt-3 pb-5">
           {columns.map(col => {
             const colCards = cardsByColumn(col._id);
             const accent = getColumnAccent(col.name);
@@ -93,7 +93,7 @@ export function KanbanBoard({ board, cards, onCardMove, onCardCreate, canEdit = 
 
         <DragOverlay dropAnimation={{ duration: 180, easing: "cubic-bezier(0.16,1,0.3,1)" }}>
           {activeCard && (
-            <div className="rotate-[2deg] scale-[1.03] opacity-90 w-[280px]">
+            <div className="rotate-[1deg] scale-[1.02] opacity-80 w-[272px]">
               <KanbanCard card={activeCard} isDragging />
             </div>
           )}
@@ -138,10 +138,10 @@ interface ColumnPanelProps {
 
 function ColumnPanel({ column, cards, accent, isLocked, canEdit, onCardClick, isAdding, newCardTitle, onNewTitleChange, onAddStart, onAddConfirm, onAddCancel }: ColumnPanelProps) {
   return (
-    <div className="w-[280px] shrink-0 flex flex-col">
+    <div className="w-[272px] shrink-0 flex flex-col">
 
       {/* Column header */}
-      <div className="flex items-center justify-between mb-3 px-1">
+      <div className="flex items-center justify-between mb-2 px-1">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full shrink-0" style={{ background: accent }} />
           <span className="text-[13px] font-semibold text-text-primary tracking-tight">

@@ -19,10 +19,10 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   return (
     <div className="flex flex-col h-full bg-bg-base">
       {/* Header */}
-      <div className="px-7 pt-5 pb-0 border-b border-border bg-bg-surface shrink-0">
-        <div className="flex items-center gap-2.5 mb-4">
-          <Settings size={18} className="text-primary" />
-          <h1 className="text-[18px] font-bold text-text-primary tracking-tight">Settings</h1>
+      <div className="px-6 pt-4 pb-0 border-b border-border bg-bg-surface shrink-0">
+        <div className="flex items-center gap-2 mb-3">
+          <Settings size={16} className="text-primary" />
+          <h1 className="text-[16px] font-bold text-text-primary tracking-tight">Settings</h1>
         </div>
 
         {/* Tabs */}
@@ -48,7 +48,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto px-7 py-6">
+      <div className="flex-1 overflow-auto px-6 py-5">
         {children}
       </div>
     </div>

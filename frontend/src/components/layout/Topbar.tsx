@@ -27,10 +27,10 @@ function ThemeToggle() {
   return (
     <button
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:bg-black/5 dark:hover:bg-white/10 transition-colors duration-150 cursor-pointer bg-transparent border-none"
+      className="w-8 h-8 rounded-lg flex items-center justify-center text-text-secondary hover:bg-bg-elevated transition-colors duration-150 cursor-pointer bg-transparent border-none"
       aria-label="Toggle theme"
     >
-      {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+      {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
     </button>
   );
 }
@@ -47,19 +47,19 @@ export function Topbar({
   const handleSearchClick = onCommandPalette ?? onSearchClick;
 
   return (
-    <header className="h-14 flex items-center justify-between px-6 border-b border-border-subtle bg-bg-base/80 backdrop-blur-sm sticky top-0 z-20 shrink-0">
+    <header className="h-12 flex items-center justify-between px-5 border-b border-border-subtle bg-bg-base/80 backdrop-blur-sm sticky top-0 z-20 shrink-0">
       {/* ── Left: Breadcrumb ───────────────────────────────────────────── */}
       <div className="flex items-center gap-1.5 min-w-0">
         {department && (
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-[13px] text-text-secondary font-medium flex items-center gap-1.5">
+            <span className="text-[12px] text-text-secondary font-medium flex items-center gap-1.5">
               <span style={{ color: department.color }}>{department.icon}</span>
               {department.name}
             </span>
-            <ChevronRight size={12} className="text-text-muted" />
+            <ChevronRight size={11} className="text-text-muted" />
           </div>
         )}
-        <span className="text-[14px] font-semibold text-text-primary tracking-tight truncate">
+        <span className="text-[13px] font-semibold text-text-primary tracking-tight truncate">
           {board?.name ?? title ?? ""}
         </span>
 
@@ -81,34 +81,31 @@ export function Topbar({
       {/* ── Center: Search Bar ─────────────────────────────────────────── */}
       <button
         onClick={handleSearchClick}
-        className="flex items-center gap-2 bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.07] dark:hover:bg-white/[0.12] rounded-full py-1.5 px-4 w-[40%] max-w-[420px] min-w-[200px] transition-colors duration-150 cursor-pointer border-none"
+        className="flex items-center gap-2 bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.07] dark:hover:bg-white/[0.10] rounded-full py-1.5 px-4 w-[36%] max-w-[360px] min-w-[180px] transition-colors duration-150 cursor-pointer border-none"
       >
-        <Search size={14} className="text-text-muted shrink-0" />
-        <span className="flex-1 text-[13px] text-text-muted text-left truncate">
+        <Search size={13} className="text-text-muted shrink-0" />
+        <span className="flex-1 text-[12px] text-text-muted text-left truncate">
           Search resources, files, and tasks...
         </span>
         <div className="flex items-center gap-0.5 shrink-0">
-          <kbd className="text-[10px] text-text-muted/60 font-mono bg-black/[0.04] dark:bg-white/[0.08] rounded px-1 py-0.5 leading-none">
-            ⌘
-          </kbd>
-          <kbd className="text-[10px] text-text-muted/60 font-mono bg-black/[0.04] dark:bg-white/[0.08] rounded px-1 py-0.5 leading-none">
-            K
+          <kbd className="text-[10px] text-text-muted/60 font-mono bg-black/[0.04] dark:bg-white/[0.06] rounded px-1 py-0.5 leading-none">
+            ⌘K
           </kbd>
         </div>
       </button>
 
       {/* ── Right: Actions ─────────────────────────────────────────────── */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         <NotificationBell />
 
-        {/* Quick Action → opens command palette */}
+        {/* Quick Action — icon only */}
         {handleSearchClick && (
           <button
             onClick={handleSearchClick}
-            className="flex items-center gap-1.5 bg-primary text-white text-[12px] font-semibold rounded-full px-3.5 py-1.5 hover:bg-primary-light active:scale-[0.97] transition-all duration-150 cursor-pointer border-none shadow-sm"
+            className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary text-white hover:bg-primary-light transition-colors duration-150 cursor-pointer border-none shadow-sm"
+            title="Quick Action"
           >
-            <Zap size={12} />
-            Quick Action
+            <Zap size={14} />
           </button>
         )}
 
@@ -117,7 +114,7 @@ export function Topbar({
         <ThemeToggle />
 
         {/* User avatar */}
-        <button className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer bg-transparent border-none p-0 transition-transform duration-150 hover:scale-105">
+        <button className="w-7 h-7 rounded-full flex items-center justify-center cursor-pointer bg-transparent border-none p-0 transition-transform duration-150 hover:scale-105">
           <Avatar name={user?.name ?? "User"} size="md" />
         </button>
       </div>

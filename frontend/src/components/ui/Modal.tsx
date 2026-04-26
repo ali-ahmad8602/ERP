@@ -39,7 +39,7 @@ export function Modal({ open, onClose, children, width = "460px", variant = "cen
         <div
           className={cn(
             "bg-bg-surface border border-border shadow-modal overflow-hidden",
-            variant === "center" && "rounded-2xl max-h-[85vh] overflow-y-auto",
+            variant === "center" && "rounded-xl max-h-[85vh] overflow-y-auto",
             variant === "drawer-right" && "h-full border-l border-r-0 border-t-0 border-b-0",
           )}
         >

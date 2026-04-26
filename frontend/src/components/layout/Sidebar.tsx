@@ -42,9 +42,9 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
   const isDeptActive = pathname.startsWith("/dept/");
 
   return (
-    <aside className="w-[240px] h-screen bg-bg-base border-r border-border flex flex-col shrink-0">
+    <aside className="w-[240px] h-screen bg-bg-surface border-r border-border flex flex-col shrink-0">
       {/* ── Logo Area ──────────────────────────────────────────────────────── */}
-      <div className="h-14 flex items-center px-5 shrink-0 border-b border-border-subtle">
+      <div className="h-12 flex items-center px-4 shrink-0 border-b border-border-subtle">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent text-white flex items-center justify-center shadow-sm">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -119,12 +119,12 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
                   "w-full flex items-center gap-2.5 py-[7px] px-2 rounded-lg border-none cursor-pointer transition-all duration-150 group",
                   isActive
                     ? "bg-primary-ghost text-text-primary font-medium"
-                    : "bg-transparent text-text-secondary hover:bg-black/5 dark:hover:bg-white/5 hover:text-text-primary"
+                    : "bg-transparent text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
                 )}
               >
                 {/* Colored icon circle */}
                 <div
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] shrink-0"
+                  className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] shrink-0"
                   style={{
                     color: dept.color || "var(--color-primary)",
                     background: `${dept.color || "var(--color-primary)"}1A`,
@@ -174,7 +174,7 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
         {isAdmin && (
           <button
             onClick={onAddDept}
-            className="w-full flex items-center gap-2.5 py-[7px] px-2 rounded-lg cursor-pointer bg-transparent text-text-muted transition-all duration-150 hover:bg-black/5 dark:hover:bg-white/5 hover:text-text-primary mt-1 border border-dashed border-border"
+            className="w-full flex items-center gap-2.5 py-[7px] px-2 rounded-lg cursor-pointer bg-transparent text-text-muted transition-all duration-150 hover:bg-bg-elevated hover:text-text-primary mt-1 border border-dashed border-border"
           >
             <div className="w-6 h-6 rounded-full flex items-center justify-center">
               <Plus size={14} />
@@ -185,8 +185,8 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
       </nav>
 
       {/* ── Bottom Profile Section ─────────────────────────────────────────── */}
-      <div className="p-3 border-t border-border-subtle">
-        <div className="flex items-center gap-2.5 px-2 py-2">
+      <div className="p-2.5 border-t border-border">
+        <div className="flex items-center gap-2 px-2 py-1.5">
           <Avatar name={user?.name ?? "User"} size="md" />
           <div className="flex-1 min-w-0">
             <div className="text-[13px] font-semibold text-text-primary truncate leading-tight">
@@ -237,7 +237,7 @@ function NavItem({
         "flex items-center gap-2.5 py-[7px] px-2 rounded-lg no-underline transition-all duration-150 relative",
         active
           ? "bg-primary-ghost text-primary font-medium"
-          : "bg-transparent text-text-secondary hover:bg-black/5 dark:hover:bg-white/5 hover:text-text-primary"
+          : "bg-transparent text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
       )}
     >
       {/* Left active indicator */}
@@ -268,7 +268,7 @@ function SubNavItem({
         "block py-1 px-2.5 rounded-md text-[12px] no-underline transition-colors duration-150",
         active
           ? "bg-primary-ghost text-primary font-medium"
-          : "text-text-secondary hover:bg-black/5 dark:hover:bg-white/5 hover:text-text-primary"
+          : "text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
       )}
     >
       {label}

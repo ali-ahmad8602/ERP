@@ -44,7 +44,7 @@ export default function OrgSettingsPage() {
       <Card padding="lg">
         <div className="flex items-center gap-2 mb-6">
           <Building size={16} className="text-primary" />
-          <h2 className="text-[16px] font-bold text-text-primary tracking-tight">Organization</h2>
+          <h2 className="text-[15px] font-bold text-text-primary tracking-tight">Organization</h2>
         </div>
 
         <div className="flex items-center gap-5 mb-6">
@@ -75,7 +75,7 @@ export default function OrgSettingsPage() {
       <Card padding="lg">
         <div className="flex items-center gap-2 mb-5">
           <Users size={16} className="text-primary" />
-          <h2 className="text-[16px] font-bold text-text-primary tracking-tight">Departments</h2>
+          <h2 className="text-[15px] font-bold text-text-primary tracking-tight">Departments</h2>
         </div>
 
         {departments.length === 0 ? (
@@ -117,7 +117,7 @@ export default function OrgSettingsPage() {
       <Card padding="lg">
         <div className="flex items-center gap-2 mb-5">
           <Shield size={16} className="text-primary" />
-          <h2 className="text-[16px] font-bold text-text-primary tracking-tight">Organization Roles</h2>
+          <h2 className="text-[15px] font-bold text-text-primary tracking-tight">Organization Roles</h2>
         </div>
 
         <div className="flex flex-col gap-3">

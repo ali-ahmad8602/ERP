@@ -59,7 +59,7 @@ function StatusDonutChart({ overview }: { overview: OrgOverview }) {
           })}
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-[28px] font-bold text-text-primary">{total}</span>
+          <span className="text-[24px] font-bold text-text-primary">{total}</span>
           <span className="text-[11px] text-text-muted font-medium">Total</span>
         </div>
       </div>
@@ -159,31 +159,38 @@ export default function ReportsPage() {
 
   if (loading && !overview) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-bg-base">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 size={32} className="animate-spin text-primary" />
-          <p className="text-text-muted font-medium animate-pulse">Loading reports...</p>
+      <div className="h-full overflow-auto bg-bg-base/30 p-6 lg:p-8">
+        <div className="mb-6">
+          <div className="h-7 w-48 bg-bg-elevated animate-pulse rounded-lg mb-2" />
+          <div className="h-4 w-72 bg-bg-elevated animate-pulse rounded-md" />
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {[1,2,3,4].map(i => <div key={i} className="h-24 rounded-2xl bg-bg-elevated animate-pulse" />)}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="h-56 rounded-2xl bg-bg-elevated animate-pulse" />
+          <div className="h-56 rounded-2xl bg-bg-elevated animate-pulse" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full overflow-auto bg-bg-base/30 p-8 lg:p-10">
+    <div className="h-full overflow-auto bg-bg-base/30 p-6 lg:p-8">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-2.5 mb-1">
-          <BarChart3 size={20} className="text-primary" />
-          <h1 className="text-[24px] font-bold text-text-primary tracking-tight">Reports & Analytics</h1>
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-1">
+          <BarChart3 size={18} className="text-primary" />
+          <h1 className="text-[20px] font-bold text-text-primary tracking-tight">Reports & Analytics</h1>
         </div>
-        <p className="text-[14px] text-text-secondary">
+        <p className="text-[13px] text-text-secondary">
           Organization-wide insights from real-time task and department data.
         </p>
       </div>
 
       {/* KPI Row */}
       {overview && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <KpiCard
             icon={<ClipboardList size={18} />}
             label="Total Tasks"
@@ -214,7 +221,7 @@ export default function ReportsPage() {
       )}
 
       {/* Charts Row 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Tasks by Status */}
         <Card padding="lg">
           <div className="flex items-center gap-2 mb-6">
@@ -239,7 +246,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Charts Row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Overdue Breakdown */}
         <Card padding="lg">
           <div className="flex items-center gap-2 mb-6">
@@ -329,7 +336,7 @@ function KpiCard({
     <Card hover className="flex flex-col gap-3">
       <div className="text-text-secondary">{icon}</div>
       <span className="text-[12px] text-text-muted font-semibold uppercase tracking-wider">{label}</span>
-      <span className="text-[32px] font-bold text-text-primary tracking-tight leading-none tabular-nums">{value}</span>
+      <span className="text-[28px] font-bold text-text-primary tracking-tight leading-none tabular-nums">{value}</span>
       {detail && (
         <span className={cn(
           "text-[12px] font-medium",

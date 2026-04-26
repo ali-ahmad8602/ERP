@@ -58,7 +58,7 @@ export function ListView({ board, cards, onCardCreate, canEdit = true, canCommen
 
         {/* Column headers */}
         <div
-          className="grid border-b border-border-subtle mb-1 pb-2.5 pl-10 pr-3"
+          className="grid border-b border-border-subtle mb-1 pb-2 pl-10 pr-3 sticky top-0 bg-bg-base/90 backdrop-blur-sm z-10"
           style={{ gridTemplateColumns: GRID }}
         >
           {HEADERS.map(h => (
@@ -78,7 +78,7 @@ export function ListView({ board, cards, onCardCreate, canEdit = true, canCommen
               {/* Group header */}
               <button
                 onClick={() => setCollapsed(p => ({ ...p, [col._id]: !p[col._id] }))}
-                className="w-full flex items-center gap-2.5 py-2 px-3 bg-transparent border-none cursor-pointer rounded-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors"
+                className="w-full flex items-center gap-2.5 py-2 px-3 bg-transparent border-none cursor-pointer rounded-xl hover:bg-bg-elevated/40 transition-colors"
               >
                 {isCollapsed
                   ? <ChevronRight size={12} className="text-text-muted" />
@@ -164,7 +164,7 @@ function ListRow({ card, onClick }: { card: Card; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="w-full grid items-center py-2.5 px-3 pl-10 bg-transparent border-none cursor-pointer rounded-xl text-left border-b border-border-subtle/30 hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors group"
+      className="w-full grid items-center py-2.5 px-3 pl-10 bg-transparent border-none cursor-pointer rounded-xl text-left border-b border-border-subtle/30 hover:bg-bg-elevated/40 transition-colors group"
       style={{ gridTemplateColumns: GRID }}
     >
       {/* Title */}
