@@ -4,10 +4,10 @@ export function Card({ children, className, hover, padding = "md" }: { children:
   return (
     <div
       className={cn(
-        "glass-card rounded-[12px] shadow-card",
-        padding === "sm" && "p-3",
-        padding === "md" && "p-5",
-        padding === "lg" && "p-6",
+        "bg-bg-surface border border-border rounded-[10px] shadow-card",
+        padding === "sm" && "p-3.5",
+        padding === "md" && "p-4",
+        padding === "lg" && "p-5",
         padding === "none" && "p-0",
         hover && "card-hover cursor-pointer",
         className

@@ -76,11 +76,11 @@ export function KanbanCard({ card, onClick, isDragging }: KanbanCardProps) {
         transition: transition ?? undefined,
       }}
       className={cn(
-        "relative rounded-[12px] glass-card",
+        "relative rounded-[10px] bg-bg-surface border border-border",
         "p-3 cursor-grab select-none group/card",
-        "shadow-card transition-all duration-200",
-        "hover:-translate-y-[1px] hover:shadow-card-hover",
-        (isSortable || isDragging) ? "opacity-50 scale-[1.01]" : "opacity-100"
+        "shadow-card transition-all duration-150",
+        "hover:-translate-y-px hover:shadow-card-hover hover:border-text-muted/30",
+        (isSortable || isDragging) ? "opacity-50" : "opacity-100"
       )}
       {...attributes}
       {...listeners}

@@ -10,24 +10,20 @@ interface AvatarProps {
 const sizeClasses = {
   xs: "w-5 h-5 text-[8px]",
   sm: "w-6 h-6 text-[10px]",
-  md: "w-8 h-8 text-xs",
-  lg: "w-10 h-10 text-sm",
+  md: "w-7 h-7 text-[11px]",
+  lg: "w-9 h-9 text-[13px]",
 };
 
 function getAvatarColor(name: string) {
-  const hue = (name.charCodeAt(0) * 37) % 360;
-  return `hsl(${hue}, 45%, 40%)`;
+  const colors = ["#6366F1","#8B5CF6","#EC4899","#F43F5E","#F97316","#EAB308","#22C55E","#14B8A6","#0EA5E9","#3B82F6"];
+  return colors[(name.charCodeAt(0) + (name.charCodeAt(1) || 0)) % colors.length];
 }
 
 export function Avatar({ name, size = "sm", className }: AvatarProps) {
   const initial = name[0]?.toUpperCase() ?? "?";
   return (
     <div
-      className={cn(
-        "rounded-full shrink-0 flex items-center justify-center font-bold text-white border border-white/10",
-        sizeClasses[size],
-        className
-      )}
+      className={cn("rounded-full shrink-0 flex items-center justify-center font-semibold text-white", sizeClasses[size], className)}
       style={{ backgroundColor: getAvatarColor(name) }}
       title={name}
     >
@@ -48,21 +44,10 @@ export function AvatarGroup({ users, max = 3, size = "xs" }: AvatarGroupProps) {
   return (
     <div className="flex">
       {visible.map((u, i) => (
-        <Avatar
-          key={u._id}
-          name={u.name}
-          size={size}
-          className={cn("border-2 border-bg-base", i > 0 && "-ml-1.5")}
-        />
+        <Avatar key={u._id} name={u.name} size={size} className={cn("ring-2 ring-bg-base", i > 0 && "-ml-1")} />
       ))}
       {overflow > 0 && (
-        <div
-          className={cn(
-            "rounded-full shrink-0 flex items-center justify-center",
-            "bg-bg-elevated border-2 border-bg-base text-text-muted font-semibold -ml-1.5",
-            sizeClasses[size]
-          )}
-        >
+        <div className={cn("rounded-full shrink-0 flex items-center justify-center bg-bg-elevated ring-2 ring-bg-base text-text-muted font-medium -ml-1", sizeClasses[size])}>
           +{overflow}
         </div>
       )}

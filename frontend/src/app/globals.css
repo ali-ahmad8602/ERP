@@ -1,79 +1,69 @@
 @import "tailwindcss";
 
-/* ─── InvoiceMate ERP — "Digital Obsidian" Design System ───────────────────────
-   Dark-first enterprise design. Light mode as secondary.
-───────────────────────────────────────────────────────────────────────────── */
+/* ─── InvoiceMate ERP Design System ────────────────────────────────────────── */
 
 :root {
   color-scheme: dark;
 
-  /* Brand */
-  --color-primary: #0454FC;
-  --color-primary-light: #3B7BFF;
-  --color-primary-dark: #0340C0;
-  --color-primary-ghost: rgba(4, 84, 252, 0.12);
+  --color-primary: #2563EB;
+  --color-primary-light: #3B82F6;
+  --color-primary-dark: #1D4ED8;
+  --color-primary-ghost: rgba(37, 99, 235, 0.10);
 
-  /* Accents */
-  --color-accent: #00E5A0;
-  --color-danger: #FF4444;
-  --color-warning: #F5A623;
-  --color-success: #00E5A0;
-  --color-info: #00E5A0;
+  --color-accent: #10B981;
+  --color-danger: #EF4444;
+  --color-warning: #F59E0B;
+  --color-success: #10B981;
+  --color-info: #10B981;
 
-  /* Backgrounds — Deep black layered surfaces */
-  --color-bg-base: #050505;
-  --color-bg-surface: #0F0F0F;
-  --color-bg-elevated: #1A1A1A;
-  --color-bg-overlay: #242424;
+  --color-bg-base: #09090B;
+  --color-bg-surface: #111113;
+  --color-bg-elevated: #18181B;
+  --color-bg-overlay: #27272A;
 
-  /* Borders */
-  --color-border: #2A2A2A;
-  --color-border-subtle: #1E1E1E;
+  --color-border: #27272A;
+  --color-border-subtle: #1C1C1F;
 
-  /* Text */
-  --color-text-primary: #F3F3F3;
-  --color-text-secondary: #888888;
-  --color-text-muted: #444444;
+  --color-text-primary: #FAFAFA;
+  --color-text-secondary: #A1A1AA;
+  --color-text-muted: #71717A;
 
-  /* Shadows */
-  --shadow-card: 0 1px 2px rgba(0,0,0,0.5);
-  --shadow-card-hover: 0 0 0 1px rgba(4,84,252,0.35), 0 8px 24px rgba(0,0,0,0.5);
-  --shadow-modal: 0 32px 64px rgba(0,0,0,0.9);
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-modal: 0 24px 48px rgba(0,0,0,0.7);
 }
 
-/* Light mode override */
 .light {
   color-scheme: light;
 
-  --color-primary: #0454FC;
-  --color-primary-light: #3B7BFF;
-  --color-primary-dark: #0340C0;
-  --color-primary-ghost: rgba(4, 84, 252, 0.08);
+  --color-primary: #2563EB;
+  --color-primary-light: #3B82F6;
+  --color-primary-dark: #1D4ED8;
+  --color-primary-ghost: rgba(37, 99, 235, 0.06);
 
-  --color-accent: #00C48C;
-  --color-danger: #FF3B30;
-  --color-warning: #FF9500;
-  --color-success: #00C48C;
-  --color-info: #00C48C;
+  --color-accent: #059669;
+  --color-danger: #DC2626;
+  --color-warning: #D97706;
+  --color-success: #059669;
+  --color-info: #059669;
 
-  --color-bg-base: #F5F5F7;
+  --color-bg-base: #F4F4F5;
   --color-bg-surface: #FFFFFF;
-  --color-bg-elevated: #FFFFFF;
-  --color-bg-overlay: rgba(255,255,255,0.80);
+  --color-bg-elevated: #FAFAFA;
+  --color-bg-overlay: rgba(255,255,255,0.85);
 
-  --color-border: #E5E5EA;
-  --color-border-subtle: #F2F2F7;
+  --color-border: #E4E4E7;
+  --color-border-subtle: #F4F4F5;
 
-  --color-text-primary: #1D1D1F;
-  --color-text-secondary: #6E6E73;
-  --color-text-muted: #AEAEB2;
+  --color-text-primary: #09090B;
+  --color-text-secondary: #52525B;
+  --color-text-muted: #A1A1AA;
 
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.08);
-  --shadow-card-hover: 0 4px 16px rgba(0,0,0,0.12);
-  --shadow-modal: 0 20px 40px rgba(0,0,0,0.15);
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-modal: 0 20px 40px rgba(0,0,0,0.12);
 }
 
-/* ─── Tailwind v4 Theme ───────────────────────────────────────────────────── */
 @theme {
   --color-primary: var(--color-primary);
   --color-primary-light: var(--color-primary-light);
@@ -97,129 +87,65 @@
   --color-text-secondary: var(--color-text-secondary);
   --color-text-muted: var(--color-text-muted);
 
-  /* Typography */
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-heading: "Manrope", sans-serif;
+  --font-heading: "Inter", -apple-system, sans-serif;
   --font-mono: "SF Mono", "JetBrains Mono", monospace;
 
-  --text-display: 1.875rem;
-  --text-heading: 1.5rem;
-  --text-subheading: 1.125rem;
-  --text-body: 0.875rem;
-  --text-small: 0.8125rem;
+  --text-display: 1.5rem;
+  --text-heading: 1.125rem;
+  --text-subheading: 0.9375rem;
+  --text-body: 0.8125rem;
+  --text-small: 0.75rem;
 
-  /* Radii */
-  --radius-card: 12px;
-  --radius-btn: 8px;
-  --radius-badge: 6px;
-  --radius-modal: 14px;
+  --radius-card: 10px;
+  --radius-btn: 6px;
+  --radius-badge: 5px;
+  --radius-modal: 12px;
 
-  /* Shadows */
   --shadow-card: var(--shadow-card);
   --shadow-card-hover: var(--shadow-card-hover);
   --shadow-modal: var(--shadow-modal);
 }
 
-/* ─── Base ─────────────────────────────────────────────────────────────────── */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html,
-body {
+html, body {
   height: 100%;
   background: var(--color-bg-base);
   color: var(--color-text-primary);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-size: 14px;
-  line-height: 1.5;
-  letter-spacing: -0.01em;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
-}
-
-/* ─── Glass & Card Effects ─────────────────────────────────────────────────── */
-.glass-card {
-  background: rgba(26, 26, 26, 0.80);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-top-color: rgba(255, 255, 255, 0.10);
-  border-left-color: rgba(255, 255, 255, 0.08);
-}
-
-.light .glass-card {
-  background: rgba(255, 255, 255, 0.90);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.card-hover {
-  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-}
-
-.card-hover:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-card-hover);
-}
-
-/* ─── Gradient Divider ─────────────────────────────────────────────────────── */
-.gradient-divider {
-  width: 100%;
-  height: 1px;
-  background: linear-gradient(to right, transparent, var(--color-border), transparent);
+  font-size: 13px;
+  line-height: 1.55;
+  letter-spacing: 0;
 }
 
 /* ─── Scrollbar ───────────────────────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 8px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
-}
-
-::selection {
-  background: var(--color-primary-ghost);
-  color: var(--color-primary);
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+::selection { background: var(--color-primary-ghost); color: var(--color-primary); }
 
 /* ─── Animations ──────────────────────────────────────────────────────────── */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.animate-fade-in { animation: fadeIn 0.2s ease-out; }
+.animate-fade-up { animation: fadeUp 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+
+/* ─── Glass card — intentionally subtle, no heavy blur ─────────────────── */
+.glass-card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+}
+.light .glass-card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
 }
 
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+.card-hover { transition: box-shadow 0.15s ease-out, transform 0.15s ease-out; }
+.card-hover:hover { transform: translateY(-1px); box-shadow: var(--shadow-card-hover); }
 
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
-}
-
-.animate-fade-in { animation: fadeIn 0.3s ease-out; }
-.animate-fade-up { animation: fadeUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
-.animate-shake { animation: shake 0.2s ease-in-out; }
+.gradient-divider { width: 100%; height: 1px; background: var(--color-border); }

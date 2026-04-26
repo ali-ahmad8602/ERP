@@ -228,7 +228,7 @@ export function CommandPalette({ open, onClose, cards = [], boards = [], departm
 
       {/* Palette */}
       <div
-        className="fixed top-[20%] left-1/2 -translate-x-1/2 w-[520px] bg-[#151515]/95 border border-white/5 rounded-[14px] z-[101] shadow-modal animate-fade-up overflow-hidden"
+        className="fixed top-[20%] left-1/2 -translate-x-1/2 w-[480px] bg-bg-surface border border-border rounded-[12px] z-[101] shadow-modal animate-fade-up overflow-hidden"
         onKeyDown={handleKeyDown}
       >
 

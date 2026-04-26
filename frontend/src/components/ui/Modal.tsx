@@ -22,12 +22,7 @@ export function Modal({ open, onClose, children, width = "460px", variant = "cen
 
   return (
     <>
-      {/* Backdrop */}
-      <div
-        onClick={onClose}
-        className="fixed inset-0 bg-[#050505]/40 backdrop-blur-md z-40 animate-fade-in"
-      />
-      {/* Container */}
+      <div onClick={onClose} className="fixed inset-0 bg-black/60 z-40 animate-fade-in" />
       <div
         className={cn(
           "fixed z-50",
@@ -38,8 +33,8 @@ export function Modal({ open, onClose, children, width = "460px", variant = "cen
       >
         <div
           className={cn(
-            "bg-[#151515]/95 border border-white/5 shadow-modal overflow-hidden",
-            variant === "center" && "rounded-[14px] max-h-[90vh] overflow-y-auto",
+            "bg-bg-surface border border-border shadow-modal overflow-hidden",
+            variant === "center" && "rounded-[12px] max-h-[90vh] overflow-y-auto",
             variant === "drawer-right" && "h-full border-l border-r-0 border-t-0 border-b-0",
           )}
         >

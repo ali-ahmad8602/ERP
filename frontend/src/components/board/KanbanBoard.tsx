@@ -147,7 +147,7 @@ function ColumnPanel({ column, cards, accent, isLocked, canEdit, onCardClick, is
           <span className="text-[13px] font-semibold text-text-primary tracking-tight">
             {column.name}
           </span>
-          <span className="min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-md bg-black/[0.04] dark:bg-white/[0.06] text-[11px] text-text-muted font-medium">
+          <span className="text-[11px] text-text-muted tabular-nums">
             {cards.length}
           </span>
         </div>
@@ -161,7 +161,7 @@ function ColumnPanel({ column, cards, accent, isLocked, canEdit, onCardClick, is
 
       {/* Cards container */}
       <SortableContext items={cards.map(c => c._id)} strategy={verticalListSortingStrategy}>
-        <div className="flex-1 flex flex-col gap-2 min-h-[40px] rounded-xl bg-black/[0.02] dark:bg-white/[0.02] p-2 overflow-y-auto">
+        <div className="flex-1 flex flex-col gap-1.5 min-h-[40px] rounded-lg bg-bg-elevated/30 p-1.5 overflow-y-auto">
           {cards.map(card => (
             <KanbanCard key={card._id} card={card} onClick={() => onCardClick(card)} />
           ))}
