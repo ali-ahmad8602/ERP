@@ -37,7 +37,7 @@ export default function DashboardPage() {
   // Skeleton
   if (loading && !overview) {
     return (
-      <main className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto">
         <div className="max-w-[1120px] mx-auto p-5">
           <div className="mb-5">
             <div className="h-4 w-24 bg-[#18181B] rounded animate-pulse mb-1" />
@@ -53,7 +53,7 @@ export default function DashboardPage() {
             <div className="col-span-4 h-[360px] bg-[#0F0F11] border border-[#ffffff10] rounded-lg animate-pulse" />
           </div>
         </div>
-      </main>
+      </div>
     );
   }
 
@@ -109,7 +109,7 @@ export default function DashboardPage() {
   });
 
   return (
-    <main className="flex-1 overflow-auto">
+    <div className="flex-1 overflow-auto">
       <div className="max-w-[1120px] mx-auto p-5">
         {/* Header */}
         <div className="mb-5">
@@ -149,6 +149,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

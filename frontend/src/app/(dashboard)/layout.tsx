@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { Topbar } from "@/components/layout/Topbar";
 import { AddDeptModal } from "@/components/dept/AddDeptModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useDeptStore } from "@/store/dept.store";
@@ -18,7 +19,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (user) fetchDepts();
   }, [user, fetchDepts]);
 
-  // Connect notification socket when authenticated
   useEffect(() => {
     if (user && token) {
       connectSocket(token);
@@ -27,15 +27,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [user, token, connectSocket, disconnectSocket]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-bg-base">
+    <div className="flex h-screen overflow-hidden bg-[#09090B]">
       <Sidebar
         departments={departments}
         userOrgRole={user?.orgRole ?? "user"}
         onAddDept={() => setAddDeptOpen(true)}
       />
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {children}
-      </main>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Topbar />
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
 
       {addDeptOpen && (
         <AddDeptModal onClose={() => setAddDeptOpen(false)} />
