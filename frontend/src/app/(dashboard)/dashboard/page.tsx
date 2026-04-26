@@ -5,110 +5,107 @@ import Link from "next/link";
 import { format, isToday as isDateToday, isYesterday } from "date-fns";
 import { useDashboardStore } from "@/store/dashboard.store";
 import { useAuth } from "@/hooks/useAuth";
-import { ClipboardList, AlertTriangle, Clock, Shield, ArrowUpRight } from "lucide-react";
-import { Card } from "@/components/ui/Card";
+import { AlertTriangle, CheckCircle2, Clock, ListTodo } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
-import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import type { DeptStats, ActivityEntry } from "@/types";
 
-const ACTION_LABELS: Record<string, string> = {
+const ACTIONS: Record<string, string> = {
   card_created: "created", card_edited: "edited", card_moved: "moved",
-  card_archived: "archived", comment_added: "commented on", card_approved: "approved",
-  card_rejected: "rejected", board_created: "created board", board_updated: "updated board",
+  card_archived: "archived", comment_added: "commented on",
+  card_approved: "approved", card_rejected: "rejected",
+  board_created: "created board", board_updated: "updated board",
   member_added: "added member to", member_removed: "removed member from",
 };
 
-function timeAgo(dateStr: string) {
-  const mins = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
-  if (mins < 1) return "now";
-  if (mins < 60) return `${mins}m`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h`;
-  const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days}d`;
-  return format(new Date(dateStr), "MMM d");
+function ago(d: string) {
+  const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000);
+  if (m < 1) return "now"; if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60); if (h < 24) return `${h}h`;
+  const dy = Math.floor(h / 24); if (dy < 7) return `${dy}d`;
+  return format(new Date(d), "MMM d");
 }
 
-function dateGroup(dateStr: string) {
-  const d = new Date(dateStr);
-  if (isDateToday(d)) return "Today";
-  if (isYesterday(d)) return "Yesterday";
-  return format(d, "MMM d, yyyy");
-}
-
-function deptStatus(s: DeptStats) {
-  if (s.overdueCount > s.totalCards * 0.2) return { label: "At risk", color: "text-danger" };
-  if (s.inProgressCount > s.doneCount) return { label: "Active", color: "text-primary" };
-  if (s.doneCount > s.totalCards * 0.7) return { label: "On track", color: "text-accent" };
-  return { label: "Planning", color: "text-text-muted" };
+function group(d: string) {
+  const dt = new Date(d);
+  if (isDateToday(dt)) return "Today";
+  if (isYesterday(dt)) return "Yesterday";
+  return format(dt, "MMM d");
 }
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { overview, deptStats, activities, loading, fetchAll } = useDashboardStore();
-
   useEffect(() => { if (user) fetchAll(); }, [user, fetchAll]);
 
   if (loading && !overview) {
     return (
-      <div className="h-full overflow-auto bg-bg-base">
-        <div className="max-w-[1280px] mx-auto px-8 py-8">
-          <div className="h-6 w-48 bg-bg-elevated animate-pulse rounded mb-8" />
-          <div className="grid grid-cols-4 gap-4 mb-8">{[1,2,3,4].map(i => <div key={i} className="h-16 rounded-[10px] bg-bg-elevated animate-pulse" />)}</div>
-          <div className="grid grid-cols-12 gap-6">
-            <div className="col-span-8 grid grid-cols-2 gap-4">{[1,2,3,4].map(i => <div key={i} className="h-24 rounded-[10px] bg-bg-elevated animate-pulse" />)}</div>
-            <div className="col-span-4 h-80 rounded-[10px] bg-bg-elevated animate-pulse" />
+      <div className="h-full overflow-auto">
+        <div className="max-w-[1280px] mx-auto px-6 py-6">
+          <div className="h-5 w-40 bg-bg-elevated rounded animate-pulse mb-6" />
+          <div className="grid grid-cols-4 gap-3 mb-6">
+            {[1,2,3,4].map(i => <div key={i} className="h-[72px] rounded-lg bg-bg-elevated animate-pulse" />)}
+          </div>
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-8 grid grid-cols-2 gap-3">
+              {[1,2,3,4].map(i => <div key={i} className="h-[72px] rounded-lg bg-bg-elevated animate-pulse" />)}
+            </div>
+            <div className="col-span-4 h-[360px] rounded-lg bg-bg-elevated animate-pulse" />
           </div>
         </div>
       </div>
     );
   }
 
-  const firstName = user?.name?.split(" ")[0] ?? "there";
+  const name = user?.name?.split(" ")[0] ?? "there";
+  const hr = new Date().getHours();
+  const greeting = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
 
   return (
-    <div className="h-full overflow-auto bg-bg-base">
-      <div className="max-w-[1280px] mx-auto px-8 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+    <div className="h-full overflow-auto">
+      <div className="max-w-[1280px] mx-auto px-6 py-6">
+
+        {/* ── Row 1: Header ── */}
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-lg font-semibold text-text-primary">{new Date().getHours() < 12 ? "Good morning" : new Date().getHours() < 17 ? "Good afternoon" : "Good evening"}, {firstName}</h1>
-            <p className="text-[12px] text-text-muted mt-1">{format(new Date(), "EEEE, MMMM d, yyyy")}</p>
+            <h1 className="text-[15px] font-semibold text-text-primary leading-none">{greeting}, {name}</h1>
+            <p className="text-[11px] text-text-muted mt-1">{format(new Date(), "EEEE, MMMM d")}</p>
           </div>
-          <Button variant="secondary" size="sm"><ArrowUpRight size={13} /> Export</Button>
         </div>
 
-        {/* KPIs — fixed height, centered content */}
+        {/* ── Row 2: KPIs ── */}
         {overview && (
-          <div className="grid grid-cols-4 gap-4 mb-8">
-            <KpiCard icon={<ClipboardList size={15} />} label="Total Tasks" value={overview.totalCards} sub={`${overview.createdThisWeek} this week`} />
-            <KpiCard icon={<AlertTriangle size={15} />} label="Overdue" value={overview.overdueCount} sub={overview.overdueCount > 0 ? "Needs attention" : "All clear"} variant={overview.overdueCount > 0 ? "danger" : undefined} />
-            <KpiCard icon={<Clock size={15} />} label="Approvals" value={overview.pendingApprovals} sub={`${overview.complianceItems} compliance`} />
-            <KpiCard icon={<Shield size={15} />} label="Done" value={overview.doneCount} sub={overview.totalCards > 0 ? `${Math.round((overview.doneCount / overview.totalCards) * 100)}% complete` : "0%"} variant="accent" />
+          <div className="grid grid-cols-4 gap-3 mb-6">
+            <Kpi label="Tasks" value={overview.totalCards} sub={`${overview.createdThisWeek} this week`} icon={<ListTodo size={14} />} />
+            <Kpi label="Overdue" value={overview.overdueCount} sub={overview.overdueCount > 0 ? "Needs attention" : "Clear"} icon={<AlertTriangle size={14} />} color={overview.overdueCount > 0 ? "text-danger" : undefined} />
+            <Kpi label="Approvals" value={overview.pendingApprovals} sub={`${overview.complianceItems} compliance`} icon={<Clock size={14} />} />
+            <Kpi label="Done" value={overview.doneCount} sub={overview.totalCards > 0 ? `${Math.round((overview.doneCount / overview.totalCards) * 100)}%` : "—"} icon={<CheckCircle2 size={14} />} color="text-accent" />
           </div>
         )}
 
-        {/* Main — 12-col grid: 8 left + 4 right */}
-        <div className="grid grid-cols-12 gap-6">
-          {/* Departments — col 1-8 */}
+        {/* ── Row 3: Main grid (8 + 4) ── */}
+        <div className="grid grid-cols-12 gap-4">
+
+          {/* Left: Departments */}
           <div className="col-span-8">
-            <h2 className="text-[13px] font-semibold text-text-primary mb-4">Departments</h2>
+            <div className="text-[11px] font-medium text-text-muted uppercase tracking-wider mb-3">Departments</div>
             {deptStats.length === 0 && !loading && (
-              <Card className="py-8 text-center"><p className="text-[13px] text-text-muted">No departments yet</p></Card>
+              <div className="rounded-lg border border-border bg-bg-surface/70 p-4 text-[12px] text-text-muted text-center">No departments yet</div>
             )}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               {deptStats.map(ds => <DeptCard key={ds.department._id} stats={ds} />)}
             </div>
           </div>
 
-          {/* Activity — col 9-12 */}
+          {/* Right: Activity */}
           <div className="col-span-4">
-            <h2 className="text-[13px] font-semibold text-text-primary mb-4">Activity</h2>
-            <div className="bg-bg-surface border border-border rounded-[10px] overflow-hidden">
-              <div className="max-h-[520px] overflow-auto">
-                {activities.length === 0 && <div className="py-8 text-center text-[12px] text-text-muted">No activity yet</div>}
-                <ActivityFeed activities={activities} />
+            <div className="text-[11px] font-medium text-text-muted uppercase tracking-wider mb-3">Activity</div>
+            <div className="rounded-lg border border-border bg-bg-surface/70 backdrop-blur-md overflow-hidden">
+              <div className="max-h-[440px] overflow-auto">
+                {activities.length === 0 && (
+                  <div className="p-4 text-center text-[12px] text-text-muted">No activity yet</div>
+                )}
+                <Feed items={activities} />
               </div>
             </div>
           </div>
@@ -118,76 +115,76 @@ export default function DashboardPage() {
   );
 }
 
-/* ── KPI Card: fixed height, vertically centered ── */
-function KpiCard({ icon, label, value, sub, variant }: {
-  icon: React.ReactNode; label: string; value: number | string; sub?: string; variant?: "danger" | "accent";
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function Kpi({ label, value, sub, icon, color }: {
+  label: string; value: number; sub: string; icon: React.ReactNode; color?: string;
 }) {
   return (
-    <div className="h-[88px] bg-bg-surface border border-border rounded-[10px] shadow-card px-4 flex items-center gap-3">
-      <div className="w-9 h-9 rounded-lg bg-bg-elevated flex items-center justify-center shrink-0 text-text-muted">{icon}</div>
-      <div>
-        <div className="flex items-baseline gap-2">
-          <span className={cn("text-xl font-semibold tabular-nums leading-none", variant === "danger" ? "text-danger" : variant === "accent" ? "text-accent" : "text-text-primary")}>{value}</span>
-          <span className="text-[11px] font-medium text-text-muted uppercase tracking-wider">{label}</span>
+    <div className="h-[72px] rounded-lg border border-border bg-bg-surface/70 backdrop-blur-md px-4 flex items-center gap-3">
+      <div className="w-8 h-8 rounded-md bg-bg-elevated flex items-center justify-center text-text-muted shrink-0">{icon}</div>
+      <div className="min-w-0">
+        <div className="flex items-baseline gap-1.5">
+          <span className={cn("text-[20px] font-semibold tabular-nums leading-none", color || "text-text-primary")}>{value}</span>
+          <span className="text-[10px] font-medium text-text-muted uppercase tracking-wider">{label}</span>
         </div>
-        {sub && <p className="text-[10px] text-text-muted mt-1">{sub}</p>}
+        <p className="text-[10px] text-text-muted mt-0.5 truncate">{sub}</p>
       </div>
     </div>
   );
 }
 
-/* ── Dept Card ── */
 function DeptCard({ stats }: { stats: DeptStats }) {
-  const { department: d, totalCards, doneCount, memberCount } = stats;
+  const { department: d, totalCards, doneCount, memberCount, overdueCount, inProgressCount } = stats;
   const pct = totalCards > 0 ? Math.round((doneCount / totalCards) * 100) : 0;
-  const status = deptStatus(stats);
+  const status = overdueCount > totalCards * 0.2
+    ? { t: "At risk", c: "text-danger" }
+    : inProgressCount > doneCount
+      ? { t: "Active", c: "text-primary" }
+      : doneCount > totalCards * 0.7
+        ? { t: "On track", c: "text-accent" }
+        : { t: "Planning", c: "text-text-muted" };
+
   return (
-    <Link href={`/dept/${d.slug}`} className="no-underline">
-      <Card hover className="group">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-[14px]">{d.icon}</span>
-          <div className="flex-1 min-w-0">
-            <div className="text-[13px] font-medium text-text-primary truncate">{d.name}</div>
-            <div className="text-[11px] text-text-muted">{memberCount} members</div>
-          </div>
-          <span className={cn("text-[10px] font-medium", status.color)}>{status.label}</span>
+    <Link href={`/dept/${d.slug}`} className="no-underline group">
+      <div className="rounded-lg border border-border bg-bg-surface/70 backdrop-blur-md p-3 transition-colors duration-150 hover:border-text-muted/40">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-[13px]">{d.icon}</span>
+          <span className="text-[13px] font-medium text-text-primary truncate flex-1">{d.name}</span>
+          <span className={cn("text-[10px] font-medium shrink-0", status.c)}>{status.t}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex-1 h-1 bg-bg-elevated rounded-full overflow-hidden">
-            <div className="h-full rounded-full transition-[width] duration-500" style={{ width: `${pct}%`, backgroundColor: d.color || "var(--color-primary)" }} />
+            <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: d.color || "var(--color-primary)" }} />
           </div>
-          <span className="text-[11px] font-medium text-text-secondary tabular-nums">{pct}%</span>
+          <span className="text-[10px] text-text-muted tabular-nums w-7 text-right">{pct}%</span>
         </div>
-      </Card>
+        <p className="text-[10px] text-text-muted mt-1.5">{memberCount} members &middot; {totalCards} tasks</p>
+      </div>
     </Link>
   );
 }
 
-/* ── Activity Feed ── */
-function ActivityFeed({ activities }: { activities: ActivityEntry[] }) {
-  let lastGroup = "";
+function Feed({ items }: { items: ActivityEntry[] }) {
+  let prev = "";
   return (
     <div>
-      {activities.map(a => {
-        const group = dateGroup(a.createdAt);
-        const showHeader = group !== lastGroup;
-        lastGroup = group;
+      {items.map(a => {
+        const g = group(a.createdAt);
+        const hdr = g !== prev;
+        prev = g;
         return (
           <div key={a._id}>
-            {showHeader && <div className="px-4 py-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider bg-bg-elevated/50 border-y border-border">{group}</div>}
-            <div className="flex gap-3 px-4 py-3 border-b border-border-subtle hover:bg-bg-elevated/20 transition-colors duration-100">
-              <Avatar name={a.user.name || "?"} size="sm" className="mt-0.5 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-[12px] leading-[1.6]">
+            {hdr && <div className="px-3 py-1.5 text-[10px] font-medium text-text-muted uppercase tracking-wider bg-bg-elevated/60 border-b border-border">{g}</div>}
+            <div className="flex gap-2 px-3 py-2 border-b border-border-subtle">
+              <Avatar name={a.user.name || "?"} size="xs" className="mt-0.5 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] leading-[1.5]">
                   <span className="font-medium text-text-primary">{a.user.name}</span>{" "}
-                  <span className="text-text-muted">{ACTION_LABELS[a.action] || a.action}</span>{" "}
-                  <span className="font-medium text-primary">{a.entityTitle}</span>
-                  {a.detail && <span className="text-text-muted"> — {a.detail}</span>}
+                  <span className="text-text-muted">{ACTIONS[a.action] || a.action}</span>{" "}
+                  <span className="font-medium text-text-secondary">{a.entityTitle}</span>
                 </p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[10px] text-text-muted">{timeAgo(a.createdAt)}</span>
-                  {a.department && <span className="text-[10px] text-text-muted">{a.department.name}</span>}
-                </div>
+                <span className="text-[10px] text-text-muted">{ago(a.createdAt)}</span>
               </div>
             </div>
           </div>
