@@ -159,7 +159,7 @@ export default function ReportsPage() {
 
   if (loading && !overview) {
     return (
-      <div className="h-full overflow-auto bg-bg-base/30 p-6 lg:p-8">
+      <div className="h-full overflow-auto bg-bg-base p-8 animate-fade-in">
         <div className="mb-6">
           <div className="h-7 w-48 bg-bg-elevated animate-pulse rounded-lg mb-2" />
           <div className="h-4 w-72 bg-bg-elevated animate-pulse rounded-md" />
@@ -176,7 +176,7 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="h-full overflow-auto bg-bg-base/30 p-6 lg:p-8">
+    <div className="h-full overflow-auto bg-bg-base p-8 animate-fade-in">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">

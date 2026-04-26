@@ -73,7 +73,7 @@ export default function InviteAcceptPage() {
   // Loading
   if (validating) {
     return (
-      <div className="min-h-screen bg-bg-surface flex items-center justify-center">
+      <div className="min-h-screen bg-bg-base flex items-center justify-center">
         <Loader2 size={24} className="animate-spin text-primary" />
       </div>
     );
@@ -82,7 +82,7 @@ export default function InviteAcceptPage() {
   // Invalid
   if (!valid) {
     return (
-      <div className="min-h-screen bg-bg-surface flex items-center justify-center p-6 sm:p-10">
+      <div className="min-h-screen bg-bg-base flex items-center justify-center p-6 sm:p-10">
         <div className="w-full max-w-[420px] text-center">
           {/* Logo */}
           <div className="flex items-center justify-center gap-2.5 mb-10">
@@ -111,7 +111,7 @@ export default function InviteAcceptPage() {
 
   // Valid — registration form
   return (
-    <div className="min-h-screen bg-bg-surface flex items-center justify-center p-6 sm:p-10">
+    <div className="min-h-screen bg-bg-base flex items-center justify-center p-6 sm:p-10">
       <div className="w-full max-w-[420px]">
         {/* Logo */}
         <div className="flex items-center gap-2.5 mb-10">

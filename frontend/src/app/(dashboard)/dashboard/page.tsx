@@ -99,7 +99,7 @@ export default function DashboardPage() {
   const today = new Date();
 
   return (
-    <div className="h-full overflow-auto bg-bg-base/30 p-6 lg:p-8">
+    <div className="h-full overflow-auto bg-bg-base p-8 animate-fade-in">
       {/* ── Header Row ──────────────────────────────────────────────────── */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
@@ -225,7 +225,7 @@ export default function DashboardPage() {
       {/* ── Bottom Section ──────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quarterly Projection */}
-        <div className="rounded-2xl bg-bg-elevated dark:bg-[#171B24] p-6 shadow-card">
+        <div className="rounded-[12px] glass-card p-6 shadow-card">
           <h3 className="text-[15px] font-bold text-text-primary tracking-tight mb-1.5">
             Quarterly Projection
           </h3>

@@ -191,7 +191,7 @@ export function CardDetailDrawer({ card, board, onClose, canEdit, canComment = t
                   rows={4}
                   disabled={!canEdit}
                   className={cn(
-                    "w-full bg-black/5 dark:bg-white/10 border border-transparent rounded-xl px-4 py-3 text-[14px] text-text-primary placeholder:text-text-muted resize-none outline-none transition-all duration-200 focus:bg-bg-surface focus:border-primary focus:ring-[3px] focus:ring-primary/20",
+                    "w-full bg-bg-elevated border-b-2 border-transparent rounded-[8px] px-4 py-3 text-sm text-text-primary placeholder:text-[#555] resize-none outline-none transition-all duration-200 focus:border-primary",
                     !canEdit && "opacity-60 cursor-not-allowed"
                   )}
                 />

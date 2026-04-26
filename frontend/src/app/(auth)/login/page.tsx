@@ -31,7 +31,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* ── Left Panel ── */}
-      <div className="hidden lg:flex flex-1 relative flex-col justify-between p-12 xl:p-16 bg-gradient-to-br from-[#1D2939] via-[#2B3B4E] to-[#344054] overflow-hidden">
+      <div className="hidden lg:flex flex-1 relative flex-col justify-between p-12 xl:p-16 bg-gradient-to-br from-[#050505] via-[#0A0E18] to-[#0F1525] overflow-hidden">
         {/* Subtle decorative circles */}
         <div className="absolute top-[-200px] right-[-100px] w-[500px] h-[500px] rounded-full bg-white/[0.03]" />
         <div className="absolute bottom-[-150px] left-[-80px] w-[400px] h-[400px] rounded-full bg-white/[0.04]" />
@@ -66,7 +66,7 @@ export default function LoginPage() {
             ].map((bg, i) => (
               <div
                 key={i}
-                className={`w-8 h-8 rounded-full ${bg} ring-2 ring-[#1D2939] flex items-center justify-center text-[11px] font-bold text-white`}
+                className={`w-8 h-8 rounded-full ${bg} ring-2 ring-[#050505] flex items-center justify-center text-[11px] font-bold text-white`}
               >
                 {String.fromCharCode(65 + i)}
               </div>
@@ -79,7 +79,7 @@ export default function LoginPage() {
       </div>
 
       {/* ── Right Panel ── */}
-      <div className="w-full lg:w-[540px] xl:w-[580px] shrink-0 flex items-center justify-center p-6 sm:p-10 bg-bg-surface">
+      <div className="w-full lg:w-[540px] xl:w-[580px] shrink-0 flex items-center justify-center p-6 sm:p-10 bg-bg-base">
         <div className="w-full max-w-[400px]">
           {/* Mobile logo */}
           <div className="flex lg:hidden items-center gap-2.5 mb-10">

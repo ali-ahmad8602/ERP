@@ -9,14 +9,14 @@ interface AvatarProps {
 
 const sizeClasses = {
   xs: "w-5 h-5 text-[8px]",
-  sm: "w-[22px] h-[22px] text-[9px]",
-  md: "w-7 h-7 text-[11px]",
-  lg: "w-9 h-9 text-[13px]",
+  sm: "w-6 h-6 text-[10px]",
+  md: "w-8 h-8 text-xs",
+  lg: "w-10 h-10 text-sm",
 };
 
 function getAvatarColor(name: string) {
   const hue = (name.charCodeAt(0) * 37) % 360;
-  return `hsl(${hue}, 50%, 35%)`;
+  return `hsl(${hue}, 45%, 40%)`;
 }
 
 export function Avatar({ name, size = "sm", className }: AvatarProps) {
@@ -24,7 +24,7 @@ export function Avatar({ name, size = "sm", className }: AvatarProps) {
   return (
     <div
       className={cn(
-        "rounded-full shrink-0 flex items-center justify-center font-bold text-white",
+        "rounded-full shrink-0 flex items-center justify-center font-bold text-white border border-white/10",
         sizeClasses[size],
         className
       )}
@@ -52,14 +52,14 @@ export function AvatarGroup({ users, max = 3, size = "xs" }: AvatarGroupProps) {
           key={u._id}
           name={u.name}
           size={size}
-          className={cn("border-2 border-bg-surface", i > 0 && "-ml-1.5")}
+          className={cn("border-2 border-bg-base", i > 0 && "-ml-1.5")}
         />
       ))}
       {overflow > 0 && (
         <div
           className={cn(
             "rounded-full shrink-0 flex items-center justify-center",
-            "bg-bg-elevated border-2 border-bg-surface text-text-muted font-semibold -ml-1.5",
+            "bg-bg-elevated border-2 border-bg-base text-text-muted font-semibold -ml-1.5",
             sizeClasses[size]
           )}
         >

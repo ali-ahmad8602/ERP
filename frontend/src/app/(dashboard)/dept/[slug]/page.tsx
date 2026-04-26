@@ -123,7 +123,7 @@ export default function DeptBoardPage() {
         <div className="h-8 w-64 bg-bg-elevated animate-pulse rounded-lg mb-3" />
         <div className="h-10 w-full bg-bg-elevated animate-pulse rounded-lg mb-4" />
         <div className="flex-1 flex gap-3">
-          {[1,2,3,4].map(i => <div key={i} className="w-[272px] h-full bg-bg-elevated/50 animate-pulse rounded-xl" />)}
+          {[1,2,3,4].map(i => <div key={i} className="w-[320px] h-full bg-bg-elevated/50 animate-pulse rounded-xl" />)}
         </div>
       </div>
     );
@@ -257,7 +257,7 @@ export default function DeptBoardPage() {
       {loadingCards && !cards.length && (
         <div className="flex-1 flex gap-3 px-5 py-3">
           {[1,2,3,4].map(i => (
-            <div key={i} className="w-[272px] shrink-0 flex flex-col gap-2">
+            <div key={i} className="w-[320px] shrink-0 flex flex-col gap-2">
               <div className="h-6 w-24 bg-bg-elevated animate-pulse rounded-md" />
               <div className="flex-1 rounded-xl bg-bg-elevated/30 animate-pulse min-h-[200px]" />
             </div>
@@ -310,9 +310,9 @@ export default function DeptBoardPage() {
         <>
           <div
             onClick={() => setAddBoardOpen(false)}
-            className="fixed inset-0 bg-black/40 dark:bg-black/70 z-[100] backdrop-blur-sm animate-[fadeIn_0.12s_ease-out]"
+            className="fixed inset-0 bg-[#050505]/40 backdrop-blur-md z-[100] animate-fade-in"
           />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] bg-bg-surface border border-border rounded-2xl z-[101] p-6 shadow-modal animate-[fadeUp_0.18s_cubic-bezier(0.16,1,0.3,1)]">
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] bg-[#151515]/95 border border-white/5 rounded-[14px] z-[101] p-6 shadow-modal animate-fade-up">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-[17px] font-semibold text-text-primary tracking-tight">New Board</h2>
               <button

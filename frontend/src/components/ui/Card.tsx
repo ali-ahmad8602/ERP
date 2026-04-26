@@ -4,8 +4,8 @@ export function Card({ children, className, hover, padding = "md" }: { children:
   return (
     <div
       className={cn(
-        "bg-bg-surface rounded-2xl shadow-card ring-1 ring-black/5 dark:ring-white/[0.06]",
-        padding === "sm" && "p-3.5",
+        "glass-card rounded-[12px] shadow-card",
+        padding === "sm" && "p-3",
         padding === "md" && "p-5",
         padding === "lg" && "p-6",
         padding === "none" && "p-0",

@@ -1,81 +1,76 @@
 @import "tailwindcss";
 
-/* ─── Enterprise Theme Variables ───────────────────────────────────────────────
-   Light mode (default) on :root, dark "dim" theme on .dark class.
+/* ─── InvoiceMate ERP — "Digital Obsidian" Design System ───────────────────────
+   Dark-first enterprise design. Light mode as secondary.
 ───────────────────────────────────────────────────────────────────────────── */
 
 :root {
-  color-scheme: light;
-
-  /* Brand */
-  --color-primary: #0071E3;
-  --color-primary-light: #147CE5;
-  --color-primary-dark: #005BB5;
-  --color-primary-ghost: rgba(0, 113, 227, 0.08);
-
-  /* Accents */
-  --color-accent: #5E5CE6;
-  --color-danger: #FF3B30;
-  --color-warning: #FF9500;
-  --color-success: #34C759;
-  --color-info: #34C759; /* alias for backwards compat */
-
-  /* Backgrounds */
-  --color-bg-base: #F5F5F7;
-  --color-bg-surface: #FFFFFF;
-  --color-bg-elevated: #FFFFFF;
-  --color-bg-overlay: rgba(255, 255, 255, 0.72);
-
-  /* Borders */
-  --color-border: #E5E5EA;
-  --color-border-subtle: #F2F2F7;
-
-  /* Text */
-  --color-text-primary: #1D1D1F;
-  --color-text-secondary: #86868B;
-  --color-text-muted: #98989D;
-
-  /* Shadows */
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0,0,0,0.04);
-  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.10), 0 0 0 1px rgba(0,0,0,0.04);
-  --shadow-modal: 0 16px 40px rgba(0, 0, 0, 0.14);
-}
-
-.dark {
   color-scheme: dark;
 
   /* Brand */
-  --color-primary: #0A84FF;
-  --color-primary-light: #409CFF;
-  --color-primary-dark: #0062CC;
-  --color-primary-ghost: rgba(10, 132, 255, 0.12);
+  --color-primary: #0454FC;
+  --color-primary-light: #3B7BFF;
+  --color-primary-dark: #0340C0;
+  --color-primary-ghost: rgba(4, 84, 252, 0.12);
 
   /* Accents */
-  --color-accent: #5E5CE6;
-  --color-danger: #FF453A;
-  --color-warning: #FF9F0A;
-  --color-success: #30D158;
-  --color-info: #30D158;
+  --color-accent: #00E5A0;
+  --color-danger: #FF4444;
+  --color-warning: #F5A623;
+  --color-success: #00E5A0;
+  --color-info: #00E5A0;
 
-  /* Backgrounds — Deep charcoal/navy ("Dim" palette) */
-  --color-bg-base: #0F1117;
-  --color-bg-surface: #171B24;
-  --color-bg-elevated: #1E2330;
-  --color-bg-overlay: rgba(23, 27, 36, 0.80);
+  /* Backgrounds — Deep black layered surfaces */
+  --color-bg-base: #050505;
+  --color-bg-surface: #0F0F0F;
+  --color-bg-elevated: #1A1A1A;
+  --color-bg-overlay: #242424;
 
-  /* Borders — warmer, visible */
-  --color-border: #2A2F3D;
-  --color-border-subtle: #1E2330;
+  /* Borders */
+  --color-border: #2A2A2A;
+  --color-border-subtle: #1E1E1E;
 
-  /* Text — warmer whites */
-  --color-text-primary: #E8EAED;
-  --color-text-secondary: #8B919E;
-  --color-text-muted: #535B6B;
+  /* Text */
+  --color-text-primary: #F3F3F3;
+  --color-text-secondary: #888888;
+  --color-text-muted: #444444;
 
   /* Shadows */
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.24), 0 0 0 1px rgba(255,255,255,0.03);
-  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.32), 0 0 0 1px rgba(255,255,255,0.05);
-  --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.06);
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.5);
+  --shadow-card-hover: 0 0 0 1px rgba(4,84,252,0.35), 0 8px 24px rgba(0,0,0,0.5);
+  --shadow-modal: 0 32px 64px rgba(0,0,0,0.9);
+}
+
+/* Light mode override */
+.light {
+  color-scheme: light;
+
+  --color-primary: #0454FC;
+  --color-primary-light: #3B7BFF;
+  --color-primary-dark: #0340C0;
+  --color-primary-ghost: rgba(4, 84, 252, 0.08);
+
+  --color-accent: #00C48C;
+  --color-danger: #FF3B30;
+  --color-warning: #FF9500;
+  --color-success: #00C48C;
+  --color-info: #00C48C;
+
+  --color-bg-base: #F5F5F7;
+  --color-bg-surface: #FFFFFF;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-overlay: rgba(255,255,255,0.80);
+
+  --color-border: #E5E5EA;
+  --color-border-subtle: #F2F2F7;
+
+  --color-text-primary: #1D1D1F;
+  --color-text-secondary: #6E6E73;
+  --color-text-muted: #AEAEB2;
+
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-card-hover: 0 4px 16px rgba(0,0,0,0.12);
+  --shadow-modal: 0 20px 40px rgba(0,0,0,0.15);
 }
 
 /* ─── Tailwind v4 Theme ───────────────────────────────────────────────────── */
@@ -104,18 +99,20 @@
 
   /* Typography */
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-heading: "Manrope", sans-serif;
   --font-mono: "SF Mono", "JetBrains Mono", monospace;
 
-  --text-display: 1.75rem;
-  --text-heading: 1.25rem;
-  --text-subheading: 0.9375rem;
-  --text-body: 0.8125rem;
-  --text-small: 0.75rem;
+  --text-display: 1.875rem;
+  --text-heading: 1.5rem;
+  --text-subheading: 1.125rem;
+  --text-body: 0.875rem;
+  --text-small: 0.8125rem;
 
   /* Radii */
-  --radius-card: 16px;
+  --radius-card: 12px;
   --radius-btn: 8px;
   --radius-badge: 6px;
+  --radius-modal: 14px;
 
   /* Shadows */
   --shadow-card: var(--shadow-card);
@@ -145,21 +142,41 @@ body {
   letter-spacing: -0.01em;
 }
 
-/* ─── Effects & Utilities ──────────────────────────────────────────────────── */
-.glass-panel {
-  background: var(--color-bg-overlay) !important;
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid var(--color-border);
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+/* ─── Glass & Card Effects ─────────────────────────────────────────────────── */
+.glass-card {
+  background: rgba(26, 26, 26, 0.80);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-top-color: rgba(255, 255, 255, 0.10);
+  border-left-color: rgba(255, 255, 255, 0.08);
+}
+
+.light .glass-card {
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .card-hover {
-  transition: box-shadow 0.15s ease-out, transform 0.15s ease-out;
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
 }
 
 .card-hover:hover {
-  box-shadow: var(--shadow-card-hover);
   transform: translateY(-1px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* ─── Gradient Divider ─────────────────────────────────────────────────────── */
+.gradient-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--color-border), transparent);
 }
 
 /* ─── Scrollbar ───────────────────────────────────────────────────────────── */
@@ -187,9 +204,22 @@ body {
 }
 
 /* ─── Animations ──────────────────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-4px); }
   75% { transform: translateX(4px); }
 }
+
+.animate-fade-in { animation: fadeIn 0.3s ease-out; }
+.animate-fade-up { animation: fadeUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
 .animate-shake { animation: shake 0.2s ease-in-out; }

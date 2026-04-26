@@ -76,10 +76,10 @@ export function KanbanCard({ card, onClick, isDragging }: KanbanCardProps) {
         transition: transition ?? undefined,
       }}
       className={cn(
-        "relative rounded-xl bg-bg-surface ring-1 ring-black/[0.04] dark:ring-white/[0.06]",
-        "p-2.5 cursor-grab select-none group/card",
-        "shadow-card transition-shadow duration-150",
-        "hover:shadow-card-hover",
+        "relative rounded-[12px] glass-card",
+        "p-3 cursor-grab select-none group/card",
+        "shadow-card transition-all duration-200",
+        "hover:-translate-y-[1px] hover:shadow-card-hover",
         (isSortable || isDragging) ? "opacity-50 scale-[1.01]" : "opacity-100"
       )}
       {...attributes}

@@ -46,10 +46,9 @@ function ToastItem({ item, onRemove }: { item: ToastItem; onRemove: () => void }
 
   return (
     <div className={cn(
-      "flex items-center gap-3 px-4 py-3 rounded-xl shadow-card-hover border animate-[fadeUp_0.2s_cubic-bezier(0.16,1,0.3,1)]",
-      "bg-bg-surface",
+      "flex items-center gap-3 px-4 py-3 rounded-[12px] shadow-card-hover border animate-fade-up glass-card",
       item.type === "error" && "border-danger/20",
-      item.type === "success" && "border-success/20",
+      item.type === "success" && "border-accent/20",
       item.type === "info" && "border-border",
     )}>
       {icons[item.type]}

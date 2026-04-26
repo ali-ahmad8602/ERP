@@ -25,21 +25,21 @@ export function Modal({ open, onClose, children, width = "460px", variant = "cen
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-black/65 backdrop-blur-sm z-40 animate-fade-in"
+        className="fixed inset-0 bg-[#050505]/40 backdrop-blur-md z-40 animate-fade-in"
       />
       {/* Container */}
       <div
         className={cn(
           "fixed z-50",
           variant === "center" && "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-fade-up",
-          variant === "drawer-right" && "right-0 top-0 h-full animate-slide-in-right",
+          variant === "drawer-right" && "right-0 top-0 h-full animate-fade-in",
         )}
         style={{ width }}
       >
         <div
           className={cn(
-            "bg-bg-surface border border-border shadow-modal overflow-hidden",
-            variant === "center" && "rounded-xl max-h-[85vh] overflow-y-auto",
+            "bg-[#151515]/95 border border-white/5 shadow-modal overflow-hidden",
+            variant === "center" && "rounded-[14px] max-h-[90vh] overflow-y-auto",
             variant === "drawer-right" && "h-full border-l border-r-0 border-t-0 border-b-0",
           )}
         >

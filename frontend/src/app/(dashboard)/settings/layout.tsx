@@ -19,7 +19,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   return (
     <div className="flex flex-col h-full bg-bg-base">
       {/* Header */}
-      <div className="px-6 pt-4 pb-0 border-b border-border bg-bg-surface shrink-0">
+      <div className="px-6 pt-4 pb-0 border-b border-border-subtle bg-bg-surface shrink-0">
         <div className="flex items-center gap-2 mb-3">
           <Settings size={16} className="text-primary" />
           <h1 className="text-[16px] font-bold text-text-primary tracking-tight">Settings</h1>
