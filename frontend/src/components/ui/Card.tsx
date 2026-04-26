@@ -1,15 +1,26 @@
 import { cn } from "@/lib/utils";
 
-export function Card({ children, className, hover, padding = "md" }: { children: React.ReactNode, className?: string, hover?: boolean, padding?: "sm" | "md" | "lg" | "none" }) {
+interface CardProps {
+  children: React.ReactNode;
+  className?: string;
+  hover?: boolean;
+  glass?: boolean;
+  padding?: "none" | "sm" | "md" | "lg";
+}
+
+export function Card({ children, className, hover, glass, padding = "md" }: CardProps) {
   return (
     <div
       className={cn(
-        "bg-bg-surface border border-border rounded-[10px] shadow-card",
-        padding === "sm" && "p-3.5",
-        padding === "md" && "p-4",
-        padding === "lg" && "p-5",
+        "rounded-[8px] shadow-xs",
+        glass
+          ? "bg-bg-glass backdrop-blur-xl border border-white/[0.06]"
+          : "bg-bg-surface border border-border",
         padding === "none" && "p-0",
-        hover && "card-hover cursor-pointer",
+        padding === "sm" && "p-3",
+        padding === "md" && "p-4",
+        padding === "lg" && "p-6",
+        hover && "transition-all duration-150 cursor-pointer hover:shadow-glow hover:-translate-y-px",
         className
       )}
     >

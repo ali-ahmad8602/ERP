@@ -5,133 +5,141 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { useDashboardStore } from "@/store/dashboard.store";
 import { useAuth } from "@/hooks/useAuth";
-import { Activity, Clock, FileCheck, CheckCircle2 } from "lucide-react";
+import { TrendingUp, AlertTriangle, Clock, CheckCircle2 } from "lucide-react";
+import { Card } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
 import { cn } from "@/lib/utils";
 import type { DeptStats, ActivityEntry } from "@/types";
 
+const ACT: Record<string, string> = {
+  card_created: "created", card_edited: "edited", card_moved: "moved",
+  card_archived: "archived", comment_added: "commented on",
+  card_approved: "approved", card_rejected: "rejected",
+  board_created: "created board", board_updated: "updated board",
+  member_added: "added member to", member_removed: "removed member from",
+};
+
+function ago(d: string) {
+  const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000);
+  if (m < 1) return "now"; if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60); if (h < 24) return `${h}h`;
+  const dy = Math.floor(h / 24); return dy < 7 ? `${dy}d` : format(new Date(d), "MMM d");
+}
+
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { overview, deptStats, activities, loading, fetchAll } = useDashboardStore();
+  const { overview: o, deptStats, activities, loading, fetchAll } = useDashboardStore();
   useEffect(() => { if (user) fetchAll(); }, [user, fetchAll]);
 
-  if (loading && !overview) {
-    return (
-      <div className="flex-1 p-8 overflow-x-hidden animate-fade-in">
-        <div className="h-8 w-64 bg-bg-elevated rounded animate-pulse mb-2" />
-        <div className="h-4 w-48 bg-bg-elevated rounded animate-pulse mb-8" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {[1,2,3,4].map(i => <div key={i} className="h-[130px] rounded-[12px] bg-bg-elevated animate-pulse" />)}
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[1,2,3,4].map(i => <div key={i} className="h-[140px] rounded-[12px] bg-bg-elevated animate-pulse" />)}
-          </div>
-          <div className="h-[400px] rounded-[12px] bg-bg-elevated animate-pulse" />
-        </div>
-      </div>
-    );
-  }
+  /* Skeleton */
+  if (loading && !o) return (
+    <div className="p-6 max-w-[1120px] mx-auto animate-fade-in">
+      <div className="h-5 w-40 bg-bg-elevated rounded mb-6 animate-pulse" />
+      <div className="grid grid-cols-4 gap-3 mb-6">{[1,2,3,4].map(i=><div key={i} className="h-[76px] rounded-[8px] bg-bg-elevated animate-pulse"/>)}</div>
+      <div className="grid grid-cols-12 gap-4"><div className="col-span-8 h-[280px] rounded-[8px] bg-bg-elevated animate-pulse"/><div className="col-span-4 h-[280px] rounded-[8px] bg-bg-elevated animate-pulse"/></div>
+    </div>
+  );
 
-  const kpis = overview ? [
-    { label: "Total Tasks", value: overview.totalCards, icon: Activity, color: "text-primary" },
-    { label: "Overdue", value: overview.overdueCount, icon: Clock, color: "text-danger" },
-    { label: "Pending Approvals", value: overview.pendingApprovals, icon: FileCheck, color: "text-warning" },
-    { label: "Compliance", value: overview.complianceItems, icon: CheckCircle2, color: "text-accent" },
+  const kpis = o ? [
+    { label: "Total tasks",  value: o.totalCards,       icon: TrendingUp,    color: "text-primary" },
+    { label: "Overdue",      value: o.overdueCount,     icon: AlertTriangle, color: o.overdueCount > 0 ? "text-danger" : "text-text-muted" },
+    { label: "Approvals",    value: o.pendingApprovals, icon: Clock,         color: "text-warning" },
+    { label: "Completed",    value: o.doneCount,        icon: CheckCircle2,  color: "text-accent" },
   ] : [];
 
   return (
-    <div className="flex-1 p-8 overflow-x-hidden animate-fade-in">
+    <div className="p-6 max-w-[1120px] mx-auto animate-fade-in">
 
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-1 tracking-tight">Organization Overview</h1>
-        <p className="text-sm text-text-secondary">Real-time metrics across all departments.</p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-[16px] font-semibold text-text-primary tracking-tight">Overview</h1>
+          <p className="text-[11px] text-text-muted mt-0.5">{format(new Date(), "EEEE, MMM d yyyy")}</p>
+        </div>
       </div>
 
-      {/* KPI Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* KPI strip */}
+      <div className="grid grid-cols-4 gap-3 mb-6">
         {kpis.map(k => (
-          <div key={k.label} className="rounded-[12px] bg-bg-elevated/80 backdrop-blur-xl border border-white/5 p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div className="text-[9.5px] uppercase tracking-[0.1em] text-text-secondary font-bold">{k.label}</div>
-              <div className={cn("p-2 rounded-md bg-white/5", k.color)}>
-                <k.icon size={16} />
-              </div>
+          <Card key={k.label} padding="sm" glass>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] text-text-muted font-medium">{k.label}</span>
+              <k.icon size={13} className={k.color} />
             </div>
-            <div className="text-3xl font-bold text-text-primary">{k.value}</div>
-          </div>
+            <span className={cn("text-[22px] font-semibold tabular-nums leading-none", k.color === "text-text-muted" ? "text-text-primary" : k.color)}>{k.value}</span>
+          </Card>
         ))}
       </div>
 
-      {/* Main Grid: 2/3 departments + 1/3 activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Main: 8/4 split */}
+      <div className="grid grid-cols-12 gap-4">
 
-        {/* Department Health */}
-        <div className="lg:col-span-2 space-y-4">
-          <h2 className="text-[9.5px] uppercase tracking-[0.1em] text-text-secondary font-bold mb-4">Department Health</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {deptStats.map(ds => {
-              const { department: d, totalCards, doneCount, overdueCount, memberCount } = ds;
-              const pct = totalCards > 0 ? Math.round((doneCount / totalCards) * 100) : 0;
-              return (
-                <Link key={d._id} href={`/dept/${d.slug}`} className="no-underline">
-                  <div className="rounded-[12px] bg-bg-elevated/80 backdrop-blur-xl border border-white/5 p-5 transition-all duration-200 hover:-translate-y-[1px] hover:shadow-[0_0_0_1px_rgba(37,99,235,0.3),0_8px_24px_rgba(0,0,0,0.4)] cursor-pointer h-full">
-                    <div className="flex justify-between items-center mb-6">
-                      <h3 className="font-semibold text-text-primary">{d.icon} {d.name}</h3>
-                      <span className="text-xs text-text-secondary">{memberCount} Members</span>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-text-secondary">Task Progress</span>
-                        <span className="text-text-primary">{pct}%</span>
-                      </div>
-                      <div className="w-full h-1.5 bg-bg-base rounded-full overflow-hidden border border-white/5">
-                        <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
-                      </div>
-                    </div>
-                    {overdueCount > 0 && (
-                      <div className="mt-4 text-[11px] text-danger flex items-center gap-1.5 bg-danger/10 w-fit px-2 py-1 border border-danger/20 rounded-md">
-                        <Clock size={12} /> {overdueCount} Overdue items
-                      </div>
-                    )}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-          {deptStats.length === 0 && !loading && (
-            <div className="rounded-[12px] bg-bg-elevated/80 border border-white/5 p-6 text-center text-sm text-text-muted">
-              No departments yet.
-            </div>
+        {/* Departments — col 1-8 */}
+        <div className="col-span-8">
+          <div className="text-[11px] font-medium text-text-muted uppercase tracking-[0.04em] mb-3">Departments</div>
+          {deptStats.length === 0 && (
+            <Card padding="lg" className="text-center text-[12px] text-text-muted">No departments yet</Card>
           )}
-        </div>
-
-        {/* Activity Stream */}
-        <div>
-          <h2 className="text-[9.5px] uppercase tracking-[0.1em] text-text-secondary font-bold mb-4">Activity Stream</h2>
-          <div className="rounded-[12px] bg-bg-elevated/80 backdrop-blur-xl border border-white/5 p-0 h-[400px] overflow-y-auto">
-            {activities.length === 0 ? (
-              <div className="p-6 text-center text-sm text-text-muted">No activity yet.</div>
-            ) : (
-              <div className="divide-y divide-white/5">
-                {activities.map(a => (
-                  <div key={a._id} className="p-4 hover:bg-white/5 transition-colors">
-                    <p className="text-sm">
-                      <span className="font-semibold text-primary">{a.user.name}</span>{" "}
-                      <span className="text-text-secondary">
-                        {a.action.replace(/_/g, " ")}{" "}
-                      </span>
-                      <span className="text-text-primary">{a.entityTitle}</span>
-                      {a.detail && <span className="text-text-muted"> — {a.detail}</span>}
-                    </p>
-                    <span className="text-[10px] text-text-muted">{format(new Date(a.createdAt), "MMM d, yyyy")}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+          <div className="grid grid-cols-2 gap-3">
+            {deptStats.map(ds => <DeptRow key={ds.department._id} s={ds} />)}
           </div>
         </div>
+
+        {/* Activity — col 9-12 */}
+        <div className="col-span-4">
+          <div className="text-[11px] font-medium text-text-muted uppercase tracking-[0.04em] mb-3">Activity</div>
+          <Card padding="none" glass className="max-h-[420px] overflow-auto">
+            {activities.length === 0
+              ? <div className="p-4 text-center text-[12px] text-text-muted">No activity yet</div>
+              : <div className="divide-y divide-border">{activities.map(a => <ActivityRow key={a._id} a={a} />)}</div>
+            }
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeptRow({ s }: { s: DeptStats }) {
+  const { department: d, totalCards, doneCount, overdueCount, memberCount } = s;
+  const pct = totalCards > 0 ? Math.round((doneCount / totalCards) * 100) : 0;
+  return (
+    <Link href={`/dept/${d.slug}`} className="no-underline">
+      <Card hover padding="sm" glass>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-[14px]">{d.icon}</span>
+            <span className="text-[13px] font-medium text-text-primary truncate">{d.name}</span>
+          </div>
+          <span className="text-[10px] text-text-muted shrink-0">{memberCount} mbr</span>
+        </div>
+        <div className="flex items-center gap-2 mb-1">
+          <div className="flex-1 h-1 bg-bg-base rounded-full overflow-hidden">
+            <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+          </div>
+          <span className="text-[10px] text-text-muted tabular-nums w-7 text-right">{pct}%</span>
+        </div>
+        {overdueCount > 0 && (
+          <div className="mt-2 text-[10px] text-danger flex items-center gap-1">
+            <AlertTriangle size={10} /> {overdueCount} overdue
+          </div>
+        )}
+      </Card>
+    </Link>
+  );
+}
+
+function ActivityRow({ a }: { a: ActivityEntry }) {
+  return (
+    <div className="flex gap-2 px-3 py-2.5 hover:bg-bg-elevated/50 transition-colors duration-100">
+      <Avatar name={a.user.name || "?"} size="xs" className="mt-px shrink-0" />
+      <div className="min-w-0 flex-1">
+        <p className="text-[12px] leading-[1.5]">
+          <span className="font-medium text-text-primary">{a.user.name}</span>{" "}
+          <span className="text-text-muted">{ACT[a.action] || a.action}</span>{" "}
+          <span className="text-text-secondary">{a.entityTitle}</span>
+        </p>
+        <span className="text-[10px] text-text-muted">{ago(a.createdAt)}</span>
       </div>
     </div>
   );
