@@ -24,7 +24,7 @@ export function Topbar({ department, board, title, onSearchClick, onCommandPalet
   const handleSearchClick = onCommandPalette ?? onSearchClick;
 
   return (
-    <header className="h-12 flex items-center gap-3 px-4 border-b border-border bg-bg-surface sticky top-0 z-20 shrink-0">
+    <header className="h-14 flex items-center gap-3 px-6 border-b border-border-subtle bg-bg-surface/80 backdrop-blur-xl sticky top-0 z-20 shrink-0">
       {/* Breadcrumb */}
       <div className="flex items-center gap-1 min-w-0 shrink-0">
         {department && (
@@ -46,7 +46,7 @@ export function Topbar({ department, board, title, onSearchClick, onCommandPalet
 
       {/* Search */}
       <button onClick={handleSearchClick}
-        className="flex items-center gap-2 bg-bg-elevated border border-border rounded-md py-1.5 px-3 w-[320px] shrink-0 transition-colors duration-150 cursor-pointer hover:border-text-muted/40">
+        className="flex items-center gap-2 bg-bg-elevated border border-border rounded-[8px] py-1.5 px-3 w-64 shrink-0 transition-colors duration-200 cursor-pointer hover:border-[#333]">
         <Search size={13} className="text-text-muted shrink-0" />
         <span className="flex-1 text-[12px] text-text-muted text-left truncate">Search...</span>
         <kbd className="text-[10px] text-text-muted font-mono bg-bg-surface px-1 py-px rounded border border-border-subtle">⌘K</kbd>

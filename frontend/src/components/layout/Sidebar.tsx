@@ -21,9 +21,9 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
   const toggle = (id: string) => setExpanded((p) => ({ ...p, [id]: !p[id] }));
 
   return (
-    <aside className="w-56 h-screen bg-bg-surface border-r border-border flex flex-col shrink-0">
+    <aside className="w-[228px] h-screen bg-bg-surface border-r border-border-subtle flex flex-col shrink-0">
       {/* Logo */}
-      <div className="h-12 flex items-center px-4 shrink-0 border-b border-border">
+      <div className="h-14 flex items-center px-5 shrink-0 border-b border-border-subtle">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-md bg-primary text-white flex items-center justify-center">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
@@ -38,14 +38,14 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
+      <nav className="flex-1 overflow-y-auto p-4 space-y-1">
         <NavItem href="/dashboard" icon={<LayoutDashboard size={15} />} label="Dashboard" active={pathname === "/dashboard"} />
         <NavItem href={departments[0] ? `/dept/${departments[0].slug}` : "#"} icon={<Building2 size={15} />} label="Departments" active={pathname.startsWith("/dept/")} />
         <NavItem href="/reports" icon={<BarChart3 size={15} />} label="Reports" active={pathname === "/reports"} />
         <NavItem href="/settings/profile" icon={<Settings size={15} />} label="Settings" active={pathname.startsWith("/settings")} />
 
         {departments.length > 0 && (
-          <div className="px-3 pt-6 pb-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+          <div className="text-[9.5px] uppercase tracking-[0.1em] text-text-secondary font-bold mb-3 px-2 pt-6">
             Departments
           </div>
         )}
@@ -60,8 +60,8 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
               <button
                 onClick={() => toggle(dept._id)}
                 className={cn(
-                  "w-full flex items-center gap-2 h-8 px-2.5 ml-1 rounded-md border-none cursor-pointer transition-colors duration-150 group text-left",
-                  isActive ? "bg-bg-elevated text-text-primary" : "bg-transparent text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
+                  "w-full flex items-center gap-3 px-3 py-2 rounded-[8px] border-none cursor-pointer transition-colors duration-200 group text-left",
+                  isActive ? "bg-[#151515] text-text-primary border-l-2 border-primary" : "bg-transparent text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
                 )}
               >
                 <span className="w-4 shrink-0 text-center text-[13px]" style={{ color: dept.color || "var(--color-text-muted)" }}>{dept.icon}</span>
@@ -110,8 +110,8 @@ function formatRole(role: string) { return role.replace(/_/g, " ").replace(/\b\w
 function NavItem({ href, icon, label, active }: { href: string; icon: React.ReactNode; label: string; active: boolean }) {
   return (
     <Link href={href} className={cn(
-      "flex items-center gap-4 h-8 px-3 rounded-md no-underline transition-colors duration-150",
-      active ? "bg-bg-elevated text-text-primary font-medium" : "text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
+      "flex items-center gap-3 px-3 py-2 rounded-[8px] no-underline transition-colors duration-200",
+      active ? "bg-[#151515] text-text-primary border-l-2 border-primary" : "text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
     )}>
       <span className="shrink-0 w-4 flex justify-center text-text-muted">{icon}</span>
       <span className="text-[13px]">{label}</span>

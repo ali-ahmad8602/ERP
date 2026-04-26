@@ -2,36 +2,13 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { format, isToday as isDateToday, isYesterday } from "date-fns";
+import { format } from "date-fns";
 import { useDashboardStore } from "@/store/dashboard.store";
 import { useAuth } from "@/hooks/useAuth";
-import { AlertTriangle, CheckCircle2, Clock, ListTodo } from "lucide-react";
+import { Activity, Clock, FileCheck, CheckCircle2 } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { cn } from "@/lib/utils";
 import type { DeptStats, ActivityEntry } from "@/types";
-
-const ACTIONS: Record<string, string> = {
-  card_created: "created", card_edited: "edited", card_moved: "moved",
-  card_archived: "archived", comment_added: "commented on",
-  card_approved: "approved", card_rejected: "rejected",
-  board_created: "created board", board_updated: "updated board",
-  member_added: "added member to", member_removed: "removed member from",
-};
-
-function ago(d: string) {
-  const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000);
-  if (m < 1) return "now"; if (m < 60) return `${m}m`;
-  const h = Math.floor(m / 60); if (h < 24) return `${h}h`;
-  const dy = Math.floor(h / 24); if (dy < 7) return `${dy}d`;
-  return format(new Date(d), "MMM d");
-}
-
-function dayGroup(d: string) {
-  const dt = new Date(d);
-  if (isDateToday(dt)) return "Today";
-  if (isYesterday(dt)) return "Yesterday";
-  return format(dt, "MMM d");
-}
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -40,160 +17,122 @@ export default function DashboardPage() {
 
   if (loading && !overview) {
     return (
-      <div className="h-full overflow-auto">
-        <div className="max-w-[1280px] mx-auto p-6">
-          <div className="h-4 w-36 bg-bg-elevated rounded animate-pulse mb-6" />
-          <div className="grid grid-cols-4 gap-4 mb-6">
-            {[1,2,3,4].map(i => <div key={i} className="h-[120px] rounded-lg bg-bg-elevated animate-pulse" />)}
+      <div className="flex-1 p-8 overflow-x-hidden animate-fade-in">
+        <div className="h-8 w-64 bg-bg-elevated rounded animate-pulse mb-2" />
+        <div className="h-4 w-48 bg-bg-elevated rounded animate-pulse mb-8" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {[1,2,3,4].map(i => <div key={i} className="h-[130px] rounded-[12px] bg-bg-elevated animate-pulse" />)}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[1,2,3,4].map(i => <div key={i} className="h-[140px] rounded-[12px] bg-bg-elevated animate-pulse" />)}
           </div>
-          <div className="grid grid-cols-12 gap-6">
-            <div className="col-span-8 grid grid-cols-2 gap-4">
-              {[1,2,3,4].map(i => <div key={i} className="h-[100px] rounded-lg bg-bg-elevated animate-pulse" />)}
-            </div>
-            <div className="col-span-4 h-[400px] rounded-lg bg-bg-elevated animate-pulse" />
-          </div>
+          <div className="h-[400px] rounded-[12px] bg-bg-elevated animate-pulse" />
         </div>
       </div>
     );
   }
 
-  const name = user?.name?.split(" ")[0] ?? "there";
-  const hr = new Date().getHours();
-  const greeting = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
+  const kpis = overview ? [
+    { label: "Total Tasks", value: overview.totalCards, icon: Activity, color: "text-primary" },
+    { label: "Overdue", value: overview.overdueCount, icon: Clock, color: "text-danger" },
+    { label: "Pending Approvals", value: overview.pendingApprovals, icon: FileCheck, color: "text-warning" },
+    { label: "Compliance", value: overview.complianceItems, icon: CheckCircle2, color: "text-accent" },
+  ] : [];
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="max-w-[1280px] mx-auto p-6">
+    <div className="flex-1 p-8 overflow-x-hidden animate-fade-in">
 
-        {/* Header — tight, left-aligned */}
-        <div className="mb-6">
-          <h1 className="text-[15px] font-semibold text-text-primary">{greeting}, {name}</h1>
-          <p className="text-[11px] text-text-muted mt-1">{format(new Date(), "EEEE, MMMM d")}</p>
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-1 tracking-tight">Organization Overview</h1>
+        <p className="text-sm text-text-secondary">Real-time metrics across all departments.</p>
+      </div>
+
+      {/* KPI Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {kpis.map(k => (
+          <div key={k.label} className="rounded-[12px] bg-bg-elevated/80 backdrop-blur-xl border border-white/5 p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div className="text-[9.5px] uppercase tracking-[0.1em] text-text-secondary font-bold">{k.label}</div>
+              <div className={cn("p-2 rounded-md bg-white/5", k.color)}>
+                <k.icon size={16} />
+              </div>
+            </div>
+            <div className="text-3xl font-bold text-text-primary">{k.value}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Main Grid: 2/3 departments + 1/3 activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Department Health */}
+        <div className="lg:col-span-2 space-y-4">
+          <h2 className="text-[9.5px] uppercase tracking-[0.1em] text-text-secondary font-bold mb-4">Department Health</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {deptStats.map(ds => {
+              const { department: d, totalCards, doneCount, overdueCount, memberCount } = ds;
+              const pct = totalCards > 0 ? Math.round((doneCount / totalCards) * 100) : 0;
+              return (
+                <Link key={d._id} href={`/dept/${d.slug}`} className="no-underline">
+                  <div className="rounded-[12px] bg-bg-elevated/80 backdrop-blur-xl border border-white/5 p-5 transition-all duration-200 hover:-translate-y-[1px] hover:shadow-[0_0_0_1px_rgba(37,99,235,0.3),0_8px_24px_rgba(0,0,0,0.4)] cursor-pointer h-full">
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="font-semibold text-text-primary">{d.icon} {d.name}</h3>
+                      <span className="text-xs text-text-secondary">{memberCount} Members</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-text-secondary">Task Progress</span>
+                        <span className="text-text-primary">{pct}%</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-bg-base rounded-full overflow-hidden border border-white/5">
+                        <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                    {overdueCount > 0 && (
+                      <div className="mt-4 text-[11px] text-danger flex items-center gap-1.5 bg-danger/10 w-fit px-2 py-1 border border-danger/20 rounded-md">
+                        <Clock size={12} /> {overdueCount} Overdue items
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+          {deptStats.length === 0 && !loading && (
+            <div className="rounded-[12px] bg-bg-elevated/80 border border-white/5 p-6 text-center text-sm text-text-muted">
+              No departments yet.
+            </div>
+          )}
         </div>
 
-        {/* KPI row — fixed height, vertically centered */}
-        {overview && (
-          <div className="grid grid-cols-4 gap-4 mb-6">
-            <Kpi label="Tasks" val={overview.totalCards} sub={`${overview.createdThisWeek} this week`} icon={<ListTodo size={15} />} />
-            <Kpi label="Overdue" val={overview.overdueCount} sub={overview.overdueCount > 0 ? "Needs attention" : "Clear"} icon={<AlertTriangle size={15} />} accent={overview.overdueCount > 0 ? "text-danger" : undefined} />
-            <Kpi label="Approvals" val={overview.pendingApprovals} sub={`${overview.complianceItems} compliance`} icon={<Clock size={15} />} />
-            <Kpi label="Done" val={overview.doneCount} sub={overview.totalCards > 0 ? `${Math.round((overview.doneCount / overview.totalCards) * 100)}% complete` : "—"} icon={<CheckCircle2 size={15} />} accent="text-accent" />
-          </div>
-        )}
-
-        {/* Main — 12-col: 8 content + 4 activity */}
-        <div className="grid grid-cols-12 gap-6">
-
-          {/* Left col: departments */}
-          <div className="col-span-8">
-            <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider mb-4">Departments</p>
-            {deptStats.length === 0 && !loading && (
-              <div className="rounded-lg border border-border bg-bg-surface p-4 text-[12px] text-text-muted text-center">
-                No departments yet
+        {/* Activity Stream */}
+        <div>
+          <h2 className="text-[9.5px] uppercase tracking-[0.1em] text-text-secondary font-bold mb-4">Activity Stream</h2>
+          <div className="rounded-[12px] bg-bg-elevated/80 backdrop-blur-xl border border-white/5 p-0 h-[400px] overflow-y-auto">
+            {activities.length === 0 ? (
+              <div className="p-6 text-center text-sm text-text-muted">No activity yet.</div>
+            ) : (
+              <div className="divide-y divide-white/5">
+                {activities.map(a => (
+                  <div key={a._id} className="p-4 hover:bg-white/5 transition-colors">
+                    <p className="text-sm">
+                      <span className="font-semibold text-primary">{a.user.name}</span>{" "}
+                      <span className="text-text-secondary">
+                        {a.action.replace(/_/g, " ")}{" "}
+                      </span>
+                      <span className="text-text-primary">{a.entityTitle}</span>
+                      {a.detail && <span className="text-text-muted"> — {a.detail}</span>}
+                    </p>
+                    <span className="text-[10px] text-text-muted">{format(new Date(a.createdAt), "MMM d, yyyy")}</span>
+                  </div>
+                ))}
               </div>
             )}
-            <div className="grid grid-cols-2 gap-4">
-              {deptStats.map(ds => <DeptCard key={ds.department._id} stats={ds} />)}
-            </div>
-          </div>
-
-          {/* Right col: activity — contained panel */}
-          <div className="col-span-4">
-            <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider mb-4">Activity</p>
-            <div className="rounded-lg border border-border bg-bg-surface overflow-hidden">
-              <div className="max-h-[480px] overflow-auto">
-                {activities.length === 0 ? (
-                  <div className="p-4 text-center text-[12px] text-text-muted">No activity yet</div>
-                ) : (
-                  <Feed items={activities} />
-                )}
-              </div>
-            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-/* ── KPI Card: h-[120px], flex-col justify-center, p-4 ── */
-function Kpi({ label, val, sub, icon, accent }: {
-  label: string; val: number; sub: string; icon: React.ReactNode; accent?: string;
-}) {
-  return (
-    <div className="h-[120px] rounded-lg border border-border bg-bg-surface p-4 flex flex-col justify-center">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-7 h-7 rounded-md bg-bg-elevated flex items-center justify-center text-text-muted shrink-0">{icon}</div>
-        <span className="text-[11px] font-medium text-text-muted uppercase tracking-wider">{label}</span>
-      </div>
-      <span className={cn("text-[24px] font-semibold tabular-nums leading-none", accent || "text-text-primary")}>{val}</span>
-      <p className="text-[11px] text-text-muted mt-1">{sub}</p>
-    </div>
-  );
-}
-
-/* ── Department card ── */
-function DeptCard({ stats }: { stats: DeptStats }) {
-  const { department: d, totalCards, doneCount, memberCount, overdueCount, inProgressCount } = stats;
-  const pct = totalCards > 0 ? Math.round((doneCount / totalCards) * 100) : 0;
-  const st = overdueCount > totalCards * 0.2
-    ? { t: "At risk", c: "text-danger" }
-    : inProgressCount > doneCount
-      ? { t: "Active", c: "text-primary" }
-      : doneCount > totalCards * 0.7
-        ? { t: "On track", c: "text-accent" }
-        : { t: "Planning", c: "text-text-muted" };
-
-  return (
-    <Link href={`/dept/${d.slug}`} className="no-underline">
-      <div className="rounded-lg border border-border bg-bg-surface p-4 transition-colors duration-150 hover:border-text-muted/30">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-sm">{d.icon}</span>
-          <span className="text-[13px] font-medium text-text-primary truncate flex-1">{d.name}</span>
-          <span className={cn("text-[10px] font-medium shrink-0", st.c)}>{st.t}</span>
-        </div>
-        <div className="flex items-center gap-2 mb-2">
-          <div className="flex-1 h-1 bg-bg-elevated rounded-full overflow-hidden">
-            <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: d.color || "var(--color-primary)" }} />
-          </div>
-          <span className="text-[10px] text-text-muted tabular-nums w-8 text-right">{pct}%</span>
-        </div>
-        <p className="text-[11px] text-text-muted">{memberCount} members &middot; {totalCards} tasks</p>
-      </div>
-    </Link>
-  );
-}
-
-/* ── Activity feed — inside bordered container ── */
-function Feed({ items }: { items: ActivityEntry[] }) {
-  let prev = "";
-  return (
-    <div>
-      {items.map(a => {
-        const g = dayGroup(a.createdAt);
-        const hdr = g !== prev;
-        prev = g;
-        return (
-          <div key={a._id}>
-            {hdr && (
-              <div className="px-4 py-2 text-[10px] font-medium text-text-muted uppercase tracking-wider bg-bg-elevated/50 border-b border-border">
-                {g}
-              </div>
-            )}
-            <div className="flex gap-3 px-4 py-3 border-b border-border-subtle">
-              <Avatar name={a.user.name || "?"} size="xs" className="mt-0.5 shrink-0" />
-              <div className="min-w-0 flex-1">
-                <p className="text-[12px] leading-[1.6]">
-                  <span className="font-medium text-text-primary">{a.user.name}</span>{" "}
-                  <span className="text-text-muted">{ACTIONS[a.action] || a.action}</span>{" "}
-                  <span className="font-medium text-text-secondary">{a.entityTitle}</span>
-                </p>
-                <span className="text-[10px] text-text-muted">{ago(a.createdAt)}</span>
-              </div>
-            </div>
-          </div>
-        );
-      })}
     </div>
   );
 }
