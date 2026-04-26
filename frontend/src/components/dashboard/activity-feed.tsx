@@ -49,7 +49,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
   }
 
   return (
-    <div className="bg-[#0F0F11] border border-[#ffffff10] rounded-lg overflow-hidden">
+    <div className="bg-[#0F0F11] border border-[#ffffff15] rounded-lg overflow-hidden">
       <div className="px-3 py-2.5 border-b border-[#ffffff08]">
         <h3 className="text-[13px] font-medium text-[#FAFAFA]">Activity</h3>
       </div>

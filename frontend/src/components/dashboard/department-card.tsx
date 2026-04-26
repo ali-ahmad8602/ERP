@@ -36,7 +36,7 @@ export function DepartmentCard({ emoji, name, slug, status, progress, members, l
 
   return (
     <Link href={`/dept/${slug}`} className="no-underline">
-      <div className="bg-[#0F0F11] border border-[#ffffff10] rounded-lg p-3 hover:border-[#ffffff18] transition-colors cursor-pointer">
+      <div className="bg-[#0F0F11] border border-[#ffffff15] rounded-lg p-4 hover:border-[#ffffff18] transition-colors cursor-pointer">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <span className="text-[14px]">{emoji}</span>

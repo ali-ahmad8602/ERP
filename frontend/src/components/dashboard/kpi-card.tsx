@@ -24,8 +24,8 @@ function generateSparkline(data: number[]) {
 
 export function KPICard({ icon: Icon, label, value, subtitle, trend, sparklineData }: KPICardProps) {
   return (
-    <div className="bg-[#0F0F11] border border-[#ffffff10] rounded-lg p-3">
-      <div className="flex items-center justify-between mb-2">
+    <div className="bg-[#0F0F11] border border-[#ffffff15] rounded-lg p-4">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Icon className="w-3.5 h-3.5 text-[#52525B]" strokeWidth={1.5} />
           <span className="text-[11px] uppercase tracking-wide text-[#52525B] font-medium">{label}</span>
@@ -43,7 +43,7 @@ export function KPICard({ icon: Icon, label, value, subtitle, trend, sparklineDa
           </svg>
         )}
       </div>
-      <div className="text-[20px] font-semibold text-[#FAFAFA] leading-tight">{value}</div>
+      <div className="text-[24px] font-semibold text-[#FAFAFA] leading-tight">{value}</div>
       <div className="flex items-center gap-2 mt-1">
         {trend && (
           <span className={cn("text-[11px] font-medium", trend.positive ? "text-[#22C55E]" : "text-[#EF4444]")}>
