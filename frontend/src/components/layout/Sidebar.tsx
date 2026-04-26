@@ -38,14 +38,14 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5">
+      <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-1">
         <NavItem href="/dashboard" icon={<LayoutDashboard size={15} />} label="Dashboard" active={pathname === "/dashboard"} />
         <NavItem href={departments[0] ? `/dept/${departments[0].slug}` : "#"} icon={<Building2 size={15} />} label="Departments" active={pathname.startsWith("/dept/")} />
         <NavItem href="/reports" icon={<BarChart3 size={15} />} label="Reports" active={pathname === "/reports"} />
         <NavItem href="/settings/profile" icon={<Settings size={15} />} label="Settings" active={pathname.startsWith("/settings")} />
 
         {departments.length > 0 && (
-          <div className="px-2 pt-5 pb-1 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+          <div className="px-3 pt-6 pb-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
             Departments
           </div>
         )}
@@ -60,11 +60,11 @@ export function Sidebar({ departments, userOrgRole, onAddDept }: SidebarProps) {
               <button
                 onClick={() => toggle(dept._id)}
                 className={cn(
-                  "w-full flex items-center gap-2 py-1.5 px-2 rounded-md border-none cursor-pointer transition-colors duration-150 group text-left",
+                  "w-full flex items-center gap-2 h-8 px-2.5 ml-1 rounded-md border-none cursor-pointer transition-colors duration-150 group text-left",
                   isActive ? "bg-bg-elevated text-text-primary" : "bg-transparent text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
                 )}
               >
-                <span className="text-[13px] shrink-0" style={{ color: dept.color || "var(--color-text-muted)" }}>{dept.icon}</span>
+                <span className="w-4 shrink-0 text-center text-[13px]" style={{ color: dept.color || "var(--color-text-muted)" }}>{dept.icon}</span>
                 <span className="flex-1 text-[13px] truncate">{dept.name}</span>
                 {memberCount > 0 && <span className="text-[10px] text-text-muted tabular-nums">{memberCount}</span>}
                 {isOpen ? <ChevronDown size={12} className="text-text-muted shrink-0" /> : <ChevronRight size={12} className="text-text-muted shrink-0" />}
@@ -110,10 +110,10 @@ function formatRole(role: string) { return role.replace(/_/g, " ").replace(/\b\w
 function NavItem({ href, icon, label, active }: { href: string; icon: React.ReactNode; label: string; active: boolean }) {
   return (
     <Link href={href} className={cn(
-      "flex items-center gap-2 py-1.5 px-2 rounded-md no-underline transition-colors duration-150",
+      "flex items-center gap-2 h-8 px-2.5 ml-1 rounded-md no-underline transition-colors duration-150",
       active ? "bg-bg-elevated text-text-primary font-medium" : "text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
     )}>
-      <span className={cn("shrink-0", active ? "text-primary" : "text-text-muted")}>{icon}</span>
+      <span className={cn("shrink-0 w-4 flex justify-center", active ? "text-primary" : "text-text-muted")}>{icon}</span>
       <span className="text-[13px]">{label}</span>
     </Link>
   );

@@ -67,7 +67,7 @@ export function KanbanBoard({ board, cards, onCardMove, onCardCreate, canEdit = 
     <>
       <DndContext sensors={sensors} collisionDetection={closestCenter}
         onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <div className="flex gap-2.5 h-full overflow-x-auto px-5 pt-3 pb-5">
+        <div className="flex gap-4 h-full overflow-x-auto px-4 pt-3 pb-4">
           {columns.map(col => {
             const colCards = cardsByColumn(col._id);
             const accent = getColumnAccent(col.name);
@@ -93,7 +93,7 @@ export function KanbanBoard({ board, cards, onCardMove, onCardCreate, canEdit = 
 
         <DragOverlay dropAnimation={{ duration: 180, easing: "cubic-bezier(0.16,1,0.3,1)" }}>
           {activeCard && (
-            <div className="rotate-[1deg] scale-[1.02] opacity-80 w-[320px]">
+            <div className="rotate-[1deg] scale-[1.02] opacity-80 w-[300px]">
               <KanbanCard card={activeCard} isDragging />
             </div>
           )}
@@ -107,9 +107,9 @@ export function KanbanBoard({ board, cards, onCardMove, onCardCreate, canEdit = 
             const firstCol = columns[0];
             if (firstCol) { setAddingIn(firstCol._id); setNewCardTitle(""); }
           }}
-          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-primary text-white border-none cursor-pointer shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center justify-center z-50"
+          className="fixed bottom-5 right-5 w-10 h-10 rounded-full bg-primary text-white border-none cursor-pointer shadow-md hover:shadow-lg hover:scale-105 transition-all duration-150 flex items-center justify-center z-50"
         >
-          <Plus size={24} strokeWidth={2.5} />
+          <Plus size={18} strokeWidth={2.5} />
         </button>
       )}
 
@@ -138,7 +138,7 @@ interface ColumnPanelProps {
 
 function ColumnPanel({ column, cards, accent, isLocked, canEdit, onCardClick, isAdding, newCardTitle, onNewTitleChange, onAddStart, onAddConfirm, onAddCancel }: ColumnPanelProps) {
   return (
-    <div className="w-[320px] shrink-0 flex flex-col">
+    <div className="w-[300px] shrink-0 flex flex-col">
 
       {/* Column header */}
       <div className="flex items-center justify-between mb-2 px-1">
@@ -161,7 +161,7 @@ function ColumnPanel({ column, cards, accent, isLocked, canEdit, onCardClick, is
 
       {/* Cards container */}
       <SortableContext items={cards.map(c => c._id)} strategy={verticalListSortingStrategy}>
-        <div className="flex-1 flex flex-col gap-1.5 min-h-[40px] rounded-lg bg-bg-elevated/30 p-1.5 overflow-y-auto">
+        <div className="flex-1 flex flex-col gap-2 min-h-[40px] rounded-lg bg-bg-elevated/30 p-2 overflow-y-auto">
           {cards.map(card => (
             <KanbanCard key={card._id} card={card} onClick={() => onCardClick(card)} />
           ))}

@@ -57,7 +57,7 @@ export function Topbar({ department, board, title, onSearchClick, onCommandPalet
         <NotificationBell />
         {handleSearchClick && (
           <button onClick={handleSearchClick}
-            className="h-7 px-2.5 rounded-md flex items-center gap-1 bg-primary text-white text-[12px] font-medium hover:bg-primary-light transition-colors duration-150 cursor-pointer border-none shadow-sm hover:-translate-y-px"
+            className="h-8 px-3 rounded-[6px] flex items-center gap-1.5 bg-primary text-white text-[12px] font-medium hover:bg-primary-light transition-all duration-150 cursor-pointer border-none shadow-sm hover:-translate-y-px"
             title="New Task">
             <Plus size={13} /> New
           </button>

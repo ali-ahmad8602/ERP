@@ -119,10 +119,15 @@ function KpiCard({ icon, label, value, sub, variant }: {
   icon: React.ReactNode; label: string; value: number | string; sub?: string; variant?: "danger" | "accent";
 }) {
   return (
-    <Card className="flex flex-col gap-1.5">
-      <div className="flex items-center gap-1.5 text-text-muted">{icon}<span className="text-[11px] font-medium uppercase tracking-wider">{label}</span></div>
-      <span className={cn("text-2xl font-semibold tabular-nums leading-none", variant === "danger" ? "text-danger" : variant === "accent" ? "text-accent" : "text-text-primary")}>{value}</span>
-      {sub && <span className="text-[11px] text-text-muted">{sub}</span>}
+    <Card padding="sm" className="flex items-center gap-3">
+      <div className="w-8 h-8 rounded-lg bg-bg-elevated flex items-center justify-center shrink-0 text-text-muted">{icon}</div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline gap-2">
+          <span className={cn("text-xl font-semibold tabular-nums leading-none", variant === "danger" ? "text-danger" : variant === "accent" ? "text-accent" : "text-text-primary")}>{value}</span>
+          <span className="text-[11px] font-medium text-text-muted uppercase tracking-wider truncate">{label}</span>
+        </div>
+        {sub && <p className="text-[10px] text-text-muted mt-0.5">{sub}</p>}
+      </div>
     </Card>
   );
 }
@@ -163,11 +168,11 @@ function ActivityFeed({ activities }: { activities: ActivityEntry[] }) {
         lastGroup = group;
         return (
           <div key={a._id}>
-            {showHeader && <div className="px-3 py-1.5 text-[10px] font-semibold text-text-muted uppercase tracking-wider bg-bg-elevated/50 border-b border-border">{group}</div>}
-            <div className="flex gap-2.5 px-3 py-2 border-b border-border-subtle hover:bg-bg-elevated/30 transition-colors duration-100">
+            {showHeader && <div className="px-3.5 py-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider bg-bg-elevated/50 border-y border-border">{group}</div>}
+            <div className="flex gap-3 px-3.5 py-2.5 border-b border-border-subtle hover:bg-bg-elevated/30 transition-colors duration-100">
               <Avatar name={a.user.name || "?"} size="sm" className="mt-0.5 shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-[12px] leading-relaxed">
+                <p className="text-[12px]" style={{ lineHeight: 1.6 }}>
                   <span className="font-medium text-text-primary">{a.user.name}</span>{" "}
                   <span className="text-text-muted">{ACTION_LABELS[a.action] || a.action}</span>{" "}
                   <span className="font-medium text-primary">{a.entityTitle}</span>
