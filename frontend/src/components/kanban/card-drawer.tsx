@@ -392,16 +392,27 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
                 </div>
                 {allAttachments.length > 0 ? (
                   <div className="space-y-1">
-                    {allAttachments.map((file) => (
-                      <div key={file.id} className="flex items-center gap-3 px-3 py-2 rounded-md bg-[#0f0f11] border border-[#27272a] hover:border-[#3f3f46] transition-colors cursor-pointer">
-                        <FileText className="w-4 h-4 text-[#52525b]" strokeWidth={1.5} />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[12px] text-[#fafafa] truncate">{file.name}</p>
-                          <p className="text-[10px] text-[#52525b]">{file.size}</p>
+                    {allAttachments.map((file) => {
+                      const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001"
+                      const fileUrl = file.url ? `${BASE_URL}${file.url}` : undefined
+                      const inner = (
+                        <div className="flex items-center gap-3 px-3 py-2 rounded-md bg-[#0f0f11] border border-[#27272a] hover:border-[#3f3f46] transition-colors cursor-pointer">
+                          <FileText className="w-4 h-4 text-[#52525b]" strokeWidth={1.5} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[12px] text-[#fafafa] truncate">{file.name}</p>
+                            <p className="text-[10px] text-[#52525b]">{file.size}</p>
+                          </div>
+                          <Paperclip className="w-3.5 h-3.5 text-[#3f3f46]" strokeWidth={1.5} />
                         </div>
-                        <Paperclip className="w-3.5 h-3.5 text-[#3f3f46]" strokeWidth={1.5} />
-                      </div>
-                    ))}
+                      )
+                      return fileUrl ? (
+                        <a key={file.id} href={fileUrl} target="_blank" rel="noopener noreferrer">
+                          {inner}
+                        </a>
+                      ) : (
+                        <div key={file.id}>{inner}</div>
+                      )
+                    })}
                   </div>
                 ) : (
                   <p className="text-[12px] text-[#52525b]">No attachments yet</p>

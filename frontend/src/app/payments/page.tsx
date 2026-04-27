@@ -2,6 +2,7 @@
 
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Topbar } from "@/components/dashboard/topbar"
+import { useAuth } from "@/hooks/useAuth"
 import { Filter, ArrowUpDown, MoreHorizontal } from "lucide-react"
 
 const paymentStats = [
@@ -41,6 +42,8 @@ const transactions: Transaction[] = [
 ]
 
 export default function PaymentsPage() {
+  useAuth({ required: true })
+
   return (
     <div className="min-h-screen bg-[#09090b]">
       <Sidebar activeRoute="payments" />

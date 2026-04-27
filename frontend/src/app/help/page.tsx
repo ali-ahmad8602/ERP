@@ -2,6 +2,7 @@
 
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Topbar } from "@/components/dashboard/topbar"
+import { useAuth } from "@/hooks/useAuth"
 import { Mail, Clock } from "lucide-react"
 
 const faqs = [
@@ -32,6 +33,8 @@ const faqs = [
 ]
 
 export default function HelpPage() {
+  useAuth({ required: true })
+
   return (
     <div className="min-h-screen bg-[#09090b]">
       <Sidebar activeRoute="help" />

@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Search, Bell, Settings, HelpCircle, ChevronRight } from "lucide-react"
 import { notificationApi } from "@/lib/api"
+import { connectSocket, disconnectSocket } from "@/lib/socket"
+import { safeNotification } from "@/lib/safe"
 import { CommandPalette } from "./command-palette"
 
 interface NotificationDept {
@@ -45,14 +47,41 @@ export function Topbar() {
       .catch(() => {})
   }, [])
 
-  // Initial fetch + polling every 15 seconds
+  // Socket.io real-time notifications + polling fallback
   useEffect(() => {
     fetchNotifications()
+
+    // Attempt socket connection for real-time updates
+    let socketConnected = false
+    try {
+      const socket = connectSocket()
+
+      socket.on("connect", () => {
+        socketConnected = true
+      })
+
+      socket.on("notification", (data: any) => {
+        const safe = safeNotification(data)
+        setNotifications((prev) => [safe as Notification, ...prev])
+      })
+
+      socket.on("connect_error", () => {
+        socketConnected = false
+      })
+    } catch {
+      // Socket connection failed — polling fallback handles it
+    }
+
+    // Polling fallback (always active, serves as backup)
     const interval = setInterval(() => {
       const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
       if (token) fetchNotifications()
     }, 15000)
-    return () => clearInterval(interval)
+
+    return () => {
+      clearInterval(interval)
+      disconnectSocket()
+    }
   }, [fetchNotifications])
 
   // Global Cmd+K / Ctrl+K listener

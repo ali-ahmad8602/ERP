@@ -35,17 +35,49 @@ export function usePermissions() {
     return role === "board_owner" || role === "editor" || role === "commenter"
   }
 
+  const canApprove = (approvers: string[]) => approvers.includes(user?._id ?? "")
+
+  const guardAction = (action: string, context?: { boardId?: string; deptId?: string; approvers?: string[] }): boolean => {
+    const boardId = context?.boardId || ""
+    const deptId = context?.deptId || ""
+    const approvers = context?.approvers || []
+
+    switch (action) {
+      case "create_card":
+      case "move_card":
+      case "edit_card":
+        return canEditCards(boardId)
+      case "delete_card":
+        return isAdmin
+      case "comment":
+        return canComment(boardId)
+      case "approve":
+        return canApprove(approvers)
+      case "create_board":
+        return canEditBoard(deptId) || isAdmin
+      case "delete_board":
+        return canEditBoard(boardId) || isAdmin
+      case "manage_members":
+        return isAdmin
+      case "access_settings":
+        return isAdmin
+      default:
+        return false
+    }
+  }
+
   return {
     canCreateDept: isAdmin,
     canManageUsers: isAdmin,
     canInvite: isAdmin,
     canAccessOrgSettings: isAdmin,
-    canApprove: (approvers: string[]) => approvers.includes(user?._id ?? ""),
+    canApprove,
     isAdmin,
     orgRole,
     getBoardRole,
     canEditBoard,
     canEditCards,
     canComment,
+    guardAction,
   }
 }

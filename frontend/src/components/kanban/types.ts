@@ -19,6 +19,7 @@ export interface Attachment {
   name: string
   size: string
   type: string
+  url?: string
 }
 
 export interface AuditLogEntry {

@@ -2,6 +2,7 @@
 
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Topbar } from "@/components/dashboard/topbar"
+import { useAuth } from "@/hooks/useAuth"
 import { FileText, Filter, ArrowUpDown, MoreHorizontal, Plus } from "lucide-react"
 
 const invoiceStats = [
@@ -41,6 +42,8 @@ const invoices: Invoice[] = [
 ]
 
 export default function InvoicesPage() {
+  useAuth({ required: true })
+
   return (
     <div className="min-h-screen bg-[#09090b]">
       <Sidebar activeRoute="invoices" />

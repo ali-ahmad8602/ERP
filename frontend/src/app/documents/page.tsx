@@ -2,6 +2,7 @@
 
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Topbar } from "@/components/dashboard/topbar"
+import { useAuth } from "@/hooks/useAuth"
 import { FileText, Filter, Search, Upload, Download, Trash2 } from "lucide-react"
 
 interface Document {
@@ -32,6 +33,8 @@ const typeConfig: Record<string, { bg: string; text: string }> = {
 }
 
 export default function DocumentsPage() {
+  useAuth({ required: true })
+
   return (
     <div className="min-h-screen bg-[#09090b]">
       <Sidebar activeRoute="documents" />

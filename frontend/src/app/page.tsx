@@ -9,6 +9,7 @@ import { ActivityFeed } from "@/components/dashboard/activity-feed"
 import { useAuth } from "@/hooks/useAuth"
 import { useDashboardStore } from "@/store/dashboard.store"
 import { deptApi } from "@/lib/api"
+import { safeDepartment } from "@/lib/safe"
 
 interface DeptOption {
   _id: string
@@ -25,7 +26,10 @@ export default function Dashboard() {
   const [timeRange, setTimeRange] = useState("30")
 
   useEffect(() => {
-    deptApi.list().then((res) => setDepartments(res.departments ?? [])).catch(() => {})
+    deptApi.list().then((res) => {
+      const deps = (res.departments ?? []).map((d: any) => safeDepartment(d))
+      setDepartments(deps)
+    }).catch(() => {})
   }, [])
 
   useEffect(() => {

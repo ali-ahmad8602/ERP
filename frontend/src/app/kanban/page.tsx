@@ -7,6 +7,7 @@ import { KanbanBoard } from "@/components/kanban/kanban-board"
 import { useAuth } from "@/hooks/useAuth"
 import { useBoardStore } from "@/store/board.store"
 import { deptApi } from "@/lib/api"
+import { safeCard } from "@/lib/safe"
 import { LayoutGrid } from "lucide-react"
 import type { Card, ColumnId } from "@/components/kanban/types"
 
@@ -68,50 +69,54 @@ export default function KanbanPage() {
       cards: [] as Card[],
     }))
 
-  // Map backend cards to the Card type KanbanBoard expects
-  const cards: Card[] = rawCards.map((c: any) => ({
-    id: c._id,
-    title: c.title,
-    description: c.description || "",
-    priority: (c.priority || "medium") as Card["priority"],
-    dueDate: c.dueDate ? new Date(c.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "",
-    assignees: (c.assignees || []).map((a: any) => ({
-      id: a._id,
-      name: a.name,
-      initials: a.name
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2),
-    })),
-    comments: (c.comments || []).map((cm: any) => ({
-      id: cm._id,
-      author: {
-        id: cm.author?._id || cm.author?.name || "unknown",
-        name: cm.author?.name || "Unknown",
-        initials: (cm.author?.name || "U")
+  // Map backend cards to the Card type KanbanBoard expects (via safeCard for null safety)
+  const cards: Card[] = rawCards.map((raw: any) => {
+    const c = safeCard(raw)
+    return {
+      id: c._id,
+      title: c.title,
+      description: c.description,
+      priority: c.priority as Card["priority"],
+      dueDate: c.dueDate ? new Date(c.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "",
+      assignees: c.assignees.map((a: any) => ({
+        id: a._id || a.id || "",
+        name: a.name || "Unknown",
+        initials: (a.name || "U")
           .split(" ")
           .map((n: string) => n[0])
           .join("")
           .toUpperCase()
           .slice(0, 2),
-      },
-      content: cm.text,
-      createdAt: new Date(cm.createdAt).toLocaleDateString(),
-    })),
-    attachments: (c.attachments || []).map((att: any) => ({
-      id: att._id,
-      name: att.name,
-      size: "",
-      type: att.url?.split(".").pop() || "",
-    })),
-    amount: undefined,
-    referenceId: undefined,
-    columnId: c.column as ColumnId,
-    auditLog: c.auditLog ?? [],
-    approval: c.approval ?? undefined,
-  }))
+      })),
+      comments: c.comments.map((cm: any) => ({
+        id: cm._id || cm.id || "",
+        author: {
+          id: cm.author?._id || cm.author?.name || "unknown",
+          name: cm.author?.name || "Unknown",
+          initials: (cm.author?.name || "U")
+            .split(" ")
+            .map((n: string) => n[0])
+            .join("")
+            .toUpperCase()
+            .slice(0, 2),
+        },
+        content: cm.text || cm.content || "",
+        createdAt: cm.createdAt ? new Date(cm.createdAt).toLocaleDateString() : "",
+      })),
+      attachments: c.attachments.map((att: any) => ({
+        id: att._id || att.id || "",
+        name: att.name || "file",
+        size: att.size || "",
+        type: att.url?.split(".").pop() || att.type || "",
+        url: att.url || "",
+      })),
+      amount: undefined,
+      referenceId: undefined,
+      columnId: c.column as ColumnId,
+      auditLog: c.auditLog,
+      approval: c.approval ?? undefined,
+    }
+  })
 
   // Client-side filtering
   const filteredCards = useMemo(() => {

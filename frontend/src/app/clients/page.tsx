@@ -2,6 +2,7 @@
 
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Topbar } from "@/components/dashboard/topbar"
+import { useAuth } from "@/hooks/useAuth"
 import { Search, Plus, MoreHorizontal } from "lucide-react"
 
 const statusConfig = {
@@ -34,6 +35,8 @@ const clients: Client[] = [
 ]
 
 export default function ClientsPage() {
+  useAuth({ required: true })
+
   return (
     <div className="min-h-screen bg-[#09090b]">
       <Sidebar activeRoute="clients" />
