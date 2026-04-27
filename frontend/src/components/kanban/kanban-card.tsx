@@ -123,7 +123,7 @@ export function KanbanCard({ card, onClick }: KanbanCardProps) {
           {(card.assignees || []).length > 3 && (
             <div className="w-5 h-5 rounded-full bg-[#27272a] border border-[#0f0f11] flex items-center justify-center">
               <span className="text-[8px] font-medium text-[#71717a]">
-                +{card.assignees.length - 3}
+                +{(card.assignees || []).length - 3}
               </span>
             </div>
           )}
@@ -132,7 +132,7 @@ export function KanbanCard({ card, onClick }: KanbanCardProps) {
         {(card.comments || []).length > 0 && (
           <div className="flex items-center gap-1 text-[#52525b]">
             <MessageSquare className="w-3 h-3" strokeWidth={1.5} />
-            <span className="text-[10px]">{card.comments.length}</span>
+            <span className="text-[10px]">{(card.comments || []).length}</span>
           </div>
         )}
       </div>

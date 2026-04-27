@@ -64,6 +64,11 @@ export default function DeptDetailPage() {
     }
   }, [dropdownBoardId])
 
+  // Reset selected board when slug changes to avoid stale state
+  useEffect(() => {
+    setSelectedBoardId(null)
+  }, [slug])
+
   // 1. Fetch department by slug
   useEffect(() => {
     if (!slug) return

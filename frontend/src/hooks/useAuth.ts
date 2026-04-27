@@ -14,7 +14,10 @@ export function useAuth({ required = false }: UseAuthOptions = {}) {
 
   useEffect(() => {
     if (token && !user && !loading) {
-      fetchMe();
+      fetchMe().catch(() => {
+        // fetchMe already clears token on failure in the store;
+        // no additional handling needed here.
+      });
     }
   }, [token, user, loading, fetchMe]);
 
@@ -24,7 +27,8 @@ export function useAuth({ required = false }: UseAuthOptions = {}) {
     }
   }, [required, token, loading, router]);
 
-  const isAdmin = user?.orgRole === "admin";
+  const orgRole = user?.orgRole ?? "user";
+  const isAdmin = orgRole === "admin" || orgRole === "super_admin" || orgRole === "org_admin";
 
   return { user, loading, isAdmin };
 }

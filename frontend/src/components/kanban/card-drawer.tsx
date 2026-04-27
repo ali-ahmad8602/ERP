@@ -164,7 +164,7 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
     setSaveError("")
   }
 
-  const allAttachments = [...card.attachments, ...localAttachments]
+  const allAttachments = [...(card.attachments || []), ...(localAttachments || [])]
 
   return (
     <>
@@ -415,7 +415,7 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
                 </h4>
                 {(card.comments || []).length > 0 ? (
                   <div className="space-y-3">
-                    {card.comments.map((comment) => (
+                    {(card.comments || []).map((comment) => (
                       <div key={comment.id} className="flex gap-2.5">
                         <div className="w-6 h-6 rounded-full bg-[#27272a] flex items-center justify-center shrink-0">
                           <span className="text-[9px] font-medium text-[#a1a1aa]">{comment.author.initials}</span>

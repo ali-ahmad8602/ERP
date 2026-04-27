@@ -18,6 +18,7 @@ export function BoardSettingsPanel({ board, onClose, onBoardUpdated, onBoardDele
   const [saving, setSaving] = useState(false)
   const [newColumnName, setNewColumnName] = useState("")
   const [editingColumns, setEditingColumns] = useState<{ _id: string; name: string }[]>([])
+  const [columnError, setColumnError] = useState("")
 
   useEffect(() => {
     if (board) {
@@ -67,32 +68,35 @@ export function BoardSettingsPanel({ board, onClose, onBoardUpdated, onBoardDele
     const col = editingColumns.find((c) => c._id === colId)
     const original = board.columns?.find((c: any) => c._id === colId)
     if (!col || !original || col.name === original.name) return
+    setColumnError("")
     try {
       await boardApi.updateColumn(board._id, colId, { name: col.name })
       onBoardUpdated()
-    } catch (err) {
-      console.error("Failed to rename column:", err)
+    } catch (err: any) {
+      setColumnError(err.message || "Failed to rename column")
     }
   }
 
   const handleDeleteColumn = async (colId: string) => {
     if ((board.columns || []).length <= 1) return
+    setColumnError("")
     try {
       await boardApi.deleteColumn(board._id, colId)
       onBoardUpdated()
-    } catch (err) {
-      console.error("Failed to delete column:", err)
+    } catch (err: any) {
+      setColumnError(err.message || "Failed to delete column")
     }
   }
 
   const handleAddColumn = async () => {
     if (!newColumnName.trim()) return
+    setColumnError("")
     try {
       await boardApi.addColumn(board._id, newColumnName.trim())
       setNewColumnName("")
       onBoardUpdated()
-    } catch (err) {
-      console.error("Failed to add column:", err)
+    } catch (err: any) {
+      setColumnError(err.message || "Failed to add column")
     }
   }
 
@@ -206,6 +210,9 @@ export function BoardSettingsPanel({ board, onClose, onBoardUpdated, onBoardDele
                 </div>
               ))}
             </div>
+            {columnError && (
+              <p className="text-[11px] text-[#ef4444] mt-2">{columnError}</p>
+            )}
             <div className="flex items-center gap-2 mt-3">
               <input
                 value={newColumnName}

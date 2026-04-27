@@ -72,8 +72,13 @@ export const useBoardStore = create<BoardState>()((set, get) => ({
   },
 
   createCard: async (data) => {
-    const { card } = await cardApi.create(data);
-    set((state) => ({ cards: [...state.cards, card] }));
+    try {
+      const { card } = await cardApi.create(data);
+      set((state) => ({ cards: [...state.cards, card] }));
+    } catch (err) {
+      console.error("Failed to create card:", err);
+      throw err;
+    }
   },
 
   moveCard: async (cardId: string, columnId: string, order: number) => {

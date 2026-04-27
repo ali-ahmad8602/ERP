@@ -46,6 +46,25 @@ export function KanbanBoard({ columns: propColumns, cards: propCards, onCardMove
   const [autoOpened, setAutoOpened] = useState(false)
   const [cardNotFound, setCardNotFound] = useState(false)
 
+  // Clear selectedCard if it no longer exists in the cards array
+  useEffect(() => {
+    if (selectedCard && cards.length > 0) {
+      const stillExists = cards.find(c => c.id === selectedCard.id)
+      if (!stillExists) {
+        setSelectedCard(null)
+      } else if (stillExists !== selectedCard) {
+        // Update the selected card with fresh data
+        setSelectedCard(stillExists)
+      }
+    }
+  }, [cards]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reset autoOpened when autoOpenCardId changes
+  useEffect(() => {
+    setAutoOpened(false)
+    setCardNotFound(false)
+  }, [autoOpenCardId])
+
   // Auto-open card from URL param
   useEffect(() => {
     if (autoOpenCardId && !autoOpened && cards.length > 0) {

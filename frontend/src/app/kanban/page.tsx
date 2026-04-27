@@ -7,6 +7,7 @@ import { KanbanBoard } from "@/components/kanban/kanban-board"
 import { useAuth } from "@/hooks/useAuth"
 import { useBoardStore } from "@/store/board.store"
 import { deptApi } from "@/lib/api"
+import { LayoutGrid } from "lucide-react"
 import type { Card, ColumnId } from "@/components/kanban/types"
 
 export default function KanbanPage() {
@@ -24,6 +25,7 @@ export default function KanbanPage() {
   } = useBoardStore()
 
   const [ready, setReady] = useState(false)
+  const [empty, setEmpty] = useState(false)
   const [selectedCard, setSelectedCard] = useState<Card | null>(null)
 
   // Kanban filters
@@ -37,11 +39,13 @@ export default function KanbanPage() {
     async function init() {
       try {
         const { departments } = await deptApi.list()
-        if (cancelled || !departments.length) return
+        if (cancelled) return
+        if (!departments || !departments.length) { setEmpty(true); return }
 
         const firstDept = departments[0]
         const boards = await fetchBoards(firstDept._id)
-        if (cancelled || !boards.length) return
+        if (cancelled) return
+        if (!boards || !boards.length) { setEmpty(true); return }
 
         const firstBoard = boards[0]
         await Promise.all([fetchBoard(firstBoard._id), fetchCards(firstBoard._id)])
@@ -155,7 +159,23 @@ export default function KanbanPage() {
     }
   }
 
-  const isLoading = authLoading || loadingBoards || loadingCards || !ready
+  const isLoading = authLoading || loadingBoards || loadingCards || (!ready && !empty)
+
+  if (empty) {
+    return (
+      <div className="min-h-screen bg-[#09090b]">
+        <Sidebar activeRoute="kanban" />
+        <KanbanTopbar />
+        <main className="ml-[220px] pt-12 h-screen">
+          <div className="flex flex-col items-center justify-center h-[60vh] text-center">
+            <LayoutGrid className="w-8 h-8 text-[#3f3f46] mb-3" strokeWidth={1.5} />
+            <p className="text-[13px] text-[#71717a] mb-1">No departments or boards found</p>
+            <p className="text-[11px] text-[#3f3f46]">Create a department first to start tracking work</p>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#09090b]">
