@@ -1,6 +1,7 @@
 "use client"
 
 import { Filter, ArrowUpDown, MoreHorizontal } from "lucide-react"
+import type { DeptStats } from "@/types"
 
 interface Department {
   id: string
@@ -11,7 +12,7 @@ interface Department {
   value: string
 }
 
-const departments: Department[] = [
+const defaultDepartments: Department[] = [
   { id: "1", name: "Finance", members: 12, status: "active", progress: 78, value: "$124K" },
   { id: "2", name: "Engineering", members: 28, status: "on-track", progress: 92, value: "$340K" },
   { id: "3", name: "Marketing", members: 8, status: "at-risk", progress: 45, value: "$56K" },
@@ -20,6 +21,30 @@ const departments: Department[] = [
   { id: "6", name: "HR", members: 6, status: "planning", progress: 88, value: "$42K" },
 ]
 
+function mapDeptStats(stats: DeptStats[]): Department[] {
+  return stats.map((s) => {
+    const total = s.totalCards || 1
+    const progress = Math.round((s.doneCount / total) * 100)
+    let status: Department["status"] = "active"
+    if (s.overdueCount > 0) status = "at-risk"
+    else if (progress >= 80) status = "on-track"
+    else if (s.inProgressCount === 0 && s.doneCount === 0) status = "planning"
+    return {
+      id: s.department._id,
+      name: s.department.name,
+      members: s.memberCount,
+      status,
+      progress,
+      value: `${s.totalCards} tasks`,
+    }
+  })
+}
+
+interface DepartmentsTableProps {
+  deptStats?: DeptStats[]
+  loading?: boolean
+}
+
 const statusConfig = {
   active: { label: "Active", bg: "bg-[#3b82f6]/15", text: "text-[#3b82f6]" },
   "on-track": { label: "On track", bg: "bg-[#22c55e]/15", text: "text-[#22c55e]" },
@@ -27,7 +52,31 @@ const statusConfig = {
   planning: { label: "Planning", bg: "bg-[#71717a]/15", text: "text-[#71717a]" },
 }
 
-export function DepartmentsTable() {
+export function DepartmentsTable({ deptStats, loading }: DepartmentsTableProps) {
+  const departments = deptStats && deptStats.length > 0 ? mapDeptStats(deptStats) : defaultDepartments
+
+  if (loading) {
+    return (
+      <div className="bg-[#0f0f11] border border-[#ffffff14] rounded-lg overflow-hidden">
+        <div className="px-4 py-2.5 border-b border-[#ffffff14] flex items-center justify-between">
+          <h2 className="text-[13px] font-medium text-[#fafafa]">Departments</h2>
+        </div>
+        <div className="divide-y divide-[#ffffff08]">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div key={i} className="px-4 py-3 flex items-center gap-4">
+              <div className="h-3.5 w-3.5 bg-[#27272a] rounded animate-pulse" />
+              <div className="h-3 w-24 bg-[#27272a] rounded animate-pulse" />
+              <div className="h-3 w-8 bg-[#27272a] rounded animate-pulse ml-auto" />
+              <div className="h-4 w-14 bg-[#27272a] rounded-full animate-pulse" />
+              <div className="h-1 w-24 bg-[#27272a] rounded animate-pulse" />
+              <div className="h-3 w-12 bg-[#27272a] rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="bg-[#0f0f11] border border-[#ffffff14] rounded-lg overflow-hidden">
       {/* Header with title and actions */}

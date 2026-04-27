@@ -1,8 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Eye, EyeOff, ChevronDown } from "lucide-react"
+import { useAuthStore } from "@/store/auth.store"
 
 const roles = [
   { value: "admin", label: "Administrator" },
@@ -20,9 +22,12 @@ interface FormErrors {
 }
 
 export default function SignupPage() {
+  const router = useRouter()
+  const register = useAuthStore((s) => s.register)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [apiError, setApiError] = useState("")
   const [errors, setErrors] = useState<FormErrors>({})
   const [formData, setFormData] = useState({
     name: "",
@@ -69,10 +74,16 @@ export default function SignupPage() {
     e.preventDefault()
     if (!validateForm()) return
 
+    setApiError("")
     setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setIsLoading(false)
+    try {
+      await register(formData.name, formData.email, formData.password)
+      router.push("/login")
+    } catch (err: any) {
+      setApiError(err.message || "Registration failed")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleChange = (field: keyof typeof formData, value: string) => {
@@ -101,6 +112,13 @@ export default function SignupPage() {
             <h1 className="text-[16px] font-semibold text-[#fafafa] mb-1">Create account</h1>
             <p className="text-[11px] text-[#52525b]">Start using InvoiceMate ERP</p>
           </div>
+
+          {/* API Error */}
+          {apiError && (
+            <div className="mb-4 px-3 py-2 rounded-md bg-[#ef4444]/10 border border-[#ef4444]/20">
+              <p className="text-[11px] text-[#ef4444]">{apiError}</p>
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">

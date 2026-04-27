@@ -1,5 +1,7 @@
 "use client"
 
+import type { ActivityEntry } from "@/types"
+
 interface ActivityItem {
   id: string
   initials: string
@@ -14,7 +16,7 @@ interface ActivityGroup {
   items: ActivityItem[]
 }
 
-const activityData: ActivityGroup[] = [
+const defaultActivityData: ActivityGroup[] = [
   {
     label: "Today",
     items: [
@@ -34,7 +36,84 @@ const activityData: ActivityGroup[] = [
   },
 ]
 
-export function ActivityFeed() {
+function getInitials(name: string): string {
+  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
+}
+
+function timeAgo(dateStr: string): string {
+  const now = Date.now()
+  const diff = now - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return "now"
+  if (mins < 60) return `${mins}m`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h`
+  const days = Math.floor(hrs / 24)
+  return `${days}d`
+}
+
+function groupActivities(entries: ActivityEntry[]): ActivityGroup[] {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+
+  const todayItems: ActivityItem[] = []
+  const yesterdayItems: ActivityItem[] = []
+  const olderItems: ActivityItem[] = []
+
+  for (const e of entries) {
+    const d = new Date(e.createdAt)
+    const item: ActivityItem = {
+      id: e._id,
+      initials: getInitials(e.user.name),
+      name: e.user.name,
+      action: e.action,
+      target: e.entityTitle,
+      time: timeAgo(e.createdAt),
+    }
+    if (d >= today) todayItems.push(item)
+    else if (d >= yesterday) yesterdayItems.push(item)
+    else olderItems.push(item)
+  }
+
+  const groups: ActivityGroup[] = []
+  if (todayItems.length > 0) groups.push({ label: "Today", items: todayItems })
+  if (yesterdayItems.length > 0) groups.push({ label: "Yesterday", items: yesterdayItems })
+  if (olderItems.length > 0) groups.push({ label: "Earlier", items: olderItems })
+  return groups
+}
+
+interface ActivityFeedProps {
+  activities?: ActivityEntry[]
+  loading?: boolean
+}
+
+export function ActivityFeed({ activities, loading }: ActivityFeedProps) {
+  if (loading) {
+    return (
+      <div className="bg-[#0f0f11] border border-[#ffffff14] rounded-lg overflow-hidden flex flex-col h-full">
+        <div className="px-4 py-3 border-b border-[#ffffff14] shrink-0">
+          <h2 className="text-[13px] font-medium text-[#fafafa]">Recent Activity</h2>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex items-start gap-2.5 px-4 py-2.5 border-b border-[#ffffff08]">
+              <div className="w-[2px] h-5 bg-[#27272a] rounded-full shrink-0 mt-0.5" />
+              <div className="w-5 h-5 rounded-full bg-[#27272a] animate-pulse shrink-0" />
+              <div className="flex-1">
+                <div className="h-3 w-full bg-[#27272a] rounded animate-pulse" />
+              </div>
+              <div className="h-2.5 w-6 bg-[#27272a] rounded animate-pulse shrink-0" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const activityData = activities && activities.length > 0 ? groupActivities(activities) : defaultActivityData
+
   return (
     <div className="bg-[#0f0f11] border border-[#ffffff14] rounded-lg overflow-hidden flex flex-col h-full">
       {/* Header */}

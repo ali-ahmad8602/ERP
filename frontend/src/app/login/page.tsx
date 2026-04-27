@@ -1,19 +1,33 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Eye, EyeOff } from "lucide-react"
+import { useAuthStore } from "@/store/auth.store"
 
 export default function LoginPage() {
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+  const login = useAuthStore((s) => s.login)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError("")
     setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setIsLoading(false)
+    const form = e.target as HTMLFormElement
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value
+    try {
+      await login(email, password)
+      router.push("/")
+    } catch (err: any) {
+      setError(err.message || "Login failed")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -34,6 +48,13 @@ export default function LoginPage() {
             <h1 className="text-[16px] font-semibold text-[#fafafa] mb-1">Welcome back</h1>
             <p className="text-[11px] text-[#52525b]">Sign in to InvoiceMate</p>
           </div>
+
+          {/* Error */}
+          {error && (
+            <div className="mb-4 px-3 py-2 rounded-md bg-[#ef4444]/10 border border-[#ef4444]/20">
+              <p className="text-[11px] text-[#ef4444]">{error}</p>
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
