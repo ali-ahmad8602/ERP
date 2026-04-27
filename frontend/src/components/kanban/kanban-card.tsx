@@ -3,12 +3,22 @@
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { MessageSquare } from "lucide-react"
-import type { Card, Priority } from "./types"
+import type { Card } from "./types"
 
-const priorityConfig: Record<Priority, { label: string; bg: string; text: string }> = {
-  low: { label: "Low", bg: "bg-[#71717a]/15", text: "text-[#71717a]" },
-  medium: { label: "Medium", bg: "bg-[#f59e0b]/15", text: "text-[#f59e0b]" },
+const PRIORITY_STYLES: Record<string, { label: string; bg: string; text: string }> = {
+  urgent: { label: "Urgent", bg: "bg-[#ef4444]/15", text: "text-[#ef4444]" },
   high: { label: "High", bg: "bg-[#ef4444]/15", text: "text-[#ef4444]" },
+  medium: { label: "Medium", bg: "bg-[#f59e0b]/15", text: "text-[#f59e0b]" },
+  low: { label: "Low", bg: "bg-[#71717a]/15", text: "text-[#71717a]" },
+  none: { label: "None", bg: "bg-[#71717a]/10", text: "text-[#52525b]" },
+}
+
+const DEFAULT_PRIORITY = PRIORITY_STYLES.low
+
+function getPriority(val: string | undefined | null) {
+  if (!val) return DEFAULT_PRIORITY
+  const key = val.toLowerCase().trim()
+  return PRIORITY_STYLES[key] || DEFAULT_PRIORITY
 }
 
 interface KanbanCardProps {
@@ -31,7 +41,7 @@ export function KanbanCard({ card, onClick }: KanbanCardProps) {
     transition,
   }
 
-  const priority = priorityConfig[card.priority]
+  const priority = getPriority(card.priority)
 
   return (
     <div
@@ -41,25 +51,24 @@ export function KanbanCard({ card, onClick }: KanbanCardProps) {
       {...listeners}
       onClick={onClick}
       className={`bg-[#0f0f11] border rounded-lg p-3 cursor-pointer transition-colors ${
-        isDragging 
-          ? "border-[#3b82f6] opacity-50" 
+        isDragging
+          ? "border-[#3b82f6] opacity-50"
           : "border-[#27272a] hover:border-[#3f3f46]"
       }`}
     >
-      {/* Title */}
       <p className="text-[13px] font-medium text-[#fafafa] leading-snug mb-2">
         {card.title}
       </p>
 
-      {/* Priority + Due Date */}
       <div className="flex items-center gap-2 mb-3">
         <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ${priority.bg} ${priority.text}`}>
           {priority.label}
         </span>
-        <span className="text-[11px] text-[#52525b]">{card.dueDate}</span>
+        {card.dueDate && (
+          <span className="text-[11px] text-[#52525b]">{card.dueDate}</span>
+        )}
       </div>
 
-      {/* Reference / Amount */}
       {(card.referenceId || card.amount) && (
         <div className="flex items-center gap-2 mb-3">
           {card.referenceId && (
@@ -71,11 +80,9 @@ export function KanbanCard({ card, onClick }: KanbanCardProps) {
         </div>
       )}
 
-      {/* Assignees + Comments */}
       <div className="flex items-center justify-between">
-        {/* Assignees */}
         <div className="flex -space-x-1.5">
-          {card.assignees.slice(0, 3).map((assignee) => (
+          {(card.assignees || []).slice(0, 3).map((assignee) => (
             <div
               key={assignee.id}
               className="w-5 h-5 rounded-full bg-[#27272a] border border-[#0f0f11] flex items-center justify-center"
@@ -86,7 +93,7 @@ export function KanbanCard({ card, onClick }: KanbanCardProps) {
               </span>
             </div>
           ))}
-          {card.assignees.length > 3 && (
+          {(card.assignees || []).length > 3 && (
             <div className="w-5 h-5 rounded-full bg-[#27272a] border border-[#0f0f11] flex items-center justify-center">
               <span className="text-[8px] font-medium text-[#71717a]">
                 +{card.assignees.length - 3}
@@ -95,8 +102,7 @@ export function KanbanCard({ card, onClick }: KanbanCardProps) {
           )}
         </div>
 
-        {/* Comments */}
-        {card.comments.length > 0 && (
+        {(card.comments || []).length > 0 && (
           <div className="flex items-center gap-1 text-[#52525b]">
             <MessageSquare className="w-3 h-3" strokeWidth={1.5} />
             <span className="text-[10px]">{card.comments.length}</span>

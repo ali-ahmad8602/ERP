@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useRef } from "react"
-import { X, FileText, Paperclip, Calendar, Users, Send, Upload } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
+import { X, FileText, Paperclip, Calendar, Users, Send, Upload, Save, RotateCcw } from "lucide-react"
 import { cardApi } from "@/lib/api"
 import { usePermissions } from "@/hooks/usePermissions"
 import { useAuthStore } from "@/store/auth.store"
@@ -29,10 +29,17 @@ function formatRelativeTime(dateStr: string): string {
   return date.toLocaleDateString()
 }
 
-const priorityConfig: Record<Priority, { label: string; bg: string; text: string }> = {
-  low: { label: "Low", bg: "bg-[#71717a]/15", text: "text-[#71717a]" },
-  medium: { label: "Medium", bg: "bg-[#f59e0b]/15", text: "text-[#f59e0b]" },
+const PRIORITY_STYLES: Record<string, { label: string; bg: string; text: string }> = {
+  urgent: { label: "Urgent", bg: "bg-[#ef4444]/15", text: "text-[#ef4444]" },
   high: { label: "High", bg: "bg-[#ef4444]/15", text: "text-[#ef4444]" },
+  medium: { label: "Medium", bg: "bg-[#f59e0b]/15", text: "text-[#f59e0b]" },
+  low: { label: "Low", bg: "bg-[#71717a]/15", text: "text-[#71717a]" },
+  none: { label: "None", bg: "bg-[#71717a]/10", text: "text-[#52525b]" },
+}
+
+function getPriority(val: string | undefined | null) {
+  if (!val) return PRIORITY_STYLES.low
+  return PRIORITY_STYLES[val.toLowerCase().trim()] || PRIORITY_STYLES.low
 }
 
 const statusLabels: Record<string, { label: string; bg: string; text: string }> = {
@@ -50,9 +57,10 @@ interface CardDrawerProps {
   onApprove?: (cardId: string) => void
   onReject?: (cardId: string, reason: string) => void
   onAttachmentUploaded?: (cardId: string) => void
+  onCardUpdated?: (cardId: string, data: any) => void
 }
 
-export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAttachmentUploaded }: CardDrawerProps) {
+export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAttachmentUploaded, onCardUpdated }: CardDrawerProps) {
   const [commentText, setCommentText] = useState("")
   const [uploading, setUploading] = useState(false)
   const [localAttachments, setLocalAttachments] = useState<Card["attachments"]>([])
@@ -61,33 +69,47 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
   const { isAdmin } = usePermissions()
   const authUser = useAuthStore((s) => s.user)
 
+  // Edit state
+  const [editing, setEditing] = useState(false)
+  const [editTitle, setEditTitle] = useState("")
+  const [editDescription, setEditDescription] = useState("")
+  const [editPriority, setEditPriority] = useState("")
+  const [editDueDate, setEditDueDate] = useState("")
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState("")
+
+  // Sync edit state when card changes
+  useEffect(() => {
+    if (card) {
+      setEditTitle(card.title)
+      setEditDescription(card.description || "")
+      setEditPriority(card.priority || "medium")
+      setEditDueDate(card.dueDate || "")
+      setEditing(false)
+      setSaveError("")
+      setLocalAttachments([])
+      setActiveTab("details")
+    }
+  }, [card?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!card) return null
 
   const approvers: string[] = (card as any).approval?.approvers ?? []
   const canApproveCard = isAdmin || approvers.includes(authUser?._id ?? "")
 
-  const priority = priorityConfig[card.priority]
+  const priority = getPriority(card.priority)
   const status = statusLabels[card.columnId] || { label: card.columnId, bg: "bg-[#71717a]/15", text: "text-[#71717a]" }
 
   const handleSendComment = () => {
     if (!commentText.trim()) return
-    if (onComment) {
-      onComment(card.id, commentText.trim())
-    }
+    if (onComment) onComment(card.id, commentText.trim())
     setCommentText("")
   }
 
-  const handleApprove = () => {
-    if (onApprove) {
-      onApprove(card.id)
-    }
-  }
-
+  const handleApprove = () => { if (onApprove) onApprove(card.id) }
   const handleReject = () => {
     const reason = window.prompt("Rejection reason:")
-    if (reason && onReject) {
-      onReject(card.id, reason)
-    }
+    if (reason && onReject) onReject(card.id, reason)
   }
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,7 +118,6 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
     setUploading(true)
     try {
       const data = await cardApi.uploadAttachment(card.id, file)
-      // Optimistically add attachment to local list
       const newAtt = data.attachment || { _id: Date.now().toString(), name: file.name, size: `${Math.round(file.size / 1024)} KB`, type: file.name.split(".").pop() || "" }
       setLocalAttachments((prev) => [...prev, { id: newAtt._id || newAtt.id, name: newAtt.name, size: newAtt.size || "", type: newAtt.type || "" }])
       if (onAttachmentUploaded) onAttachmentUploaded(card.id)
@@ -108,24 +129,58 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
     }
   }
 
+  const handleSave = async () => {
+    setSaving(true)
+    setSaveError("")
+    try {
+      const updates: any = {}
+      if (editTitle !== card.title) updates.title = editTitle
+      if (editDescription !== (card.description || "")) updates.description = editDescription
+      if (editPriority !== card.priority) updates.priority = editPriority
+      if (editDueDate !== card.dueDate) updates.dueDate = editDueDate || undefined
+
+      if (Object.keys(updates).length > 0) {
+        await cardApi.update(card.id, updates)
+        if (onCardUpdated) onCardUpdated(card.id, updates)
+      }
+      setEditing(false)
+    } catch (err: any) {
+      setSaveError(err.message || "Failed to save")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditTitle(card.title)
+    setEditDescription(card.description || "")
+    setEditPriority(card.priority || "medium")
+    setEditDueDate(card.dueDate || "")
+    setEditing(false)
+    setSaveError("")
+  }
+
   const allAttachments = [...card.attachments, ...localAttachments]
 
   return (
     <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/50 z-40"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
 
-      {/* Drawer */}
       <div className="fixed right-0 top-0 h-screen w-[480px] bg-[#09090b] border-l border-[#27272a] z-50 flex flex-col">
         {/* Header */}
         <div className="flex items-start justify-between p-4 border-b border-[#27272a]">
           <div className="flex-1 pr-4">
-            <h2 className="text-[16px] font-semibold text-[#fafafa] leading-snug mb-2">
-              {card.title}
-            </h2>
+            {editing ? (
+              <input
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="w-full text-[16px] font-semibold text-[#fafafa] bg-[#0f0f11] border border-[#27272a] rounded-md px-2 py-1 outline-none focus:border-[#3b82f6] mb-1"
+              />
+            ) : (
+              <h2 className="text-[16px] font-semibold text-[#fafafa] leading-snug mb-2">
+                {card.title}
+              </h2>
+            )}
             {card.referenceId && (
               <span className="text-[11px] text-[#52525b]">{card.referenceId}</span>
             )}
@@ -134,6 +189,14 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
             <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ${status.bg} ${status.text}`}>
               {status.label}
             </span>
+            {!editing && (
+              <button
+                onClick={() => setEditing(true)}
+                className="h-7 px-2.5 rounded-md text-[11px] text-[#a1a1aa] bg-[#27272a] hover:bg-[#3f3f46] transition-colors"
+              >
+                Edit
+              </button>
+            )}
             <button
               onClick={onClose}
               className="w-8 h-8 flex items-center justify-center rounded-md text-[#52525b] hover:text-[#a1a1aa] hover:bg-[#ffffff08] transition-colors"
@@ -145,42 +208,74 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
 
         {/* Meta Row */}
         <div className="flex items-center gap-4 px-4 py-3 border-b border-[#ffffff0a]">
-          {/* Assignees */}
           <div className="flex items-center gap-2">
             <Users className="w-3.5 h-3.5 text-[#52525b]" strokeWidth={1.5} />
             <div className="flex -space-x-1">
-              {card.assignees.map((assignee) => (
-                <div
-                  key={assignee.id}
-                  className="w-6 h-6 rounded-full bg-[#27272a] border-2 border-[#09090b] flex items-center justify-center"
-                  title={assignee.name}
-                >
-                  <span className="text-[9px] font-medium text-[#a1a1aa]">
-                    {assignee.initials}
-                  </span>
+              {(card.assignees || []).map((assignee) => (
+                <div key={assignee.id} className="w-6 h-6 rounded-full bg-[#27272a] border-2 border-[#09090b] flex items-center justify-center" title={assignee.name}>
+                  <span className="text-[9px] font-medium text-[#a1a1aa]">{assignee.initials}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Due Date */}
-          <div className="flex items-center gap-1.5 text-[#71717a]">
-            <Calendar className="w-3.5 h-3.5" strokeWidth={1.5} />
-            <span className="text-[11px]">{card.dueDate}</span>
-          </div>
+          {editing ? (
+            <>
+              <input
+                type="date"
+                value={editDueDate}
+                onChange={(e) => setEditDueDate(e.target.value)}
+                className="h-7 px-2 bg-[#0f0f11] border border-[#27272a] rounded-md text-[11px] text-[#a1a1aa] outline-none focus:border-[#3b82f6]"
+              />
+              <select
+                value={editPriority}
+                onChange={(e) => setEditPriority(e.target.value)}
+                className="h-7 px-2 bg-[#0f0f11] border border-[#27272a] rounded-md text-[10px] text-[#a1a1aa] outline-none focus:border-[#3b82f6]"
+              >
+                <option value="urgent">Urgent</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-1.5 text-[#71717a]">
+                <Calendar className="w-3.5 h-3.5" strokeWidth={1.5} />
+                <span className="text-[11px]">{card.dueDate || "No date"}</span>
+              </div>
+              <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ${priority.bg} ${priority.text}`}>
+                {priority.label}
+              </span>
+            </>
+          )}
 
-          {/* Priority */}
-          <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ${priority.bg} ${priority.text}`}>
-            {priority.label}
-          </span>
-
-          {/* Amount */}
           {card.amount && (
-            <span className="text-[12px] font-medium text-[#fafafa] ml-auto">
-              {card.amount}
-            </span>
+            <span className="text-[12px] font-medium text-[#fafafa] ml-auto">{card.amount}</span>
           )}
         </div>
+
+        {/* Save/Cancel bar when editing */}
+        {editing && (
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-[#ffffff0a] bg-[#0f0f11]">
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="h-7 px-3 rounded-md bg-[#3b82f6] text-[11px] font-medium text-white hover:bg-[#2563eb] disabled:opacity-50 transition-colors flex items-center gap-1.5"
+            >
+              <Save className="w-3 h-3" strokeWidth={1.5} />
+              {saving ? "Saving..." : "Save"}
+            </button>
+            <button
+              onClick={handleCancelEdit}
+              className="h-7 px-3 rounded-md bg-[#27272a] text-[11px] text-[#a1a1aa] hover:bg-[#3f3f46] transition-colors flex items-center gap-1.5"
+            >
+              <RotateCcw className="w-3 h-3" strokeWidth={1.5} />
+              Cancel
+            </button>
+            {saveError && <span className="text-[11px] text-[#ef4444]">{saveError}</span>}
+          </div>
+        )}
 
         {/* Tab Bar */}
         <div className="flex border-b border-[#ffffff0a]">
@@ -189,15 +284,11 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`px-3 py-2 text-[12px] transition-colors relative ${
-                activeTab === tab
-                  ? "text-[#fafafa]"
-                  : "text-[#52525b] hover:text-[#a1a1aa]"
+                activeTab === tab ? "text-[#fafafa]" : "text-[#52525b] hover:text-[#a1a1aa]"
               }`}
             >
               {tab === "details" ? "Details" : "Activity"}
-              {activeTab === tab && (
-                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#3b82f6]" />
-              )}
+              {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#3b82f6]" />}
             </button>
           ))}
         </div>
@@ -208,42 +299,40 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
             <>
               {/* Description */}
               <div className="px-4 py-4 border-b border-[#ffffff0a]">
-                <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider mb-2">
-                  Description
-                </h4>
-                <p className="text-[13px] text-[#a1a1aa] leading-relaxed">
-                  {card.description || "No description provided."}
-                </p>
+                <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider mb-2">Description</h4>
+                {editing ? (
+                  <textarea
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    rows={4}
+                    className="w-full bg-[#0f0f11] border border-[#27272a] rounded-md px-3 py-2 text-[13px] text-[#a1a1aa] outline-none focus:border-[#3b82f6] resize-none"
+                    placeholder="Add a description..."
+                  />
+                ) : (
+                  <p className="text-[13px] text-[#a1a1aa] leading-relaxed">
+                    {card.description || "No description provided."}
+                  </p>
+                )}
               </div>
 
               {/* Attachments */}
               <div className="px-4 py-4 border-b border-[#ffffff0a]">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider">
-                    Attachments
-                  </h4>
+                  <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider">Attachments</h4>
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
-                    className="flex items-center gap-1 h-6 px-2 rounded bg-[#27272a] text-[10px] font-medium text-[#a1a1aa] hover:bg-[#3f3f46] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex items-center gap-1 h-6 px-2 rounded bg-[#27272a] text-[10px] font-medium text-[#a1a1aa] hover:bg-[#3f3f46] transition-colors disabled:opacity-40"
                   >
                     <Upload className="w-3 h-3" strokeWidth={1.5} />
                     {uploading ? "Uploading..." : "Upload"}
                   </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    onChange={handleUpload}
-                    className="hidden"
-                  />
+                  <input ref={fileInputRef} type="file" onChange={handleUpload} className="hidden" />
                 </div>
                 {allAttachments.length > 0 ? (
                   <div className="space-y-1">
                     {allAttachments.map((file) => (
-                      <div
-                        key={file.id}
-                        className="flex items-center gap-3 px-3 py-2 rounded-md bg-[#0f0f11] border border-[#27272a] hover:border-[#3f3f46] transition-colors cursor-pointer"
-                      >
+                      <div key={file.id} className="flex items-center gap-3 px-3 py-2 rounded-md bg-[#0f0f11] border border-[#27272a] hover:border-[#3f3f46] transition-colors cursor-pointer">
                         <FileText className="w-4 h-4 text-[#52525b]" strokeWidth={1.5} />
                         <div className="flex-1 min-w-0">
                           <p className="text-[12px] text-[#fafafa] truncate">{file.name}</p>
@@ -261,29 +350,21 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
               {/* Comments */}
               <div className="px-4 py-4 border-b border-[#ffffff0a]">
                 <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider mb-3">
-                  Comments ({card.comments.length})
+                  Comments ({(card.comments || []).length})
                 </h4>
-                {card.comments.length > 0 ? (
+                {(card.comments || []).length > 0 ? (
                   <div className="space-y-3">
                     {card.comments.map((comment) => (
                       <div key={comment.id} className="flex gap-2.5">
                         <div className="w-6 h-6 rounded-full bg-[#27272a] flex items-center justify-center shrink-0">
-                          <span className="text-[9px] font-medium text-[#a1a1aa]">
-                            {comment.author.initials}
-                          </span>
+                          <span className="text-[9px] font-medium text-[#a1a1aa]">{comment.author.initials}</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-0.5">
-                            <span className="text-[12px] font-medium text-[#fafafa]">
-                              {comment.author.name}
-                            </span>
-                            <span className="text-[10px] text-[#3f3f46]">
-                              {comment.createdAt}
-                            </span>
+                            <span className="text-[12px] font-medium text-[#fafafa]">{comment.author.name}</span>
+                            <span className="text-[10px] text-[#3f3f46]">{comment.createdAt}</span>
                           </div>
-                          <p className="text-[12px] text-[#a1a1aa] leading-snug">
-                            {comment.content}
-                          </p>
+                          <p className="text-[12px] text-[#a1a1aa] leading-snug">{comment.content}</p>
                         </div>
                       </div>
                     ))}
@@ -291,48 +372,32 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
                 ) : (
                   <p className="text-[12px] text-[#52525b]">No comments yet</p>
                 )}
-
-                {/* Comment Input */}
                 <div className="flex items-center gap-2 mt-3">
                   <input
                     type="text"
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleSendComment()
-                    }}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleSendComment() }}
                     placeholder="Write a comment..."
                     className="flex-1 h-8 px-3 rounded-[6px] bg-[#0f0f11] border border-[#27272a] text-[12px] text-[#fafafa] placeholder-[#52525b] outline-none focus:border-[#3f3f46] transition-colors"
                   />
                   <button
                     onClick={handleSendComment}
                     disabled={!commentText.trim()}
-                    className="h-8 w-8 flex items-center justify-center rounded-[6px] bg-[#27272a] text-[#a1a1aa] hover:bg-[#3f3f46] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    className="h-8 w-8 flex items-center justify-center rounded-[6px] bg-[#27272a] text-[#a1a1aa] hover:bg-[#3f3f46] disabled:opacity-40 transition-colors"
                   >
                     <Send className="w-3.5 h-3.5" strokeWidth={1.5} />
                   </button>
                 </div>
               </div>
 
-              {/* Approval Section */}
+              {/* Approval */}
               {canApproveCard && (
                 <div className="px-4 py-4">
-                  <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider mb-3">
-                    Approval
-                  </h4>
+                  <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider mb-3">Approval</h4>
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={handleApprove}
-                      className="h-8 px-4 rounded-[6px] bg-[#22c55e] text-[12px] font-medium text-white hover:bg-[#16a34a] transition-colors"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={handleReject}
-                      className="h-8 px-4 rounded-[6px] bg-[#27272a] text-[12px] font-medium text-[#ef4444] hover:bg-[#ef4444]/15 border border-[#27272a] hover:border-[#ef4444]/30 transition-colors"
-                    >
-                      Reject
-                    </button>
+                    <button onClick={handleApprove} className="h-8 px-4 rounded-[6px] bg-[#22c55e] text-[12px] font-medium text-white hover:bg-[#16a34a] transition-colors">Approve</button>
+                    <button onClick={handleReject} className="h-8 px-4 rounded-[6px] bg-[#27272a] text-[12px] font-medium text-[#ef4444] hover:bg-[#ef4444]/15 border border-[#27272a] hover:border-[#ef4444]/30 transition-colors">Reject</button>
                   </div>
                 </div>
               )}
@@ -348,30 +413,19 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
                       <div className="flex gap-2.5 py-2.5">
                         <div className="w-5 h-5 rounded-full bg-[#27272a] flex items-center justify-center shrink-0">
                           <span className="text-[9px] font-medium text-[#a1a1aa]">
-                            {(entry.user?.name ?? "U")
-                              .split(" ")
-                              .map((n: string) => n[0])
-                              .join("")
-                              .toUpperCase()
-                              .slice(0, 2)}
+                            {(entry.user?.name ?? "U").split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)}
                           </span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-[12px] leading-snug">
                             <span className="font-medium text-[#e4e4e7]">{entry.user?.name ?? "Unknown"}</span>{" "}
                             <span className="text-[#52525b]">{entry.action}</span>
-                            {entry.detail && (
-                              <span className="text-[#71717a]"> &mdash; {entry.detail}</span>
-                            )}
+                            {entry.detail && <span className="text-[#71717a]"> &mdash; {entry.detail}</span>}
                           </p>
-                          <p className="text-[10px] text-[#3f3f46] mt-0.5">
-                            {formatRelativeTime(entry.createdAt)}
-                          </p>
+                          <p className="text-[10px] text-[#3f3f46] mt-0.5">{formatRelativeTime(entry.createdAt)}</p>
                         </div>
                       </div>
-                      {idx < arr.length - 1 && (
-                        <div className="border-b border-[#ffffff08]" />
-                      )}
+                      {idx < arr.length - 1 && <div className="border-b border-[#ffffff08]" />}
                     </div>
                   ))}
                 </div>
