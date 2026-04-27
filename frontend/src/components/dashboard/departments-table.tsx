@@ -1,10 +1,12 @@
 "use client"
 
+import Link from "next/link"
 import { Filter, ArrowUpDown, MoreHorizontal } from "lucide-react"
 import type { DeptStats } from "@/types"
 
 interface Department {
   id: string
+  slug: string
   name: string
   members: number
   status: "active" | "on-track" | "at-risk" | "planning"
@@ -13,12 +15,12 @@ interface Department {
 }
 
 const defaultDepartments: Department[] = [
-  { id: "1", name: "Finance", members: 12, status: "active", progress: 78, value: "$124K" },
-  { id: "2", name: "Engineering", members: 28, status: "on-track", progress: 92, value: "$340K" },
-  { id: "3", name: "Marketing", members: 8, status: "at-risk", progress: 45, value: "$56K" },
-  { id: "4", name: "Operations", members: 15, status: "on-track", progress: 83, value: "$98K" },
-  { id: "5", name: "Sales", members: 22, status: "active", progress: 67, value: "$215K" },
-  { id: "6", name: "HR", members: 6, status: "planning", progress: 88, value: "$42K" },
+  { id: "1", slug: "finance", name: "Finance", members: 12, status: "active", progress: 78, value: "$124K" },
+  { id: "2", slug: "engineering", name: "Engineering", members: 28, status: "on-track", progress: 92, value: "$340K" },
+  { id: "3", slug: "marketing", name: "Marketing", members: 8, status: "at-risk", progress: 45, value: "$56K" },
+  { id: "4", slug: "operations", name: "Operations", members: 15, status: "on-track", progress: 83, value: "$98K" },
+  { id: "5", slug: "sales", name: "Sales", members: 22, status: "active", progress: 67, value: "$215K" },
+  { id: "6", slug: "hr", name: "HR", members: 6, status: "planning", progress: 88, value: "$42K" },
 ]
 
 function mapDeptStats(stats: DeptStats[]): Department[] {
@@ -31,6 +33,7 @@ function mapDeptStats(stats: DeptStats[]): Department[] {
     else if (s.inProgressCount === 0 && s.doneCount === 0) status = "planning"
     return {
       id: s.department._id,
+      slug: s.department.slug,
       name: s.department.name,
       members: s.memberCount,
       status,
@@ -115,9 +118,10 @@ export function DepartmentsTable({ deptStats, loading }: DepartmentsTableProps) 
         {departments.map((dept) => {
           const status = statusConfig[dept.status]
           return (
-            <div
+            <Link
               key={dept.id}
-              className="grid grid-cols-[24px_1fr_72px_86px_120px_72px_32px] gap-3 px-4 py-2.5 items-center hover:bg-[#ffffff05] transition-colors group"
+              href={`/dept/${dept.slug}`}
+              className="grid grid-cols-[24px_1fr_72px_86px_120px_72px_32px] gap-3 px-4 py-2.5 items-center hover:bg-[#ffffff05] transition-colors group no-underline"
             >
               <div className="flex items-center justify-center">
                 <input 
@@ -143,7 +147,7 @@ export function DepartmentsTable({ deptStats, loading }: DepartmentsTableProps) 
               <button className="w-6 h-6 flex items-center justify-center rounded text-[#3f3f46] opacity-0 group-hover:opacity-100 hover:text-[#71717a] hover:bg-[#ffffff08] transition-all">
                 <MoreHorizontal className="w-3.5 h-3.5" strokeWidth={1.5} />
               </button>
-            </div>
+            </Link>
           )
         })}
       </div>
