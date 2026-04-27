@@ -17,6 +17,7 @@ import {
   X
 } from "lucide-react"
 import { deptApi } from "@/lib/api"
+import { usePermissions } from "@/hooks/usePermissions"
 
 const navItems = [
   { icon: LayoutDashboard, label: "Overview", href: "/" },
@@ -46,6 +47,7 @@ interface SidebarProps {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function Sidebar({ activeRoute }: SidebarProps = {}) {
   const pathname = usePathname()
+  const { canCreateDept } = usePermissions()
   const [departments, setDepartments] = useState<Department[]>([])
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [newDeptName, setNewDeptName] = useState("")
@@ -136,12 +138,14 @@ export function Sidebar({ activeRoute }: SidebarProps = {}) {
                 <span className="text-[10px] font-medium text-[#52525b] uppercase tracking-wider">
                   Departments
                 </span>
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="w-4 h-4 flex items-center justify-center rounded text-[#52525b] hover:text-[#a1a1aa] hover:bg-[#ffffff08] transition-colors"
-                >
-                  <Plus className="w-3 h-3" strokeWidth={1.5} />
-                </button>
+                {canCreateDept && (
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="w-4 h-4 flex items-center justify-center rounded text-[#52525b] hover:text-[#a1a1aa] hover:bg-[#ffffff08] transition-colors"
+                  >
+                    <Plus className="w-3 h-3" strokeWidth={1.5} />
+                  </button>
+                )}
               </div>
               <div className="space-y-0.5">
                 {departments.map((dept) => {
@@ -172,12 +176,14 @@ export function Sidebar({ activeRoute }: SidebarProps = {}) {
                 <span className="text-[10px] font-medium text-[#52525b] uppercase tracking-wider">
                   Departments
                 </span>
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="w-4 h-4 flex items-center justify-center rounded text-[#52525b] hover:text-[#a1a1aa] hover:bg-[#ffffff08] transition-colors"
-                >
-                  <Plus className="w-3 h-3" strokeWidth={1.5} />
-                </button>
+                {canCreateDept && (
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="w-4 h-4 flex items-center justify-center rounded text-[#52525b] hover:text-[#a1a1aa] hover:bg-[#ffffff08] transition-colors"
+                  >
+                    <Plus className="w-3 h-3" strokeWidth={1.5} />
+                  </button>
+                )}
               </div>
             </div>
           )}

@@ -3,7 +3,31 @@
 import { useState, useRef } from "react"
 import { X, FileText, Paperclip, Calendar, Users, Send, Upload } from "lucide-react"
 import { cardApi } from "@/lib/api"
+import { usePermissions } from "@/hooks/usePermissions"
+import { useAuthStore } from "@/store/auth.store"
 import type { Card, Priority } from "./types"
+
+interface AuditLogEntry {
+  _id: string
+  user: { name: string }
+  action: string
+  detail?: string
+  createdAt: string
+}
+
+function formatRelativeTime(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  if (diffMins < 1) return "just now"
+  if (diffMins < 60) return `${diffMins}m ago`
+  const diffHours = Math.floor(diffMins / 60)
+  if (diffHours < 24) return `${diffHours}h ago`
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffDays < 30) return `${diffDays}d ago`
+  return date.toLocaleDateString()
+}
 
 const priorityConfig: Record<Priority, { label: string; bg: string; text: string }> = {
   low: { label: "Low", bg: "bg-[#71717a]/15", text: "text-[#71717a]" },
@@ -32,9 +56,15 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
   const [commentText, setCommentText] = useState("")
   const [uploading, setUploading] = useState(false)
   const [localAttachments, setLocalAttachments] = useState<Card["attachments"]>([])
+  const [activeTab, setActiveTab] = useState<"details" | "activity">("details")
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const { isAdmin } = usePermissions()
+  const authUser = useAuthStore((s) => s.user)
 
   if (!card) return null
+
+  const approvers: string[] = (card as any).approval?.approvers ?? []
+  const canApproveCard = isAdmin || approvers.includes(authUser?._id ?? "")
 
   const priority = priorityConfig[card.priority]
   const status = statusLabels[card.columnId] || { label: card.columnId, bg: "bg-[#71717a]/15", text: "text-[#71717a]" }
@@ -152,136 +182,204 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
           )}
         </div>
 
+        {/* Tab Bar */}
+        <div className="flex border-b border-[#ffffff0a]">
+          {(["details", "activity"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-3 py-2 text-[12px] transition-colors relative ${
+                activeTab === tab
+                  ? "text-[#fafafa]"
+                  : "text-[#52525b] hover:text-[#a1a1aa]"
+              }`}
+            >
+              {tab === "details" ? "Details" : "Activity"}
+              {activeTab === tab && (
+                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#3b82f6]" />
+              )}
+            </button>
+          ))}
+        </div>
+
         {/* Body */}
         <div className="flex-1 overflow-y-auto">
-          {/* Description */}
-          <div className="px-4 py-4 border-b border-[#ffffff0a]">
-            <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider mb-2">
-              Description
-            </h4>
-            <p className="text-[13px] text-[#a1a1aa] leading-relaxed">
-              {card.description || "No description provided."}
-            </p>
-          </div>
+          {activeTab === "details" && (
+            <>
+              {/* Description */}
+              <div className="px-4 py-4 border-b border-[#ffffff0a]">
+                <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider mb-2">
+                  Description
+                </h4>
+                <p className="text-[13px] text-[#a1a1aa] leading-relaxed">
+                  {card.description || "No description provided."}
+                </p>
+              </div>
 
-          {/* Attachments */}
-          <div className="px-4 py-4 border-b border-[#ffffff0a]">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider">
-                Attachments
-              </h4>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="flex items-center gap-1 h-6 px-2 rounded bg-[#27272a] text-[10px] font-medium text-[#a1a1aa] hover:bg-[#3f3f46] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <Upload className="w-3 h-3" strokeWidth={1.5} />
-                {uploading ? "Uploading..." : "Upload"}
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                onChange={handleUpload}
-                className="hidden"
-              />
-            </div>
-            {allAttachments.length > 0 ? (
-              <div className="space-y-1">
-                {allAttachments.map((file) => (
-                  <div
-                    key={file.id}
-                    className="flex items-center gap-3 px-3 py-2 rounded-md bg-[#0f0f11] border border-[#27272a] hover:border-[#3f3f46] transition-colors cursor-pointer"
+              {/* Attachments */}
+              <div className="px-4 py-4 border-b border-[#ffffff0a]">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider">
+                    Attachments
+                  </h4>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="flex items-center gap-1 h-6 px-2 rounded bg-[#27272a] text-[10px] font-medium text-[#a1a1aa] hover:bg-[#3f3f46] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    <FileText className="w-4 h-4 text-[#52525b]" strokeWidth={1.5} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[12px] text-[#fafafa] truncate">{file.name}</p>
-                      <p className="text-[10px] text-[#52525b]">{file.size}</p>
-                    </div>
-                    <Paperclip className="w-3.5 h-3.5 text-[#3f3f46]" strokeWidth={1.5} />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-[12px] text-[#52525b]">No attachments yet</p>
-            )}
-          </div>
-
-          {/* Comments */}
-          <div className="px-4 py-4 border-b border-[#ffffff0a]">
-            <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider mb-3">
-              Comments ({card.comments.length})
-            </h4>
-            {card.comments.length > 0 ? (
-              <div className="space-y-3">
-                {card.comments.map((comment) => (
-                  <div key={comment.id} className="flex gap-2.5">
-                    <div className="w-6 h-6 rounded-full bg-[#27272a] flex items-center justify-center shrink-0">
-                      <span className="text-[9px] font-medium text-[#a1a1aa]">
-                        {comment.author.initials}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-[12px] font-medium text-[#fafafa]">
-                          {comment.author.name}
-                        </span>
-                        <span className="text-[10px] text-[#3f3f46]">
-                          {comment.createdAt}
-                        </span>
+                    <Upload className="w-3 h-3" strokeWidth={1.5} />
+                    {uploading ? "Uploading..." : "Upload"}
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    onChange={handleUpload}
+                    className="hidden"
+                  />
+                </div>
+                {allAttachments.length > 0 ? (
+                  <div className="space-y-1">
+                    {allAttachments.map((file) => (
+                      <div
+                        key={file.id}
+                        className="flex items-center gap-3 px-3 py-2 rounded-md bg-[#0f0f11] border border-[#27272a] hover:border-[#3f3f46] transition-colors cursor-pointer"
+                      >
+                        <FileText className="w-4 h-4 text-[#52525b]" strokeWidth={1.5} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[12px] text-[#fafafa] truncate">{file.name}</p>
+                          <p className="text-[10px] text-[#52525b]">{file.size}</p>
+                        </div>
+                        <Paperclip className="w-3.5 h-3.5 text-[#3f3f46]" strokeWidth={1.5} />
                       </div>
-                      <p className="text-[12px] text-[#a1a1aa] leading-snug">
-                        {comment.content}
-                      </p>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                ) : (
+                  <p className="text-[12px] text-[#52525b]">No attachments yet</p>
+                )}
               </div>
-            ) : (
-              <p className="text-[12px] text-[#52525b]">No comments yet</p>
-            )}
 
-            {/* Comment Input */}
-            <div className="flex items-center gap-2 mt-3">
-              <input
-                type="text"
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSendComment()
-                }}
-                placeholder="Write a comment..."
-                className="flex-1 h-8 px-3 rounded-[6px] bg-[#0f0f11] border border-[#27272a] text-[12px] text-[#fafafa] placeholder-[#52525b] outline-none focus:border-[#3f3f46] transition-colors"
-              />
-              <button
-                onClick={handleSendComment}
-                disabled={!commentText.trim()}
-                className="h-8 w-8 flex items-center justify-center rounded-[6px] bg-[#27272a] text-[#a1a1aa] hover:bg-[#3f3f46] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                <Send className="w-3.5 h-3.5" strokeWidth={1.5} />
-              </button>
-            </div>
-          </div>
+              {/* Comments */}
+              <div className="px-4 py-4 border-b border-[#ffffff0a]">
+                <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider mb-3">
+                  Comments ({card.comments.length})
+                </h4>
+                {card.comments.length > 0 ? (
+                  <div className="space-y-3">
+                    {card.comments.map((comment) => (
+                      <div key={comment.id} className="flex gap-2.5">
+                        <div className="w-6 h-6 rounded-full bg-[#27272a] flex items-center justify-center shrink-0">
+                          <span className="text-[9px] font-medium text-[#a1a1aa]">
+                            {comment.author.initials}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="text-[12px] font-medium text-[#fafafa]">
+                              {comment.author.name}
+                            </span>
+                            <span className="text-[10px] text-[#3f3f46]">
+                              {comment.createdAt}
+                            </span>
+                          </div>
+                          <p className="text-[12px] text-[#a1a1aa] leading-snug">
+                            {comment.content}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[12px] text-[#52525b]">No comments yet</p>
+                )}
 
-          {/* Approval Section */}
-          <div className="px-4 py-4">
-            <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider mb-3">
-              Approval
-            </h4>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleApprove}
-                className="h-8 px-4 rounded-[6px] bg-[#22c55e] text-[12px] font-medium text-white hover:bg-[#16a34a] transition-colors"
-              >
-                Approve
-              </button>
-              <button
-                onClick={handleReject}
-                className="h-8 px-4 rounded-[6px] bg-[#27272a] text-[12px] font-medium text-[#ef4444] hover:bg-[#ef4444]/15 border border-[#27272a] hover:border-[#ef4444]/30 transition-colors"
-              >
-                Reject
-              </button>
+                {/* Comment Input */}
+                <div className="flex items-center gap-2 mt-3">
+                  <input
+                    type="text"
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSendComment()
+                    }}
+                    placeholder="Write a comment..."
+                    className="flex-1 h-8 px-3 rounded-[6px] bg-[#0f0f11] border border-[#27272a] text-[12px] text-[#fafafa] placeholder-[#52525b] outline-none focus:border-[#3f3f46] transition-colors"
+                  />
+                  <button
+                    onClick={handleSendComment}
+                    disabled={!commentText.trim()}
+                    className="h-8 w-8 flex items-center justify-center rounded-[6px] bg-[#27272a] text-[#a1a1aa] hover:bg-[#3f3f46] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <Send className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Approval Section */}
+              {canApproveCard && (
+                <div className="px-4 py-4">
+                  <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider mb-3">
+                    Approval
+                  </h4>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleApprove}
+                      className="h-8 px-4 rounded-[6px] bg-[#22c55e] text-[12px] font-medium text-white hover:bg-[#16a34a] transition-colors"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={handleReject}
+                      className="h-8 px-4 rounded-[6px] bg-[#27272a] text-[12px] font-medium text-[#ef4444] hover:bg-[#ef4444]/15 border border-[#27272a] hover:border-[#ef4444]/30 transition-colors"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {activeTab === "activity" && (
+            <div className="px-4 py-4">
+              {((card as any).auditLog ?? []).length > 0 ? (
+                <div>
+                  {((card as any).auditLog as AuditLogEntry[]).map((entry, idx, arr) => (
+                    <div key={entry._id}>
+                      <div className="flex gap-2.5 py-2.5">
+                        <div className="w-5 h-5 rounded-full bg-[#27272a] flex items-center justify-center shrink-0">
+                          <span className="text-[9px] font-medium text-[#a1a1aa]">
+                            {(entry.user?.name ?? "U")
+                              .split(" ")
+                              .map((n: string) => n[0])
+                              .join("")
+                              .toUpperCase()
+                              .slice(0, 2)}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[12px] leading-snug">
+                            <span className="font-medium text-[#e4e4e7]">{entry.user?.name ?? "Unknown"}</span>{" "}
+                            <span className="text-[#52525b]">{entry.action}</span>
+                            {entry.detail && (
+                              <span className="text-[#71717a]"> &mdash; {entry.detail}</span>
+                            )}
+                          </p>
+                          <p className="text-[10px] text-[#3f3f46] mt-0.5">
+                            {formatRelativeTime(entry.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                      {idx < arr.length - 1 && (
+                        <div className="border-b border-[#ffffff08]" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[12px] text-[#52525b] text-center py-8">No activity yet</p>
+              )}
             </div>
-          </div>
+          )}
         </div>
       </div>
     </>

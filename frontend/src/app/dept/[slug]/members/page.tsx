@@ -6,6 +6,8 @@ import { Sidebar } from "@/components/dashboard/sidebar"
 import { PageTopbar } from "@/components/dashboard/page-topbar"
 import { Search, X, Copy, Link2, ChevronDown } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
+import { usePermissions } from "@/hooks/usePermissions"
+import { useAuthStore } from "@/store/auth.store"
 import { deptApi, usersApi } from "@/lib/api"
 import type { Department, User } from "@/types"
 
@@ -34,6 +36,8 @@ export default function MembersPage() {
   useAuth({ required: true })
   const params = useParams()
   const slug = params?.slug as string
+  const { canManageUsers } = usePermissions()
+  const authUser = useAuthStore((s) => s.user)
 
   const [dept, setDept] = useState<Department | null>(null)
   const [loading, setLoading] = useState(true)
@@ -120,6 +124,14 @@ export default function MembersPage() {
     return Array.from(map.values())
   }, [dept])
 
+  // Check if user is a dept head
+  const isDeptHead = useMemo(() => {
+    if (!dept || !authUser) return false
+    return (dept.heads ?? []).some((h) => h._id === authUser._id)
+  }, [dept, authUser])
+
+  const canAddMember = canManageUsers || isDeptHead
+
   // Filter search results to exclude existing members
   const filteredSearchResults = useMemo(() => {
     const memberIds = new Set(allMembers.map((m) => m.id))
@@ -174,79 +186,81 @@ export default function MembersPage() {
           </div>
 
           {/* Section 1: Add Member */}
-          <div className="bg-[#0f0f11] border border-[#ffffff14] rounded-lg p-4 mb-4">
-            <h2 className="text-[12px] font-medium text-[#a1a1aa] mb-3">Add Member</h2>
-            <div className="flex items-center gap-3">
-              {/* Search Input */}
-              <div className="relative flex-1 max-w-[280px]">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#52525b]" strokeWidth={1.5} />
-                <input
-                  type="text"
-                  placeholder="Search users..."
-                  value={searchQuery}
-                  onChange={(e) => { setSearchQuery(e.target.value); setSelectedUserId(null) }}
-                  className="w-full h-8 pl-9 pr-3 bg-[#18181b] border border-[#ffffff14] rounded-md text-[12px] text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#3b82f6]"
-                />
-                {/* Search Dropdown */}
-                {filteredSearchResults.length > 0 && !selectedUserId && (
-                  <div className="absolute top-full mt-1 left-0 right-0 bg-[#18181b] border border-[#ffffff14] rounded-md py-1 z-20 max-h-[200px] overflow-y-auto">
-                    {filteredSearchResults.map((user) => (
-                      <button
-                        key={user._id}
-                        onClick={() => { setSelectedUserId(user._id); setSearchQuery(user.name); setSearchResults([]) }}
-                        className="w-full px-3 py-1.5 text-left hover:bg-[#ffffff08] transition-colors flex items-center gap-2"
-                      >
-                        <div className="w-5 h-5 rounded-full bg-[#27272a] flex items-center justify-center shrink-0">
-                          <span className="text-[8px] font-medium text-[#a1a1aa]">
-                            {user.name.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2)}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-[12px] text-[#fafafa]">{user.name}</span>
-                          <span className="text-[10px] text-[#52525b] ml-2">{user.email}</span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+          {canAddMember && (
+            <div className="bg-[#0f0f11] border border-[#ffffff14] rounded-lg p-4 mb-4">
+              <h2 className="text-[12px] font-medium text-[#a1a1aa] mb-3">Add Member</h2>
+              <div className="flex items-center gap-3">
+                {/* Search Input */}
+                <div className="relative flex-1 max-w-[280px]">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#52525b]" strokeWidth={1.5} />
+                  <input
+                    type="text"
+                    placeholder="Search users..."
+                    value={searchQuery}
+                    onChange={(e) => { setSearchQuery(e.target.value); setSelectedUserId(null) }}
+                    className="w-full h-8 pl-9 pr-3 bg-[#18181b] border border-[#ffffff14] rounded-md text-[12px] text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#3b82f6]"
+                  />
+                  {/* Search Dropdown */}
+                  {filteredSearchResults.length > 0 && !selectedUserId && (
+                    <div className="absolute top-full mt-1 left-0 right-0 bg-[#18181b] border border-[#ffffff14] rounded-md py-1 z-20 max-h-[200px] overflow-y-auto">
+                      {filteredSearchResults.map((user) => (
+                        <button
+                          key={user._id}
+                          onClick={() => { setSelectedUserId(user._id); setSearchQuery(user.name); setSearchResults([]) }}
+                          className="w-full px-3 py-1.5 text-left hover:bg-[#ffffff08] transition-colors flex items-center gap-2"
+                        >
+                          <div className="w-5 h-5 rounded-full bg-[#27272a] flex items-center justify-center shrink-0">
+                            <span className="text-[8px] font-medium text-[#a1a1aa]">
+                              {user.name.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2)}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[12px] text-[#fafafa]">{user.name}</span>
+                            <span className="text-[10px] text-[#52525b] ml-2">{user.email}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-              {/* Role Dropdown */}
-              <div className="relative">
+                {/* Role Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+                    className="h-8 px-3 flex items-center gap-2 bg-[#18181b] border border-[#ffffff14] rounded-md text-[12px] text-[#a1a1aa] hover:border-[#3f3f46] transition-colors"
+                  >
+                    <span className="capitalize">{selectedRole}</span>
+                    <ChevronDown className="w-3 h-3 text-[#52525b]" strokeWidth={1.5} />
+                  </button>
+                  {roleDropdownOpen && (
+                    <div className="absolute top-full mt-1 left-0 w-[120px] bg-[#18181b] border border-[#ffffff14] rounded-md py-1 z-20">
+                      {(["admin", "member", "viewer"] as const).map((role) => (
+                        <button
+                          key={role}
+                          onClick={() => { setSelectedRole(role); setRoleDropdownOpen(false) }}
+                          className={`w-full px-3 py-1.5 text-left text-[12px] hover:bg-[#ffffff08] transition-colors capitalize ${
+                            selectedRole === role ? "text-[#3b82f6]" : "text-[#a1a1aa]"
+                          }`}
+                        >
+                          {role}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Add Button */}
                 <button
-                  onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-                  className="h-8 px-3 flex items-center gap-2 bg-[#18181b] border border-[#ffffff14] rounded-md text-[12px] text-[#a1a1aa] hover:border-[#3f3f46] transition-colors"
+                  onClick={handleAddMember}
+                  disabled={adding || !selectedUserId}
+                  className="h-8 px-4 bg-[#3b82f6] text-white text-[12px] font-medium rounded-md hover:bg-[#2563eb] transition-colors disabled:opacity-50"
                 >
-                  <span className="capitalize">{selectedRole}</span>
-                  <ChevronDown className="w-3 h-3 text-[#52525b]" strokeWidth={1.5} />
+                  {adding ? "Adding..." : "Add"}
                 </button>
-                {roleDropdownOpen && (
-                  <div className="absolute top-full mt-1 left-0 w-[120px] bg-[#18181b] border border-[#ffffff14] rounded-md py-1 z-20">
-                    {(["admin", "member", "viewer"] as const).map((role) => (
-                      <button
-                        key={role}
-                        onClick={() => { setSelectedRole(role); setRoleDropdownOpen(false) }}
-                        className={`w-full px-3 py-1.5 text-left text-[12px] hover:bg-[#ffffff08] transition-colors capitalize ${
-                          selectedRole === role ? "text-[#3b82f6]" : "text-[#a1a1aa]"
-                        }`}
-                      >
-                        {role}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
-
-              {/* Add Button */}
-              <button
-                onClick={handleAddMember}
-                disabled={adding || !selectedUserId}
-                className="h-8 px-4 bg-[#3b82f6] text-white text-[12px] font-medium rounded-md hover:bg-[#2563eb] transition-colors disabled:opacity-50"
-              >
-                {adding ? "Adding..." : "Add"}
-              </button>
             </div>
-          </div>
+          )}
 
           {/* Section 2: Member List */}
           <div className="bg-[#0f0f11] border border-[#ffffff14] rounded-lg overflow-hidden mb-4">

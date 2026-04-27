@@ -21,6 +21,14 @@ export interface Attachment {
   type: string
 }
 
+export interface AuditLogEntry {
+  _id: string
+  user: { name: string }
+  action: string
+  detail?: string
+  createdAt: string
+}
+
 export interface Card {
   id: string
   title: string
@@ -33,6 +41,8 @@ export interface Card {
   amount?: string
   referenceId?: string
   columnId: ColumnId
+  auditLog?: AuditLogEntry[]
+  approval?: { approvers: string[] }
 }
 
 export interface Column {

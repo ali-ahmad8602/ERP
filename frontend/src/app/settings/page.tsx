@@ -6,6 +6,7 @@ import { PageTopbar } from "@/components/dashboard/page-topbar"
 import { Eye, EyeOff, Send, RotateCcw, X, Users, Building2, CreditCard, ChevronDown } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { useAuthStore } from "@/store/auth.store"
+import { usePermissions } from "@/hooks/usePermissions"
 import { inviteApi, deptApi } from "@/lib/api"
 
 type TabType = "profile" | "invites" | "organization"
@@ -31,6 +32,7 @@ const statusConfig: Record<string, { label: string; bg: string; text: string }> 
 export default function SettingsPage() {
   const { user } = useAuth({ required: true })
   const authUser = useAuthStore((s) => s.user)
+  const { canManageUsers } = usePermissions()
 
   const [activeTab, setActiveTab] = useState<TabType>("profile")
   const [showPassword, setShowPassword] = useState(false)
@@ -131,11 +133,16 @@ export default function SettingsPage() {
     }
   }
 
-  const tabs: { id: TabType; label: string }[] = [
+  const allTabs: { id: TabType; label: string }[] = [
     { id: "profile", label: "Profile" },
     { id: "invites", label: "Invites" },
     { id: "organization", label: "Organization" },
   ]
+
+  const tabs = allTabs.filter((tab) => {
+    if (tab.id === "invites" || tab.id === "organization") return canManageUsers
+    return true
+  })
 
   return (
     <div className="min-h-screen bg-[#09090b]">
