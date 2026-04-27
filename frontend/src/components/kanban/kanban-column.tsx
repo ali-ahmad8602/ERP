@@ -56,6 +56,10 @@ export function KanbanColumn({ id, title, cards, onCardClick, onAddCard }: Kanba
           ))}
         </SortableContext>
 
+        {cards.length === 0 && !adding && (
+          <p className="text-[11px] text-[#3f3f46] text-center py-4">No tasks yet</p>
+        )}
+
         {/* Add Card Inline */}
         {adding ? (
           <div className="p-2 bg-[#0f0f11] border border-[#27272a] rounded-md">

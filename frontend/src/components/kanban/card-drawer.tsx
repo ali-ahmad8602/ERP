@@ -77,6 +77,8 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
   const [editDueDate, setEditDueDate] = useState("")
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState("")
+  const [localLabels, setLocalLabels] = useState<string[]>([])
+  const [newLabel, setNewLabel] = useState("")
 
   // Sync edit state when card changes
   useEffect(() => {
@@ -88,6 +90,8 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
       setEditing(false)
       setSaveError("")
       setLocalAttachments([])
+      setLocalLabels(card.labels || [])
+      setNewLabel("")
       setActiveTab("details")
     }
   }, [card?.id]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -166,7 +170,7 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
     <>
       <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
 
-      <div className="fixed right-0 top-0 h-screen w-[480px] bg-[#09090b] border-l border-[#27272a] z-50 flex flex-col">
+      <div className="fixed right-0 top-0 h-screen w-[480px] bg-[#09090b] border-l border-[#27272a] z-50 flex flex-col animate-fade-in">
         {/* Header */}
         <div className="flex items-start justify-between p-4 border-b border-[#27272a]">
           <div className="flex-1 pr-4">
@@ -313,6 +317,63 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
                     {card.description || "No description provided."}
                   </p>
                 )}
+              </div>
+
+              {/* Labels */}
+              <div className="px-4 py-4 border-b border-[#ffffff0a]">
+                <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider mb-2">Labels</h4>
+                {localLabels.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {localLabels.map((label, idx) => {
+                      const colors = [
+                        { bg: "bg-[#3b82f6]/15", text: "text-[#3b82f6]" },
+                        { bg: "bg-[#22c55e]/15", text: "text-[#22c55e]" },
+                        { bg: "bg-[#f59e0b]/15", text: "text-[#f59e0b]" },
+                        { bg: "bg-[#8b5cf6]/15", text: "text-[#8b5cf6]" },
+                      ]
+                      const color = colors[idx % 4]
+                      return (
+                        <span
+                          key={label}
+                          className={`inline-flex items-center gap-1 h-5 px-2 rounded text-[10px] font-medium ${color.bg} ${color.text}`}
+                        >
+                          {label}
+                          <button
+                            onClick={async () => {
+                              const updated = localLabels.filter(l => l !== label)
+                              setLocalLabels(updated)
+                              try {
+                                await cardApi.update(card.id, { labels: updated })
+                                if (onCardUpdated) onCardUpdated(card.id, { labels: updated })
+                              } catch {}
+                            }}
+                            className="ml-0.5 hover:opacity-70 transition-opacity"
+                          >
+                            <X className="w-2.5 h-2.5" strokeWidth={2} />
+                          </button>
+                        </span>
+                      )
+                    })}
+                  </div>
+                )}
+                <input
+                  type="text"
+                  value={newLabel}
+                  onChange={(e) => setNewLabel(e.target.value)}
+                  onKeyDown={async (e) => {
+                    if (e.key === "Enter" && newLabel.trim()) {
+                      const updated = [...localLabels, newLabel.trim()]
+                      setLocalLabels(updated)
+                      setNewLabel("")
+                      try {
+                        await cardApi.update(card.id, { labels: updated })
+                        if (onCardUpdated) onCardUpdated(card.id, { labels: updated })
+                      } catch {}
+                    }
+                  }}
+                  placeholder="Add label + Enter"
+                  className="w-full h-7 px-2 bg-[#0f0f11] border border-[#27272a] rounded text-[11px] text-[#fafafa] placeholder:text-[#3f3f46] focus:outline-none focus:border-[#3b82f6] transition-colors"
+                />
               </div>
 
               {/* Attachments */}

@@ -44,6 +44,7 @@ export function KanbanBoard({ columns: propColumns, cards: propCards, onCardMove
   const [activeCard, setActiveCard] = useState<Card | null>(null)
   const [selectedCard, setSelectedCard] = useState<Card | null>(null)
   const [autoOpened, setAutoOpened] = useState(false)
+  const [cardNotFound, setCardNotFound] = useState(false)
 
   // Auto-open card from URL param
   useEffect(() => {
@@ -52,9 +53,20 @@ export function KanbanBoard({ columns: propColumns, cards: propCards, onCardMove
       if (card) {
         setSelectedCard(card)
         setAutoOpened(true)
+      } else {
+        // Card not found after cards have loaded
+        setCardNotFound(true)
+        setAutoOpened(true)
       }
     }
   }, [autoOpenCardId, cards, autoOpened])
+
+  // Auto-dismiss "card not found" toast after 3 seconds
+  useEffect(() => {
+    if (!cardNotFound) return
+    const timer = setTimeout(() => setCardNotFound(false), 3000)
+    return () => clearTimeout(timer)
+  }, [cardNotFound])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -173,6 +185,11 @@ export function KanbanBoard({ columns: propColumns, cards: propCards, onCardMove
 
   return (
     <>
+      {cardNotFound && (
+        <div className="mb-2 px-3 py-2 bg-[#27272a] border border-[#3f3f46] rounded-md text-[12px] text-[#a1a1aa] text-center animate-pulse">
+          Card not found or was deleted
+        </div>
+      )}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}

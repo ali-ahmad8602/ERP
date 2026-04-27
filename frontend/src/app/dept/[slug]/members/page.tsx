@@ -289,7 +289,9 @@ export default function MembersPage() {
                   </div>
                 ))
               ) : allMembers.length === 0 ? (
-                <div className="px-4 py-6 text-center text-[12px] text-[#52525b]">No members in this department</div>
+                <div className="px-4 py-8 text-center">
+                  <p className="text-[12px] text-[#52525b]">No members yet. Add team members to get started.</p>
+                </div>
               ) : (
                 allMembers.map((member) => {
                   const role = roleConfig[member.role]

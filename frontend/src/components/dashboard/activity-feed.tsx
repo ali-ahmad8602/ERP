@@ -1,5 +1,6 @@
 "use client"
 
+import { Clock } from "lucide-react"
 import type { ActivityEntry } from "@/types"
 
 interface ActivityItem {
@@ -113,6 +114,7 @@ export function ActivityFeed({ activities, loading }: ActivityFeedProps) {
   }
 
   const activityData = activities && activities.length > 0 ? groupActivities(activities) : defaultActivityData
+  const showEmpty = activities !== undefined && activities.length === 0
 
   return (
     <div className="bg-[#0f0f11] border border-[#ffffff14] rounded-lg overflow-hidden flex flex-col h-full">
@@ -123,7 +125,12 @@ export function ActivityFeed({ activities, loading }: ActivityFeedProps) {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        {activityData.map((group) => (
+        {showEmpty ? (
+          <div className="flex flex-col items-center justify-center py-10 text-center">
+            <Clock className="w-5 h-5 text-[#3f3f46] mb-2" strokeWidth={1.5} />
+            <p className="text-[12px] text-[#52525b]">No recent activity</p>
+          </div>
+        ) : activityData.map((group) => (
           <div key={group.label}>
             {/* Group Label */}
             <div className="px-4 py-1.5 bg-[#0a0a0b]">

@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Search, Bell, Settings, HelpCircle, ChevronRight } from "lucide-react"
 import { notificationApi } from "@/lib/api"
+import { CommandPalette } from "./command-palette"
 
 interface NotificationDept {
   _id: string
@@ -27,12 +28,13 @@ export function Topbar() {
   const router = useRouter()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [showPanel, setShowPanel] = useState(false)
+  const [cmdOpen, setCmdOpen] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
   const bellRef = useRef<HTMLButtonElement>(null)
 
   const unreadCount = notifications.filter((n) => !n.isRead).length
 
-  useEffect(() => {
+  const fetchNotifications = useCallback(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
     if (!token) return
     notificationApi
@@ -41,6 +43,28 @@ export function Topbar() {
         setNotifications(data.notifications || [])
       })
       .catch(() => {})
+  }, [])
+
+  // Initial fetch + polling every 15 seconds
+  useEffect(() => {
+    fetchNotifications()
+    const interval = setInterval(() => {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
+      if (token) fetchNotifications()
+    }, 15000)
+    return () => clearInterval(interval)
+  }, [fetchNotifications])
+
+  // Global Cmd+K / Ctrl+K listener
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault()
+        setCmdOpen((prev) => !prev)
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
   }, [])
 
   useEffect(() => {
@@ -128,7 +152,9 @@ export function Topbar() {
             <input
               type="text"
               placeholder="Search..."
-              className="w-full h-8 pl-9 pr-14 bg-[#18181b] border border-[#ffffff14] rounded-md text-[12px] text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6]/20"
+              readOnly
+              onClick={() => setCmdOpen(true)}
+              className="w-full h-8 pl-9 pr-14 bg-[#18181b] border border-[#ffffff14] rounded-md text-[12px] text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6]/20 cursor-pointer"
             />
             <kbd className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 bg-[#27272a] rounded text-[10px] text-[#52525b] font-medium border border-[#ffffff14]">
               Ctrl+K
@@ -221,6 +247,7 @@ export function Topbar() {
           </div>
         </div>
       </div>
+      {cmdOpen && <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} />}
     </header>
   )
 }

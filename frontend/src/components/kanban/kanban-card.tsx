@@ -60,6 +60,33 @@ export function KanbanCard({ card, onClick }: KanbanCardProps) {
         {card.title}
       </p>
 
+      {card.labels && card.labels.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-2">
+          {card.labels.slice(0, 3).map((label, idx) => {
+            const colors = [
+              { bg: "bg-[#3b82f6]/15", text: "text-[#3b82f6]" },
+              { bg: "bg-[#22c55e]/15", text: "text-[#22c55e]" },
+              { bg: "bg-[#f59e0b]/15", text: "text-[#f59e0b]" },
+              { bg: "bg-[#8b5cf6]/15", text: "text-[#8b5cf6]" },
+            ]
+            const color = colors[idx % 4]
+            return (
+              <span
+                key={label}
+                className={`inline-flex h-4 px-1.5 rounded text-[9px] font-medium ${color.bg} ${color.text} items-center`}
+              >
+                {label}
+              </span>
+            )
+          })}
+          {card.labels.length > 3 && (
+            <span className="inline-flex h-4 px-1.5 rounded text-[9px] font-medium bg-[#71717a]/15 text-[#71717a] items-center">
+              +{card.labels.length - 3}
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="flex items-center gap-2 mb-3">
         <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ${priority.bg} ${priority.text}`}>
           {priority.label}

@@ -40,6 +40,7 @@ export interface Card {
   attachments: Attachment[]
   amount?: string
   referenceId?: string
+  labels?: string[]
   columnId: ColumnId
   auditLog?: AuditLogEntry[]
   approval?: { approvers: string[] }

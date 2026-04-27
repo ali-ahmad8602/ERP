@@ -226,6 +226,7 @@ export default function DeptDetailPage() {
       size: "",
       type: att.url?.split(".").pop() || "",
     })),
+    labels: c.labels || [],
     columnId: c.column as ColumnId,
     auditLog: c.auditLog ?? [],
     approval: c.approval ?? undefined,
@@ -459,7 +460,7 @@ export default function DeptDetailPage() {
           </div>
 
           {/* Board Content */}
-          <div className="flex-1 overflow-hidden py-2">
+          <div className="flex-1 overflow-hidden py-2 animate-fade-in">
             {loadingCards ? (
               <div className="flex gap-4 h-full">
                 {[1, 2, 3, 4, 5].map(i => (
