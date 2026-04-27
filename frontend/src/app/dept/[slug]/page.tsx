@@ -1,14 +1,16 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo, useRef } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Topbar } from "@/components/dashboard/topbar"
 import { KanbanBoard } from "@/components/kanban/kanban-board"
+import { BoardSettingsPanel } from "@/components/kanban/board-settings-panel"
 import { useAuth } from "@/hooks/useAuth"
+import { usePermissions } from "@/hooks/usePermissions"
 import { useBoardStore } from "@/store/board.store"
-import { deptApi, cardApi } from "@/lib/api"
-import { Plus, Users, LayoutGrid } from "lucide-react"
+import { deptApi, cardApi, boardApi } from "@/lib/api"
+import { Plus, Users, LayoutGrid, MoreHorizontal, Settings } from "lucide-react"
 import type { Card, ColumnId } from "@/components/kanban/types"
 
 interface Department {
@@ -27,6 +29,7 @@ export default function DeptDetailPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { user, loading: authLoading } = useAuth({ required: true })
+  const { isAdmin, canEditBoard, canEditCards, canComment } = usePermissions()
 
   const {
     boards,
@@ -44,6 +47,22 @@ export default function DeptDetailPage() {
   const [dept, setDept] = useState<Department | null>(null)
   const [deptLoading, setDeptLoading] = useState(true)
   const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null)
+  const [showSettings, setShowSettings] = useState(false)
+  const [dropdownBoardId, setDropdownBoardId] = useState<string | null>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownBoardId(null)
+      }
+    }
+    if (dropdownBoardId) {
+      document.addEventListener("mousedown", handleClickOutside)
+      return () => document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [dropdownBoardId])
 
   // 1. Fetch department by slug
   useEffect(() => {
@@ -100,7 +119,75 @@ export default function DeptDetailPage() {
     router.push(`/dept/${slug}?boardId=${boardId}`, { scroll: false })
   }
 
-  // Map backend columns → KanbanBoard format
+  // New board handler
+  const handleCreateBoard = async () => {
+    if (!dept) return
+    const name = window.prompt("Board name:")
+    if (!name?.trim()) return
+    try {
+      const { board } = await boardApi.create({ name: name.trim(), department: dept._id })
+      await fetchBoards(dept._id)
+      switchBoard(board._id)
+    } catch (err) {
+      console.error("Failed to create board:", err)
+    }
+  }
+
+  // Rename board handler
+  const handleRenameBoard = async (boardId: string, currentName: string) => {
+    const name = window.prompt("Rename board:", currentName)
+    if (!name?.trim() || name === currentName) return
+    setDropdownBoardId(null)
+    try {
+      await boardApi.update(boardId, { name: name.trim() })
+      if (dept) await fetchBoards(dept._id)
+      if (selectedBoardId === boardId) fetchBoard(boardId)
+    } catch (err) {
+      console.error("Failed to rename board:", err)
+    }
+  }
+
+  // Delete board handler
+  const handleDeleteBoard = async (boardId: string, boardName: string) => {
+    const confirmed = window.confirm(`Delete board "${boardName}"? This cannot be undone.`)
+    if (!confirmed) return
+    setDropdownBoardId(null)
+    try {
+      await boardApi.delete(boardId)
+      if (dept) {
+        const { boards: remaining } = await boardApi.list(dept._id)
+        await fetchBoards(dept._id)
+        if (remaining.length > 0) {
+          switchBoard(remaining[0]._id)
+        } else {
+          setSelectedBoardId(null)
+        }
+      }
+    } catch (err) {
+      console.error("Failed to delete board:", err)
+    }
+  }
+
+  // Board settings callbacks
+  const handleBoardUpdated = async () => {
+    if (selectedBoardId) fetchBoard(selectedBoardId)
+    if (dept) fetchBoards(dept._id)
+  }
+
+  const handleBoardDeleted = async () => {
+    setShowSettings(false)
+    if (dept) {
+      await fetchBoards(dept._id)
+      const remaining = useBoardStore.getState().boards
+      if (remaining.length > 0) {
+        switchBoard(remaining[0]._id)
+      } else {
+        setSelectedBoardId(null)
+      }
+    }
+  }
+
+  // Map backend columns -> KanbanBoard format
   const columns = activeBoard?.columns
     ?.sort((a: any, b: any) => a.order - b.order)
     .map((col: any) => ({
@@ -109,7 +196,7 @@ export default function DeptDetailPage() {
       cards: [] as Card[],
     }))
 
-  // Map backend cards → Card type
+  // Map backend cards -> Card type
   const cards: Card[] = rawCards.map((c: any) => ({
     id: c._id,
     title: c.title,
@@ -143,6 +230,15 @@ export default function DeptDetailPage() {
     auditLog: c.auditLog ?? [],
     approval: c.approval ?? undefined,
   }))
+
+  // Board lock & RBAC checks
+  const boardIsLocked = activeBoard?.settings?.isLocked === true
+  const boardId = selectedBoardId || ""
+  const userCanEditCards = canEditCards(boardId)
+  const userCanEditBoard = canEditBoard(boardId) || isAdmin
+  const userCanComment = canComment(boardId)
+  const showCardMove = !boardIsLocked && userCanEditCards
+  const showAddCard = !boardIsLocked && userCanEditCards
 
   const handleCardMove = (cardId: string, columnId: string, order: number) => {
     moveCard(cardId, columnId, order)
@@ -273,27 +369,92 @@ export default function DeptDetailPage() {
               <p className="text-[12px] text-[#52525b] mb-3">{dept.description}</p>
             )}
 
-            {/* Board Tabs */}
-            <div className="flex items-center gap-1 border-b border-[#ffffff0a]">
-              {boards.map(board => (
-                <button
-                  key={board._id}
-                  onClick={() => switchBoard(board._id)}
-                  className={`px-3 py-2 text-[12px] font-medium transition-colors relative ${
-                    selectedBoardId === board._id
-                      ? "text-[#fafafa]"
-                      : "text-[#52525b] hover:text-[#a1a1aa]"
-                  }`}
-                >
-                  {board.name}
-                  {selectedBoardId === board._id && (
-                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#3b82f6] rounded-t" />
-                  )}
-                </button>
-              ))}
-              {boards.length === 0 && !loadingBoards && (
-                <span className="px-3 py-2 text-[12px] text-[#3f3f46]">No boards</span>
-              )}
+            {/* Board Tabs + Toolbar */}
+            <div className="flex items-center justify-between border-b border-[#ffffff0a]">
+              <div className="flex items-center gap-1">
+                {boards.map(board => (
+                  <div key={board._id} className="relative group flex items-center">
+                    <button
+                      onClick={() => switchBoard(board._id)}
+                      className={`px-3 py-2 text-[12px] font-medium transition-colors relative ${
+                        selectedBoardId === board._id
+                          ? "text-[#fafafa]"
+                          : "text-[#52525b] hover:text-[#a1a1aa]"
+                      }`}
+                    >
+                      <span className="flex items-center gap-1">
+                        {board.name}
+                        {selectedBoardId === board._id && activeBoard?.settings?.isLocked && (
+                          <span className="text-[10px]" title="Board is locked">{"\uD83D\uDD12"}</span>
+                        )}
+                      </span>
+                      {selectedBoardId === board._id && (
+                        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#3b82f6] rounded-t" />
+                      )}
+                    </button>
+                    {/* Context menu trigger */}
+                    {userCanEditBoard && (
+                      <div className="relative">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setDropdownBoardId(dropdownBoardId === board._id ? null : board._id)
+                          }}
+                          className="w-5 h-5 flex items-center justify-center rounded text-[#52525b] opacity-0 group-hover:opacity-100 hover:text-[#a1a1aa] hover:bg-[#ffffff08] transition-all"
+                        >
+                          <MoreHorizontal className="w-3.5 h-3.5" strokeWidth={1.5} />
+                        </button>
+                        {dropdownBoardId === board._id && (
+                          <div
+                            ref={dropdownRef}
+                            className="absolute top-full left-0 mt-1 w-[120px] bg-[#18181b] border border-[#27272a] rounded-md shadow-lg z-50 py-1"
+                          >
+                            <button
+                              onClick={() => handleRenameBoard(board._id, board.name)}
+                              className="w-full text-left px-3 py-1.5 text-[11px] text-[#a1a1aa] hover:text-[#fafafa] hover:bg-[#ffffff08] transition-colors"
+                            >
+                              Rename
+                            </button>
+                            <button
+                              onClick={() => handleDeleteBoard(board._id, board.name)}
+                              className="w-full text-left px-3 py-1.5 text-[11px] text-[#ef4444] hover:bg-[#ef4444]/10 transition-colors"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {boards.length === 0 && !loadingBoards && (
+                  <span className="px-3 py-2 text-[12px] text-[#3f3f46]">No boards</span>
+                )}
+
+                {/* New Board button */}
+                {userCanEditBoard && (
+                  <button
+                    onClick={handleCreateBoard}
+                    className="h-7 px-2 bg-[#18181b] border border-[#ffffff14] rounded-md text-[11px] text-[#a1a1aa] hover:text-[#fafafa] hover:border-[#ffffff20] transition-colors flex items-center gap-1 ml-1"
+                  >
+                    <Plus className="w-3 h-3" strokeWidth={1.5} />
+                    Board
+                  </button>
+                )}
+              </div>
+
+              {/* Toolbar right side */}
+              <div className="flex items-center gap-1">
+                {userCanEditBoard && selectedBoardId && (
+                  <button
+                    onClick={() => setShowSettings(true)}
+                    className="w-7 h-7 flex items-center justify-center rounded-md text-[#52525b] hover:text-[#a1a1aa] hover:bg-[#ffffff08] transition-colors"
+                    title="Board Settings"
+                  >
+                    <Settings className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -324,9 +485,9 @@ export default function DeptDetailPage() {
               <KanbanBoard
                 columns={columns}
                 cards={[]}
-                onCardMove={handleCardMove}
-                onAddCard={handleAddCard}
-                onComment={handleComment}
+                onCardMove={showCardMove ? handleCardMove : undefined}
+                onAddCard={showAddCard ? handleAddCard : undefined}
+                onComment={userCanComment ? handleComment : undefined}
                 onApprove={handleApprove}
                 onReject={handleReject}
                 autoOpenCardId={searchParams.get("cardId")}
@@ -336,9 +497,9 @@ export default function DeptDetailPage() {
               <KanbanBoard
                 columns={columns}
                 cards={cards}
-                onCardMove={handleCardMove}
-                onAddCard={handleAddCard}
-                onComment={handleComment}
+                onCardMove={showCardMove ? handleCardMove : undefined}
+                onAddCard={showAddCard ? handleAddCard : undefined}
+                onComment={userCanComment ? handleComment : undefined}
                 onApprove={handleApprove}
                 onReject={handleReject}
                 autoOpenCardId={searchParams.get("cardId")}
@@ -348,6 +509,16 @@ export default function DeptDetailPage() {
           </div>
         </div>
       </main>
+
+      {/* Board Settings Panel */}
+      {showSettings && activeBoard && (
+        <BoardSettingsPanel
+          board={activeBoard}
+          onClose={() => setShowSettings(false)}
+          onBoardUpdated={handleBoardUpdated}
+          onBoardDeleted={handleBoardDeleted}
+        />
+      )}
     </div>
   )
 }

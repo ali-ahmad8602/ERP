@@ -119,6 +119,40 @@ export const boardApi = {
 
   get: (boardId: string) =>
     request<{ board: any }>(`/api/boards/${boardId}`),
+
+  create: (data: { name: string; department: string }) =>
+    request<{ board: any }>("/api/boards", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  update: (boardId: string, data: any) =>
+    request<{ board: any }>(`/api/boards/${boardId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  delete: (boardId: string) =>
+    request<{ message: string }>(`/api/boards/${boardId}`, {
+      method: "DELETE",
+    }),
+
+  addColumn: (boardId: string, name: string, color?: string) =>
+    request<{ board: any }>(`/api/boards/${boardId}/columns`, {
+      method: "POST",
+      body: JSON.stringify({ name, color }),
+    }),
+
+  updateColumn: (boardId: string, colId: string, data: any) =>
+    request<{ board: any }>(`/api/boards/${boardId}/columns/${colId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  deleteColumn: (boardId: string, colId: string) =>
+    request<{ board: any }>(`/api/boards/${boardId}/columns/${colId}`, {
+      method: "DELETE",
+    }),
 };
 
 export const notificationApi = {
