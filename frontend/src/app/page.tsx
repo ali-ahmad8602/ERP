@@ -7,7 +7,7 @@ import { ActivityFeed } from "@/components/dashboard/activity-feed"
 export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#09090b]">
-      <Sidebar />
+      <Sidebar activeRoute="overview" />
       <Topbar />
       
       {/* Main Content */}
