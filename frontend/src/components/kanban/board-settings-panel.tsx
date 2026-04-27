@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { X } from "lucide-react"
 import { boardApi } from "@/lib/api"
+import { useToast } from "@/components/ui/action-toast"
 
 interface BoardSettingsPanelProps {
   board: any
@@ -19,6 +20,9 @@ export function BoardSettingsPanel({ board, onClose, onBoardUpdated, onBoardDele
   const [newColumnName, setNewColumnName] = useState("")
   const [editingColumns, setEditingColumns] = useState<{ _id: string; name: string }[]>([])
   const [columnError, setColumnError] = useState("")
+  const [addingColumn, setAddingColumn] = useState(false)
+  const [deletingBoard, setDeletingBoard] = useState(false)
+  const { show } = useToast()
 
   useEffect(() => {
     if (board) {
@@ -39,8 +43,10 @@ export function BoardSettingsPanel({ board, onClose, onBoardUpdated, onBoardDele
     try {
       await boardApi.update(board._id, { name: boardName.trim() })
       onBoardUpdated()
+      show("Board renamed")
     } catch (err) {
       console.error("Failed to rename board:", err)
+      show("Failed to rename board", "error")
     } finally {
       setSaving(false)
     }
@@ -53,8 +59,10 @@ export function BoardSettingsPanel({ board, onClose, onBoardUpdated, onBoardDele
       if (field === "requiresApproval") setRequiresApproval(value)
       if (field === "isLocked") setLockBoard(value)
       onBoardUpdated()
+      show("Settings updated")
     } catch (err) {
       console.error("Failed to update setting:", err)
+      show("Failed to update setting", "error")
     }
   }
 
@@ -79,35 +87,49 @@ export function BoardSettingsPanel({ board, onClose, onBoardUpdated, onBoardDele
 
   const handleDeleteColumn = async (colId: string) => {
     if ((board.columns || []).length <= 1) return
+    const confirmed = window.confirm("Remove this column? Cards in it will be lost.")
+    if (!confirmed) return
     setColumnError("")
     try {
       await boardApi.deleteColumn(board._id, colId)
       onBoardUpdated()
+      show("Column removed")
     } catch (err: any) {
       setColumnError(err.message || "Failed to delete column")
+      show("Failed to remove column", "error")
     }
   }
 
   const handleAddColumn = async () => {
     if (!newColumnName.trim()) return
     setColumnError("")
+    setAddingColumn(true)
     try {
       await boardApi.addColumn(board._id, newColumnName.trim())
       setNewColumnName("")
       onBoardUpdated()
+      show("Column added")
     } catch (err: any) {
       setColumnError(err.message || "Failed to add column")
+      show("Failed to add column", "error")
+    } finally {
+      setAddingColumn(false)
     }
   }
 
   const handleDeleteBoard = async () => {
     const confirmed = window.confirm(`Delete board "${board.name}"? This cannot be undone.`)
     if (!confirmed) return
+    setDeletingBoard(true)
     try {
       await boardApi.delete(board._id)
+      show("Board deleted")
       onBoardDeleted()
     } catch (err) {
       console.error("Failed to delete board:", err)
+      show("Failed to delete board", "error")
+    } finally {
+      setDeletingBoard(false)
     }
   }
 
@@ -223,10 +245,10 @@ export function BoardSettingsPanel({ board, onClose, onBoardUpdated, onBoardDele
               />
               <button
                 onClick={handleAddColumn}
-                disabled={!newColumnName.trim()}
+                disabled={!newColumnName.trim() || addingColumn}
                 className="h-7 px-2.5 rounded bg-[#3b82f6] text-[11px] font-medium text-white hover:bg-[#2563eb] disabled:opacity-40 transition-colors"
               >
-                Add
+                {addingColumn ? "Adding..." : "Add"}
               </button>
             </div>
           </div>
@@ -236,9 +258,10 @@ export function BoardSettingsPanel({ board, onClose, onBoardUpdated, onBoardDele
             <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider mb-3">Danger Zone</h4>
             <button
               onClick={handleDeleteBoard}
-              className="h-8 px-4 rounded-[6px] bg-[#27272a] border border-[#27272a] text-[12px] font-medium text-[#ef4444] hover:bg-[#ef4444]/15 hover:border-[#ef4444]/30 transition-colors"
+              disabled={deletingBoard}
+              className="h-8 px-4 rounded-[6px] bg-[#27272a] border border-[#27272a] text-[12px] font-medium text-[#ef4444] hover:bg-[#ef4444]/15 hover:border-[#ef4444]/30 disabled:opacity-40 transition-colors"
             >
-              Delete Board
+              {deletingBoard ? "Deleting..." : "Delete Board"}
             </button>
           </div>
         </div>

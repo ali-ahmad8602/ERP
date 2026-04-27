@@ -13,6 +13,7 @@ import { deptApi, cardApi, boardApi } from "@/lib/api"
 import { safeCard } from "@/lib/safe"
 import { connectSocket, joinBoard, leaveBoard } from "@/lib/socket"
 import { Plus, Users, LayoutGrid, MoreHorizontal, Settings } from "lucide-react"
+import { useToast } from "@/components/ui/action-toast"
 import type { Card, ColumnId } from "@/components/kanban/types"
 
 interface Department {
@@ -32,6 +33,7 @@ export default function DeptDetailPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth({ required: true })
   const { isAdmin, canEditBoard, canEditCards, canComment } = usePermissions()
+  const { show } = useToast()
 
   const {
     boards,
@@ -291,8 +293,10 @@ export default function DeptDetailPage() {
     if (!activeBoard) return
     try {
       await createCard({ title, board: activeBoard._id, column: columnId })
+      show("Card created")
     } catch (err) {
       console.error("Failed to create card:", err)
+      show("Failed to create card", "error")
     }
   }
 
@@ -300,8 +304,10 @@ export default function DeptDetailPage() {
     try {
       await cardApi.comment(cardId, text)
       if (selectedBoardId) fetchCards(selectedBoardId)
+      show("Comment added")
     } catch (err) {
       console.error("Failed to add comment:", err)
+      show("Failed to add comment", "error")
     }
   }
 
@@ -309,8 +315,10 @@ export default function DeptDetailPage() {
     try {
       await cardApi.approve(cardId)
       if (selectedBoardId) fetchCards(selectedBoardId)
+      show("Card approved")
     } catch (err) {
       console.error("Failed to approve:", err)
+      show("Failed to approve card", "error")
     }
   }
 
@@ -318,13 +326,16 @@ export default function DeptDetailPage() {
     try {
       await cardApi.reject(cardId, reason)
       if (selectedBoardId) fetchCards(selectedBoardId)
+      show("Card rejected")
     } catch (err) {
       console.error("Failed to reject:", err)
+      show("Failed to reject card", "error")
     }
   }
 
   const handleCardUpdated = async () => {
     if (selectedBoardId) fetchCards(selectedBoardId)
+    show("Card updated")
   }
 
   const isLoading = authLoading || deptLoading || loadingBoards
@@ -522,7 +533,16 @@ export default function DeptDetailPage() {
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <LayoutGrid className="w-8 h-8 text-[#3f3f46] mb-3" strokeWidth={1.5} />
                 <p className="text-[13px] text-[#71717a] mb-1">No boards in this department yet</p>
-                <p className="text-[11px] text-[#3f3f46]">Create a board to start tracking work</p>
+                <p className="text-[11px] text-[#3f3f46] mb-3">Create your first board to start organizing work.</p>
+                {userCanEditBoard && (
+                  <button
+                    onClick={handleCreateBoard}
+                    className="h-8 px-3 bg-[#3b82f6] text-white text-[12px] font-medium rounded-md hover:bg-[#2563eb] transition-colors flex items-center gap-1.5"
+                  >
+                    <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    New Board
+                  </button>
+                )}
               </div>
             ) : cards.length === 0 && !loadingCards ? (
               <KanbanBoard

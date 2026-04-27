@@ -24,6 +24,7 @@ export default function Dashboard() {
   const [departments, setDepartments] = useState<DeptOption[]>([])
   const [selectedDept, setSelectedDept] = useState("")
   const [timeRange, setTimeRange] = useState("30")
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
   useEffect(() => {
     deptApi.list().then((res) => {
@@ -33,7 +34,7 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => {
-    fetchAll()
+    fetchAll().then(() => setLastUpdated(new Date())).catch(() => {})
   }, [fetchAll, selectedDept, timeRange])
 
   return (
@@ -70,6 +71,11 @@ export default function Dashboard() {
           {/* KPI Row - 4 equal columns */}
           <section className="mb-5">
             <KPICards overview={overview} loading={loading} />
+            {lastUpdated && (
+              <span className="text-[10px] text-[#3f3f46] mt-1.5 block">
+                Updated {lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </span>
+            )}
           </section>
 
           {/* Main Grid: 8 cols departments + 4 cols activity */}

@@ -5,6 +5,7 @@ import { X, FileText, Paperclip, Calendar, Users, Send, Upload, Save, RotateCcw,
 import { cardApi } from "@/lib/api"
 import { usePermissions } from "@/hooks/usePermissions"
 import { useAuthStore } from "@/store/auth.store"
+import { useToast } from "@/components/ui/action-toast"
 import type { Card, Priority } from "./types"
 
 interface AuditLogEntry {
@@ -88,6 +89,7 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { isAdmin } = usePermissions()
   const authUser = useAuthStore((s) => s.user)
+  const { show } = useToast()
 
   // Edit state
   const [editing, setEditing] = useState(false)
@@ -99,6 +101,7 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
   const [saveError, setSaveError] = useState("")
   const [localLabels, setLocalLabels] = useState<string[]>([])
   const [newLabel, setNewLabel] = useState("")
+  const [sendingComment, setSendingComment] = useState(false)
 
   // Sync edit state when card changes
   useEffect(() => {
@@ -124,10 +127,15 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
   const priority = getPriority(card.priority)
   const status = statusLabels[card.columnId] || { label: card.columnId, bg: "bg-[#71717a]/15", text: "text-[#71717a]" }
 
-  const handleSendComment = () => {
-    if (!commentText.trim()) return
-    if (onComment) onComment(card.id, commentText.trim())
-    setCommentText("")
+  const handleSendComment = async () => {
+    if (!commentText.trim() || sendingComment) return
+    setSendingComment(true)
+    try {
+      if (onComment) onComment(card.id, commentText.trim())
+      setCommentText("")
+    } finally {
+      setSendingComment(false)
+    }
   }
 
   const handleApprove = () => { if (onApprove) onApprove(card.id) }
@@ -145,8 +153,10 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
       const newAtt = data.attachment || { _id: Date.now().toString(), name: file.name, size: `${Math.round(file.size / 1024)} KB`, type: file.name.split(".").pop() || "" }
       setLocalAttachments((prev) => [...prev, { id: newAtt._id || newAtt.id, name: newAtt.name, size: newAtt.size || "", type: newAtt.type || "" }])
       if (onAttachmentUploaded) onAttachmentUploaded(card.id)
+      show("File uploaded")
     } catch (err) {
       console.error("Upload failed:", err)
+      show("Upload failed", "error")
     } finally {
       setUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ""
@@ -168,8 +178,11 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
         if (onCardUpdated) onCardUpdated(card.id, updates)
       }
       setEditing(false)
+      show("Changes saved")
     } catch (err: any) {
-      setSaveError(err.message || "Failed to save")
+      const msg = err.message || "Failed to save"
+      setSaveError(msg)
+      show(msg, "error")
     } finally {
       setSaving(false)
     }
@@ -478,10 +491,10 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
                     />
                     <button
                       onClick={handleSendComment}
-                      disabled={!commentText.trim()}
+                      disabled={!commentText.trim() || sendingComment}
                       className="h-8 w-8 flex items-center justify-center rounded-[6px] bg-[#27272a] text-[#a1a1aa] hover:bg-[#3f3f46] disabled:opacity-40 transition-colors"
                     >
-                      <Send className="w-3.5 h-3.5" strokeWidth={1.5} />
+                      <Send className={`w-3.5 h-3.5 ${sendingComment ? "animate-pulse" : ""}`} strokeWidth={1.5} />
                     </button>
                   </div>
                 )}

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { Search, Bell, Settings, HelpCircle, ChevronRight } from "lucide-react"
 import { notificationApi } from "@/lib/api"
 import { connectSocket, disconnectSocket } from "@/lib/socket"
@@ -26,8 +26,47 @@ interface Notification {
   createdAt: string
 }
 
+function formatSlug(slug: string): string {
+  return slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
+function deriveBreadcrumbs(pathname: string): { label: string; href?: string }[] {
+  const crumbs: { label: string; href?: string }[] = [{ label: "Home", href: "/" }]
+
+  if (pathname === "/" || pathname === "") {
+    crumbs.push({ label: "Dashboard" })
+    return crumbs
+  }
+
+  const segments = pathname.split("/").filter(Boolean)
+
+  if (segments[0] === "dept" && segments.length >= 2) {
+    crumbs.push({ label: "Departments", href: "/" })
+    crumbs.push({ label: formatSlug(segments[1]), href: `/dept/${segments[1]}` })
+    if (segments[2]) {
+      crumbs.push({ label: formatSlug(segments[2]) })
+    }
+    return crumbs
+  }
+
+  const routeLabels: Record<string, string> = {
+    kanban: "Kanban",
+    reports: "Reports",
+    settings: "Settings",
+    invoices: "Invoices",
+    help: "Help",
+    invite: "Invite",
+    login: "Login",
+  }
+
+  const label = routeLabels[segments[0]] || formatSlug(segments[0])
+  crumbs.push({ label })
+  return crumbs
+}
+
 export function Topbar() {
   const router = useRouter()
+  const pathname = usePathname()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [showPanel, setShowPanel] = useState(false)
   const [cmdOpen, setCmdOpen] = useState(false)
@@ -178,9 +217,21 @@ export function Topbar() {
       <div className="h-full max-w-[1120px] mx-auto px-5 flex items-center justify-between">
         {/* Left - Breadcrumb */}
         <div className="flex items-center gap-1.5">
-          <span className="text-[12px] text-[#52525b] hover:text-[#71717a] cursor-pointer transition-colors">Home</span>
-          <ChevronRight className="w-3 h-3 text-[#3f3f46]" strokeWidth={1.5} />
-          <span className="text-[12px] text-[#a1a1aa]">Dashboard</span>
+          {deriveBreadcrumbs(pathname).map((crumb, idx, arr) => (
+            <span key={idx} className="flex items-center gap-1.5">
+              {idx > 0 && <ChevronRight className="w-3 h-3 text-[#3f3f46]" strokeWidth={1.5} />}
+              {crumb.href && idx < arr.length - 1 ? (
+                <span
+                  onClick={() => router.push(crumb.href!)}
+                  className="text-[12px] text-[#52525b] hover:text-[#71717a] cursor-pointer transition-colors"
+                >
+                  {crumb.label}
+                </span>
+              ) : (
+                <span className="text-[12px] text-[#a1a1aa]">{crumb.label}</span>
+              )}
+            </span>
+          ))}
           <span className="text-[12px] text-[#3f3f46] ml-2">|</span>
           <span className="text-[11px] text-[#52525b] ml-2">{new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
         </div>
@@ -243,7 +294,7 @@ export function Topbar() {
                 <div className="max-h-[360px] overflow-y-auto">
                   {notifications.length === 0 ? (
                     <div className="px-3 py-6 text-center">
-                      <p className="text-[12px] text-[#52525b]">No notifications</p>
+                      <p className="text-[12px] text-[#52525b]">You're all caught up! No new notifications.</p>
                     </div>
                   ) : (
                     notifications.map((n) => (

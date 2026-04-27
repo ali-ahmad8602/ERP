@@ -158,6 +158,9 @@ export default function MembersPage() {
 
   const handleRemoveMember = useCallback(async (userId: string) => {
     if (!dept) return
+    const member = allMembers.find((m) => m.id === userId)
+    const confirmed = window.confirm(`Remove ${member?.name ?? "this member"} from this department?`)
+    if (!confirmed) return
     try {
       await deptApi.removeMember(dept._id, userId)
       const detailRes = await deptApi.get(dept._id)
@@ -165,7 +168,7 @@ export default function MembersPage() {
     } catch {
       // silently handle
     }
-  }, [dept])
+  }, [dept, allMembers])
 
   return (
     <div className="min-h-screen bg-[#09090b]">
