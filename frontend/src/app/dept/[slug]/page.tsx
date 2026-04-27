@@ -184,6 +184,10 @@ export default function DeptDetailPage() {
     }
   }
 
+  const handleCardUpdated = async () => {
+    if (selectedBoardId) fetchCards(selectedBoardId)
+  }
+
   const isLoading = authLoading || deptLoading || loadingBoards
   const memberCount = dept ? (dept.members?.length ?? 0) + (dept.heads?.length ?? 0) : 0
 
@@ -325,6 +329,8 @@ export default function DeptDetailPage() {
                 onComment={handleComment}
                 onApprove={handleApprove}
                 onReject={handleReject}
+                autoOpenCardId={searchParams.get("cardId")}
+                onCardUpdated={handleCardUpdated}
               />
             ) : (
               <KanbanBoard
@@ -335,6 +341,8 @@ export default function DeptDetailPage() {
                 onComment={handleComment}
                 onApprove={handleApprove}
                 onReject={handleReject}
+                autoOpenCardId={searchParams.get("cardId")}
+                onCardUpdated={handleCardUpdated}
               />
             )}
           </div>

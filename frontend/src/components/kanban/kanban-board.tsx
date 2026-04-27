@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   DndContext,
   DragOverlay,
@@ -29,9 +29,11 @@ interface KanbanBoardProps {
   onComment?: (cardId: string, text: string) => void
   onApprove?: (cardId: string) => void
   onReject?: (cardId: string, reason: string) => void
+  onCardUpdated?: (cardId: string, data: any) => void
+  autoOpenCardId?: string | null
 }
 
-export function KanbanBoard({ columns: propColumns, cards: propCards, onCardMove, onCardClick, onAddCard, onComment, onApprove, onReject }: KanbanBoardProps = {}) {
+export function KanbanBoard({ columns: propColumns, cards: propCards, onCardMove, onCardClick, onAddCard, onComment, onApprove, onReject, onCardUpdated, autoOpenCardId }: KanbanBoardProps = {}) {
   const columnDefs = propColumns || staticColumnDefs
   const [localCards, setLocalCards] = useState<Card[]>(initialCards)
 
@@ -41,6 +43,18 @@ export function KanbanBoard({ columns: propColumns, cards: propCards, onCardMove
 
   const [activeCard, setActiveCard] = useState<Card | null>(null)
   const [selectedCard, setSelectedCard] = useState<Card | null>(null)
+  const [autoOpened, setAutoOpened] = useState(false)
+
+  // Auto-open card from URL param
+  useEffect(() => {
+    if (autoOpenCardId && !autoOpened && cards.length > 0) {
+      const card = cards.find(c => c.id === autoOpenCardId)
+      if (card) {
+        setSelectedCard(card)
+        setAutoOpened(true)
+      }
+    }
+  }, [autoOpenCardId, cards, autoOpened])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -188,7 +202,7 @@ export function KanbanBoard({ columns: propColumns, cards: propCards, onCardMove
         </DragOverlay>
       </DndContext>
 
-      <CardDrawer card={selectedCard} onClose={() => setSelectedCard(null)} onComment={onComment} onApprove={onApprove} onReject={onReject} />
+      <CardDrawer card={selectedCard} onClose={() => setSelectedCard(null)} onComment={onComment} onApprove={onApprove} onReject={onReject} onCardUpdated={onCardUpdated} />
     </>
   )
 }

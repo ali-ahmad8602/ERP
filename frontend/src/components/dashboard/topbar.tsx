@@ -1,29 +1,42 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { Search, Bell, Settings, HelpCircle, ChevronRight } from "lucide-react"
 import { notificationApi } from "@/lib/api"
 
+interface NotificationDept {
+  _id: string
+  name: string
+  slug: string
+}
+
 interface Notification {
   _id: string
+  type: string
+  title: string
   message: string
-  read: boolean
+  entityType: string
+  entityId: string
+  department?: NotificationDept
+  isRead: boolean
   createdAt: string
 }
 
 export function Topbar() {
+  const router = useRouter()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [showPanel, setShowPanel] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
   const bellRef = useRef<HTMLButtonElement>(null)
 
-  const unreadCount = notifications.filter((n) => !n.read).length
+  const unreadCount = notifications.filter((n) => !n.isRead).length
 
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
     if (!token) return
     notificationApi
-      .list(10)
+      .list(20)
       .then((data) => {
         setNotifications(data.notifications || [])
       })
@@ -50,17 +63,33 @@ export function Topbar() {
   const handleMarkAllRead = async () => {
     try {
       await notificationApi.markAllRead()
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })))
     } catch {}
   }
 
-  const handleMarkRead = async (id: string) => {
-    try {
-      await notificationApi.markRead(id)
-      setNotifications((prev) =>
-        prev.map((n) => (n._id === id ? { ...n, read: true } : n))
-      )
-    } catch {}
+  const handleNotificationClick = async (n: Notification) => {
+    // Mark as read
+    if (!n.isRead) {
+      try {
+        await notificationApi.markRead(n._id)
+        setNotifications((prev) =>
+          prev.map((notif) => (notif._id === n._id ? { ...notif, isRead: true } : notif))
+        )
+      } catch {}
+    }
+
+    // Navigate based on entity type
+    if (n.department?.slug && n.entityType === "card" && n.entityId) {
+      // Navigate to dept page with card auto-open
+      setShowPanel(false)
+      router.push(`/dept/${n.department.slug}?cardId=${n.entityId}`)
+    } else if (n.department?.slug) {
+      setShowPanel(false)
+      router.push(`/dept/${n.department.slug}`)
+    } else {
+      // Fallback — just close panel
+      setShowPanel(false)
+    }
   }
 
   const formatTime = (dateStr: string) => {
@@ -89,7 +118,7 @@ export function Topbar() {
           <ChevronRight className="w-3 h-3 text-[#3f3f46]" strokeWidth={1.5} />
           <span className="text-[12px] text-[#a1a1aa]">Dashboard</span>
           <span className="text-[12px] text-[#3f3f46] ml-2">|</span>
-          <span className="text-[11px] text-[#52525b] ml-2">Apr 27, 2026</span>
+          <span className="text-[11px] text-[#52525b] ml-2">{new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
         </div>
 
         {/* Center - Search */}
@@ -128,9 +157,8 @@ export function Topbar() {
             {showPanel && (
               <div
                 ref={panelRef}
-                className="absolute right-0 top-full mt-1 w-[320px] bg-[#0f0f11] border border-[#27272a] rounded-lg shadow-xl overflow-hidden z-50"
+                className="absolute right-0 top-full mt-1 w-[340px] bg-[#0f0f11] border border-[#27272a] rounded-lg shadow-xl overflow-hidden z-50"
               >
-                {/* Panel Header */}
                 <div className="flex items-center justify-between px-3 py-2.5 border-b border-[#27272a]">
                   <span className="text-[12px] font-semibold text-[#fafafa]">Notifications</span>
                   {unreadCount > 0 && (
@@ -143,8 +171,7 @@ export function Topbar() {
                   )}
                 </div>
 
-                {/* Notification List */}
-                <div className="max-h-[320px] overflow-y-auto">
+                <div className="max-h-[360px] overflow-y-auto">
                   {notifications.length === 0 ? (
                     <div className="px-3 py-6 text-center">
                       <p className="text-[12px] text-[#52525b]">No notifications</p>
@@ -153,24 +180,31 @@ export function Topbar() {
                     notifications.map((n) => (
                       <button
                         key={n._id}
-                        onClick={() => handleMarkRead(n._id)}
+                        onClick={() => handleNotificationClick(n)}
                         className="w-full text-left px-3 py-2.5 hover:bg-[#ffffff08] transition-colors border-b border-[#ffffff0a] last:border-b-0 flex items-start gap-2.5"
                       >
-                        {/* Unread dot */}
                         <div className="mt-1.5 shrink-0">
-                          {!n.read ? (
+                          {!n.isRead ? (
                             <div className="w-1.5 h-1.5 bg-[#3b82f6] rounded-full" />
                           ) : (
                             <div className="w-1.5 h-1.5" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className={`text-[12px] leading-snug ${n.read ? "text-[#71717a]" : "text-[#fafafa]"}`}>
-                            {n.message}
+                          <p className={`text-[12px] font-medium leading-snug ${n.isRead ? "text-[#71717a]" : "text-[#fafafa]"}`}>
+                            {n.title}
                           </p>
-                          <p className="text-[10px] text-[#52525b] mt-0.5">
-                            {formatTime(n.createdAt)}
-                          </p>
+                          {n.message && (
+                            <p className={`text-[11px] leading-snug mt-0.5 ${n.isRead ? "text-[#52525b]" : "text-[#a1a1aa]"}`}>
+                              {n.message}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[10px] text-[#52525b]">{formatTime(n.createdAt)}</span>
+                            {n.department && (
+                              <span className="text-[10px] text-[#3f3f46]">{n.department.name}</span>
+                            )}
+                          </div>
                         </div>
                       </button>
                     ))
