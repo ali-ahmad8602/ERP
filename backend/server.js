@@ -35,6 +35,15 @@ io.on('connection', (socket) => {
   // Join user-specific room
   socket.join(`user:${socket.userId}`);
 
+  // Board room management
+  socket.on('join-board', (boardId) => {
+    socket.join(`board:${boardId}`);
+  });
+
+  socket.on('leave-board', (boardId) => {
+    socket.leave(`board:${boardId}`);
+  });
+
   socket.on('disconnect', () => {
     // Auto-cleaned by Socket.io
   });

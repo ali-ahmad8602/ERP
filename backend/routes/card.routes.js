@@ -87,6 +87,9 @@ router.post('/', async (req, res) => {
       notifications.notifyApprovers(card, card.approval.approvers, req.user._id).catch(() => {});
     }
 
+    const io = req.app.get('io');
+    if (io) io.to(`board:${card.board}`).emit('card.created', { card });
+
     res.status(201).json({ card });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -127,6 +130,10 @@ router.patch('/:cardId', requireBoardAccessFromCard('editor'), async (req, res) 
     Activity.log({ user: req.user._id, action: 'card_edited', entityType: 'card', entityId: card._id, entityTitle: card.title, department: board.department, board: board._id }).catch(() => {});
 
     await card.populate('assignees', 'name email avatar');
+
+    const io = req.app.get('io');
+    if (io) io.to(`board:${card.board}`).emit('card.updated', { card });
+
     res.json({ card });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -154,6 +161,9 @@ router.patch('/:cardId/move', requireBoardAccessFromCard('editor'), async (req, 
     Activity.log({ user: req.user._id, action: 'card_moved', entityType: 'card', entityId: card._id, entityTitle: card.title, department: board.department, board: board._id, detail: `${fromCol} → ${toCol}` }).catch(() => {});
     notifications.notifyCardMoved(card, `${fromCol} → ${toCol}`, req.user._id).catch(() => {});
 
+    const io = req.app.get('io');
+    if (io) io.to(`board:${card.board}`).emit('card.moved', { card });
+
     res.json({ card });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -173,6 +183,10 @@ router.post('/:cardId/comments', requireBoardAccessFromCard('commenter'), async 
     notifications.notifyCommentSubscribers(card, req.user._id).catch(() => {});
 
     await card.populate('comments.author', 'name avatar');
+
+    const io = req.app.get('io');
+    if (io) io.to(`board:${card.board}`).emit('card.updated', { card });
+
     res.status(201).json({ comments: card.comments });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -206,6 +220,9 @@ router.post('/:cardId/approve', requireBoardAccessFromCard('viewer'), async (req
     Activity.log({ user: req.user._id, action: 'card_approved', entityType: 'card', entityId: card._id, entityTitle: card.title, department: board.department, board: board._id }).catch(() => {});
     notifications.notifyApprovalResult(card, 'approved', req.user._id).catch(() => {});
 
+    const io = req.app.get('io');
+    if (io) io.to(`board:${card.board}`).emit('card.updated', { card });
+
     res.json({ card });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -227,6 +244,9 @@ router.post('/:cardId/reject', requireBoardAccessFromCard('viewer'), async (req,
     Activity.log({ user: req.user._id, action: 'card_rejected', entityType: 'card', entityId: card._id, entityTitle: card.title, department: board.department, board: board._id, detail: req.body.reason }).catch(() => {});
     notifications.notifyApprovalResult(card, 'rejected', req.user._id).catch(() => {});
 
+    const io = req.app.get('io');
+    if (io) io.to(`board:${card.board}`).emit('card.updated', { card });
+
     res.json({ card });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -243,6 +263,9 @@ router.delete('/:cardId', requireBoardAccessFromCard('editor'), async (req, res)
 
     const board = req.board;
     Activity.log({ user: req.user._id, action: 'card_archived', entityType: 'card', entityId: card._id, entityTitle: card.title, department: board.department, board: board._id }).catch(() => {});
+
+    const io = req.app.get('io');
+    if (io) io.to(`board:${req.card.board}`).emit('card.deleted', { cardId: req.params.cardId });
 
     res.json({ message: 'Card archived' });
   } catch (err) {

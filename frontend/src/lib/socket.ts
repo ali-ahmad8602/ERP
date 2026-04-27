@@ -26,3 +26,13 @@ export function disconnectSocket() {
     socket = null
   }
 }
+
+export function joinBoard(boardId: string) {
+  const s = getSocket()
+  if (s.connected) s.emit('join-board', boardId)
+}
+
+export function leaveBoard(boardId: string) {
+  const s = getSocket()
+  if (s.connected) s.emit('leave-board', boardId)
+}

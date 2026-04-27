@@ -47,17 +47,21 @@ export function Topbar() {
       .catch(() => {})
   }, [])
 
-  // Socket.io real-time notifications + polling fallback
+  const [socketConnected, setSocketConnected] = useState(false)
+
+  // Socket.io real-time notifications
   useEffect(() => {
     fetchNotifications()
 
-    // Attempt socket connection for real-time updates
-    let socketConnected = false
     try {
       const socket = connectSocket()
 
       socket.on("connect", () => {
-        socketConnected = true
+        setSocketConnected(true)
+      })
+
+      socket.on("disconnect", () => {
+        setSocketConnected(false)
       })
 
       socket.on("notification", (data: any) => {
@@ -66,13 +70,21 @@ export function Topbar() {
       })
 
       socket.on("connect_error", () => {
-        socketConnected = false
+        setSocketConnected(false)
       })
     } catch {
       // Socket connection failed — polling fallback handles it
     }
 
-    // Polling fallback (always active, serves as backup)
+    return () => {
+      disconnectSocket()
+    }
+  }, [fetchNotifications])
+
+  // Polling fallback — only active when socket is disconnected
+  useEffect(() => {
+    if (socketConnected) return
+
     const interval = setInterval(() => {
       const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
       if (token) fetchNotifications()
@@ -80,9 +92,8 @@ export function Topbar() {
 
     return () => {
       clearInterval(interval)
-      disconnectSocket()
     }
-  }, [fetchNotifications])
+  }, [socketConnected, fetchNotifications])
 
   // Global Cmd+K / Ctrl+K listener
   useEffect(() => {

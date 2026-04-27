@@ -99,6 +99,10 @@ router.patch('/:boardId', noSettingsForTopMgmt, requireBoardAccess('board_owner'
     allowed.forEach(f => { if (req.body[f] !== undefined) updates[f] = req.body[f]; });
 
     const board = await Board.findByIdAndUpdate(req.params.boardId, updates, { new: true });
+
+    const io = req.app.get('io');
+    if (io) io.to(`board:${req.params.boardId}`).emit('board.updated', { board });
+
     res.json({ board });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -125,6 +129,10 @@ router.post('/:boardId/columns', noSettingsForTopMgmt, requireBoardAccess('board
     const order = board.columns.length;
     board.columns.push({ name, color, order });
     await board.save();
+
+    const io = req.app.get('io');
+    if (io) io.to(`board:${req.params.boardId}`).emit('board.updated', { board });
+
     res.status(201).json({ board });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -141,6 +149,10 @@ router.patch('/:boardId/columns/:columnId', noSettingsForTopMgmt, requireBoardAc
     if (req.body.color) col.color = req.body.color;
     if (req.body.order !== undefined) col.order = req.body.order;
     await board.save();
+
+    const io = req.app.get('io');
+    if (io) io.to(`board:${req.params.boardId}`).emit('board.updated', { board });
+
     res.json({ board });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -156,6 +168,10 @@ router.delete('/:boardId/columns/:columnId', noSettingsForTopMgmt, requireBoardA
     if (col.isDefault) return res.status(400).json({ message: 'Cannot delete a default column' });
     col.deleteOne();
     await board.save();
+
+    const io = req.app.get('io');
+    if (io) io.to(`board:${req.params.boardId}`).emit('board.updated', { board });
+
     res.json({ board });
   } catch (err) {
     res.status(500).json({ message: err.message });

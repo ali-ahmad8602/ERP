@@ -11,6 +11,7 @@ import { usePermissions } from "@/hooks/usePermissions"
 import { useBoardStore } from "@/store/board.store"
 import { deptApi, cardApi, boardApi } from "@/lib/api"
 import { safeCard } from "@/lib/safe"
+import { connectSocket, joinBoard, leaveBoard } from "@/lib/socket"
 import { Plus, Users, LayoutGrid, MoreHorizontal, Settings } from "lucide-react"
 import type { Card, ColumnId } from "@/components/kanban/types"
 
@@ -117,6 +118,37 @@ export default function DeptDetailPage() {
     if (!selectedBoardId) return
     fetchBoard(selectedBoardId)
     fetchCards(selectedBoardId)
+  }, [selectedBoardId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 5. Socket: join board room and listen for real-time events
+  useEffect(() => {
+    if (!selectedBoardId) return
+
+    const s = connectSocket()
+    joinBoard(selectedBoardId)
+
+    const handleCardEvent = () => {
+      fetchCards(selectedBoardId)
+    }
+    const handleBoardEvent = () => {
+      fetchBoard(selectedBoardId)
+      fetchCards(selectedBoardId)
+    }
+
+    s.on('card.created', handleCardEvent)
+    s.on('card.updated', handleCardEvent)
+    s.on('card.moved', handleCardEvent)
+    s.on('card.deleted', handleCardEvent)
+    s.on('board.updated', handleBoardEvent)
+
+    return () => {
+      leaveBoard(selectedBoardId)
+      s.off('card.created', handleCardEvent)
+      s.off('card.updated', handleCardEvent)
+      s.off('card.moved', handleCardEvent)
+      s.off('card.deleted', handleCardEvent)
+      s.off('board.updated', handleBoardEvent)
+    }
   }, [selectedBoardId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Switch board handler
