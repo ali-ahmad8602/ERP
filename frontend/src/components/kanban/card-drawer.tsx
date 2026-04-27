@@ -1,6 +1,7 @@
 "use client"
 
-import { X, FileText, Paperclip, Calendar, Users } from "lucide-react"
+import { useState } from "react"
+import { X, FileText, Paperclip, Calendar, Users, Send } from "lucide-react"
 import type { Card, Priority } from "./types"
 
 const priorityConfig: Record<Priority, { label: string; bg: string; text: string }> = {
@@ -20,18 +21,44 @@ const statusLabels: Record<string, { label: string; bg: string; text: string }> 
 interface CardDrawerProps {
   card: Card | null
   onClose: () => void
+  onComment?: (cardId: string, text: string) => void
+  onApprove?: (cardId: string) => void
+  onReject?: (cardId: string, reason: string) => void
 }
 
-export function CardDrawer({ card, onClose }: CardDrawerProps) {
+export function CardDrawer({ card, onClose, onComment, onApprove, onReject }: CardDrawerProps) {
+  const [commentText, setCommentText] = useState("")
+
   if (!card) return null
 
   const priority = priorityConfig[card.priority]
-  const status = statusLabels[card.columnId]
+  const status = statusLabels[card.columnId] || { label: card.columnId, bg: "bg-[#71717a]/15", text: "text-[#71717a]" }
+
+  const handleSendComment = () => {
+    if (!commentText.trim()) return
+    if (onComment) {
+      onComment(card.id, commentText.trim())
+    }
+    setCommentText("")
+  }
+
+  const handleApprove = () => {
+    if (onApprove) {
+      onApprove(card.id)
+    }
+  }
+
+  const handleReject = () => {
+    const reason = window.prompt("Rejection reason:")
+    if (reason && onReject) {
+      onReject(card.id, reason)
+    }
+  }
 
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 z-40"
         onClick={onClose}
       />
@@ -171,6 +198,27 @@ export function CardDrawer({ card, onClose }: CardDrawerProps) {
             ) : (
               <p className="text-[12px] text-[#52525b]">No comments yet</p>
             )}
+
+            {/* Comment Input */}
+            <div className="flex items-center gap-2 mt-3">
+              <input
+                type="text"
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSendComment()
+                }}
+                placeholder="Write a comment..."
+                className="flex-1 h-8 px-3 rounded-[6px] bg-[#0f0f11] border border-[#27272a] text-[12px] text-[#fafafa] placeholder-[#52525b] outline-none focus:border-[#3f3f46] transition-colors"
+              />
+              <button
+                onClick={handleSendComment}
+                disabled={!commentText.trim()}
+                className="h-8 w-8 flex items-center justify-center rounded-[6px] bg-[#27272a] text-[#a1a1aa] hover:bg-[#3f3f46] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <Send className="w-3.5 h-3.5" strokeWidth={1.5} />
+              </button>
+            </div>
           </div>
 
           {/* Approval Section */}
@@ -179,10 +227,16 @@ export function CardDrawer({ card, onClose }: CardDrawerProps) {
               Approval
             </h4>
             <div className="flex items-center gap-2">
-              <button className="h-8 px-4 rounded-[6px] bg-[#22c55e] text-[12px] font-medium text-white hover:bg-[#16a34a] transition-colors">
+              <button
+                onClick={handleApprove}
+                className="h-8 px-4 rounded-[6px] bg-[#22c55e] text-[12px] font-medium text-white hover:bg-[#16a34a] transition-colors"
+              >
                 Approve
               </button>
-              <button className="h-8 px-4 rounded-[6px] bg-[#27272a] text-[12px] font-medium text-[#ef4444] hover:bg-[#ef4444]/15 border border-[#27272a] hover:border-[#ef4444]/30 transition-colors">
+              <button
+                onClick={handleReject}
+                className="h-8 px-4 rounded-[6px] bg-[#27272a] text-[12px] font-medium text-[#ef4444] hover:bg-[#ef4444]/15 border border-[#27272a] hover:border-[#ef4444]/30 transition-colors"
+              >
                 Reject
               </button>
             </div>

@@ -61,3 +61,56 @@ export const analyticsApi = {
 export const deptApi = {
   list: () => request<{ departments: any[] }>("/api/departments"),
 };
+
+export const boardApi = {
+  list: (deptId: string) =>
+    request<{ boards: any[] }>(`/api/boards?deptId=${deptId}`),
+
+  get: (boardId: string) =>
+    request<{ board: any }>(`/api/boards/${boardId}`),
+};
+
+export const cardApi = {
+  list: (boardId: string) =>
+    request<{ cards: any[] }>(`/api/cards?boardId=${boardId}`),
+
+  create: (data: { title: string; board: string; column: string }) =>
+    request<{ card: any }>("/api/cards", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  update: (cardId: string, data: Record<string, any>) =>
+    request<{ card: any }>(`/api/cards/${cardId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  move: (cardId: string, columnId: string, order: number) =>
+    request<{ card: any }>(`/api/cards/${cardId}/move`, {
+      method: "PATCH",
+      body: JSON.stringify({ columnId, order }),
+    }),
+
+  comment: (cardId: string, text: string) =>
+    request<{ comments: any[] }>(`/api/cards/${cardId}/comments`, {
+      method: "POST",
+      body: JSON.stringify({ text }),
+    }),
+
+  approve: (cardId: string) =>
+    request<{ card: any }>(`/api/cards/${cardId}/approve`, {
+      method: "POST",
+    }),
+
+  reject: (cardId: string, reason: string) =>
+    request<{ card: any }>(`/api/cards/${cardId}/reject`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    }),
+
+  delete: (cardId: string) =>
+    request<{ message: string }>(`/api/cards/${cardId}`, {
+      method: "DELETE",
+    }),
+};
