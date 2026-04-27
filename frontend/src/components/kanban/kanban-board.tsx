@@ -31,9 +31,10 @@ interface KanbanBoardProps {
   onReject?: (cardId: string, reason: string) => void
   onCardUpdated?: (cardId: string, data: any) => void
   autoOpenCardId?: string | null
+  readOnly?: boolean
 }
 
-export function KanbanBoard({ columns: propColumns, cards: propCards, onCardMove, onCardClick, onAddCard, onComment, onApprove, onReject, onCardUpdated, autoOpenCardId }: KanbanBoardProps = {}) {
+export function KanbanBoard({ columns: propColumns, cards: propCards, onCardMove, onCardClick, onAddCard, onComment, onApprove, onReject, onCardUpdated, autoOpenCardId, readOnly }: KanbanBoardProps = {}) {
   const columnDefs = propColumns || staticColumnDefs
   const [localCards, setLocalCards] = useState<Card[]>(initialCards)
 
@@ -238,7 +239,7 @@ export function KanbanBoard({ columns: propColumns, cards: propCards, onCardMove
         </DragOverlay>
       </DndContext>
 
-      <CardDrawer card={selectedCard} onClose={() => setSelectedCard(null)} onComment={onComment} onApprove={onApprove} onReject={onReject} onCardUpdated={onCardUpdated} />
+      <CardDrawer card={selectedCard} onClose={() => setSelectedCard(null)} onComment={onComment} onApprove={onApprove} onReject={onReject} onCardUpdated={onCardUpdated} readOnly={readOnly} />
     </>
   )
 }

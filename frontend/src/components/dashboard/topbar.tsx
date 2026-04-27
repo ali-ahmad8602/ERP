@@ -204,7 +204,10 @@ export function Topbar() {
 
         {/* Right - Actions */}
         <div className="flex items-center gap-0.5">
-          <button className="relative w-8 h-8 flex items-center justify-center rounded-md text-[#52525b] hover:text-[#a1a1aa] hover:bg-[#ffffff08] transition-colors">
+          <button
+            onClick={() => router.push("/help")}
+            className="relative w-8 h-8 flex items-center justify-center rounded-md text-[#52525b] hover:text-[#a1a1aa] hover:bg-[#ffffff08] transition-colors"
+          >
             <HelpCircle className="w-4 h-4" strokeWidth={1.5} />
           </button>
           <div className="relative">
@@ -279,7 +282,10 @@ export function Topbar() {
               </div>
             )}
           </div>
-          <button className="w-8 h-8 flex items-center justify-center rounded-md text-[#52525b] hover:text-[#a1a1aa] hover:bg-[#ffffff08] transition-colors">
+          <button
+            onClick={() => router.push("/settings")}
+            className="w-8 h-8 flex items-center justify-center rounded-md text-[#52525b] hover:text-[#a1a1aa] hover:bg-[#ffffff08] transition-colors"
+          >
             <Settings className="w-4 h-4" strokeWidth={1.5} />
           </button>
           <div className="ml-1.5 w-7 h-7 rounded-full bg-[#27272a] flex items-center justify-center cursor-pointer hover:ring-1 hover:ring-[#ffffff14] transition-all">

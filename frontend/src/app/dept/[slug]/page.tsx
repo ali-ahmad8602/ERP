@@ -535,6 +535,7 @@ export default function DeptDetailPage() {
                 onReject={handleReject}
                 autoOpenCardId={searchParams.get("cardId")}
                 onCardUpdated={handleCardUpdated}
+                readOnly={boardIsLocked}
               />
             ) : (
               <KanbanBoard
@@ -547,6 +548,7 @@ export default function DeptDetailPage() {
                 onReject={handleReject}
                 autoOpenCardId={searchParams.get("cardId")}
                 onCardUpdated={handleCardUpdated}
+                readOnly={boardIsLocked}
               />
             )}
           </div>

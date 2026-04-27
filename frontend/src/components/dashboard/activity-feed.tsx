@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { Clock } from "lucide-react"
 import type { ActivityEntry } from "@/types"
 
@@ -10,6 +11,7 @@ interface ActivityItem {
   action: string
   target: string
   time: string
+  href?: string
 }
 
 interface ActivityGroup {
@@ -65,6 +67,17 @@ function groupActivities(entries: ActivityEntry[]): ActivityGroup[] {
 
   for (const e of entries) {
     const d = new Date(e.createdAt)
+    let href: string | undefined
+    if (e.department?.slug) {
+      if (e.entityType === "card" && e.entityId) {
+        href = `/dept/${e.department.slug}?cardId=${e.entityId}`
+      } else if (e.entityType === "board" && e.entityId) {
+        href = `/dept/${e.department.slug}?boardId=${e.entityId}`
+      } else {
+        href = `/dept/${e.department.slug}`
+      }
+    }
+
     const item: ActivityItem = {
       id: e._id,
       initials: getInitials(e.user.name),
@@ -72,6 +85,7 @@ function groupActivities(entries: ActivityEntry[]): ActivityGroup[] {
       action: e.action,
       target: e.entityTitle,
       time: timeAgo(e.createdAt),
+      href,
     }
     if (d >= today) todayItems.push(item)
     else if (d >= yesterday) yesterdayItems.push(item)
@@ -91,6 +105,7 @@ interface ActivityFeedProps {
 }
 
 export function ActivityFeed({ activities, loading }: ActivityFeedProps) {
+  const router = useRouter()
   if (loading) {
     return (
       <div className="bg-[#0f0f11] border border-[#ffffff14] rounded-lg overflow-hidden flex flex-col h-full">
@@ -143,9 +158,11 @@ export function ActivityFeed({ activities, loading }: ActivityFeedProps) {
             {group.items.map((item, idx) => (
               <div
                 key={item.id}
+                onClick={() => { if (item.href) router.push(item.href) }}
+                role={item.href ? "button" : undefined}
                 className={`flex items-start gap-2.5 px-4 py-2.5 hover:bg-[#ffffff05] transition-colors ${
                   idx !== group.items.length - 1 ? "border-b border-[#ffffff08]" : ""
-                }`}
+                }${item.href ? " cursor-pointer" : ""}`}
               >
                 {/* Left accent line */}
                 <div className="w-[2px] h-5 bg-[#27272a] rounded-full shrink-0 mt-0.5" />

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { X, FileText, Paperclip, Calendar, Users, Send, Upload, Save, RotateCcw } from "lucide-react"
+import { X, FileText, Paperclip, Calendar, Users, Send, Upload, Save, RotateCcw, Download } from "lucide-react"
 import { cardApi } from "@/lib/api"
 import { usePermissions } from "@/hooks/usePermissions"
 import { useAuthStore } from "@/store/auth.store"
@@ -50,6 +50,25 @@ const statusLabels: Record<string, { label: string; bg: string; text: string }> 
   "done": { label: "Done", bg: "bg-[#22c55e]/15", text: "text-[#22c55e]" },
 }
 
+function exportAuditCSV(auditLog: any[], cardTitle: string) {
+  const header = "User,Action,Detail,Date\n"
+  const rows = auditLog.map(e => {
+    const user = e.user?.name || "Unknown"
+    const action = e.action || ""
+    const detail = (e.detail || "").replace(/,/g, ";")
+    const date = e.createdAt ? new Date(e.createdAt).toISOString() : ""
+    return `${user},${action},${detail},${date}`
+  }).join("\n")
+
+  const blob = new Blob([header + rows], { type: "text/csv" })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = `audit-${cardTitle.replace(/\s+/g, "-")}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 interface CardDrawerProps {
   card: Card | null
   onClose: () => void
@@ -58,9 +77,10 @@ interface CardDrawerProps {
   onReject?: (cardId: string, reason: string) => void
   onAttachmentUploaded?: (cardId: string) => void
   onCardUpdated?: (cardId: string, data: any) => void
+  readOnly?: boolean
 }
 
-export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAttachmentUploaded, onCardUpdated }: CardDrawerProps) {
+export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAttachmentUploaded, onCardUpdated, readOnly }: CardDrawerProps) {
   const [commentText, setCommentText] = useState("")
   const [uploading, setUploading] = useState(false)
   const [localAttachments, setLocalAttachments] = useState<Card["attachments"]>([])
@@ -193,7 +213,7 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
             <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ${status.bg} ${status.text}`}>
               {status.label}
             </span>
-            {!editing && (
+            {!editing && !readOnly && (
               <button
                 onClick={() => setEditing(true)}
                 className="h-7 px-2.5 rounded-md text-[11px] text-[#a1a1aa] bg-[#27272a] hover:bg-[#3f3f46] transition-colors"
@@ -380,14 +400,16 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
               <div className="px-4 py-4 border-b border-[#ffffff0a]">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider">Attachments</h4>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
-                    className="flex items-center gap-1 h-6 px-2 rounded bg-[#27272a] text-[10px] font-medium text-[#a1a1aa] hover:bg-[#3f3f46] transition-colors disabled:opacity-40"
-                  >
-                    <Upload className="w-3 h-3" strokeWidth={1.5} />
-                    {uploading ? "Uploading..." : "Upload"}
-                  </button>
+                  {!readOnly && (
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="flex items-center gap-1 h-6 px-2 rounded bg-[#27272a] text-[10px] font-medium text-[#a1a1aa] hover:bg-[#3f3f46] transition-colors disabled:opacity-40"
+                    >
+                      <Upload className="w-3 h-3" strokeWidth={1.5} />
+                      {uploading ? "Uploading..." : "Upload"}
+                    </button>
+                  )}
                   <input ref={fileInputRef} type="file" onChange={handleUpload} className="hidden" />
                 </div>
                 {allAttachments.length > 0 ? (
@@ -444,27 +466,29 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
                 ) : (
                   <p className="text-[12px] text-[#52525b]">No comments yet</p>
                 )}
-                <div className="flex items-center gap-2 mt-3">
-                  <input
-                    type="text"
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") handleSendComment() }}
-                    placeholder="Write a comment..."
-                    className="flex-1 h-8 px-3 rounded-[6px] bg-[#0f0f11] border border-[#27272a] text-[12px] text-[#fafafa] placeholder-[#52525b] outline-none focus:border-[#3f3f46] transition-colors"
-                  />
-                  <button
-                    onClick={handleSendComment}
-                    disabled={!commentText.trim()}
-                    className="h-8 w-8 flex items-center justify-center rounded-[6px] bg-[#27272a] text-[#a1a1aa] hover:bg-[#3f3f46] disabled:opacity-40 transition-colors"
-                  >
-                    <Send className="w-3.5 h-3.5" strokeWidth={1.5} />
-                  </button>
-                </div>
+                {!readOnly && (
+                  <div className="flex items-center gap-2 mt-3">
+                    <input
+                      type="text"
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleSendComment() }}
+                      placeholder="Write a comment..."
+                      className="flex-1 h-8 px-3 rounded-[6px] bg-[#0f0f11] border border-[#27272a] text-[12px] text-[#fafafa] placeholder-[#52525b] outline-none focus:border-[#3f3f46] transition-colors"
+                    />
+                    <button
+                      onClick={handleSendComment}
+                      disabled={!commentText.trim()}
+                      className="h-8 w-8 flex items-center justify-center rounded-[6px] bg-[#27272a] text-[#a1a1aa] hover:bg-[#3f3f46] disabled:opacity-40 transition-colors"
+                    >
+                      <Send className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Approval */}
-              {canApproveCard && (
+              {canApproveCard && !readOnly && (
                 <div className="px-4 py-4">
                   <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider mb-3">Approval</h4>
                   <div className="flex items-center gap-2">
@@ -478,6 +502,18 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
 
           {activeTab === "activity" && (
             <div className="px-4 py-4">
+              {((card as any).auditLog ?? []).length > 0 && (
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider">Audit Trail</h4>
+                  <button
+                    onClick={() => exportAuditCSV((card as any).auditLog ?? [], card.title)}
+                    className="flex items-center gap-1 h-6 px-2 rounded bg-[#27272a] text-[10px] font-medium text-[#a1a1aa] hover:bg-[#3f3f46] transition-colors"
+                  >
+                    <Download className="w-3 h-3" strokeWidth={1.5} />
+                    Export
+                  </button>
+                </div>
+              )}
               {((card as any).auditLog ?? []).length > 0 ? (
                 <div>
                   {((card as any).auditLog as AuditLogEntry[]).map((entry, idx, arr) => (
