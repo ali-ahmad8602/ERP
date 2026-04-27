@@ -1,42 +1,12 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { PageTopbar } from "@/components/dashboard/page-topbar"
 import { CheckCircle2, AlertTriangle, Clock, ListChecks, TrendingUp, TrendingDown } from "lucide-react"
-
-// KPI Data
-const kpis = [
-  { title: "TOTAL TASKS", value: "128", trend: "+12%", trendUp: true, icon: ListChecks, sparkline: [30, 45, 35, 50, 40, 55, 48, 60] },
-  { title: "COMPLETED", value: "98", trend: "+18%", trendUp: true, icon: CheckCircle2, sparkline: [60, 68, 72, 78, 82, 88, 92, 98] },
-  { title: "OVERDUE", value: "7", trend: "-3", trendUp: true, icon: AlertTriangle, sparkline: [20, 18, 22, 15, 12, 10, 8, 7] },
-  { title: "PENDING", value: "23", trend: "+5", trendUp: false, icon: Clock, sparkline: [15, 18, 20, 19, 22, 21, 24, 23] },
-]
-
-// Chart Data
-const taskStatusData = [
-  { label: "Done", value: 98, color: "#22c55e" },
-  { label: "In Progress", value: 18, color: "#3b82f6" },
-  { label: "Overdue", value: 7, color: "#ef4444" },
-  { label: "Pending", value: 5, color: "#71717a" },
-]
-
-const departmentTasksData = [
-  { name: "Finance", tasks: 24 },
-  { name: "Engineering", tasks: 42 },
-  { name: "Marketing", tasks: 18 },
-  { name: "Operations", tasks: 28 },
-  { name: "Sales", tasks: 16 },
-]
-
-// Department Health Data
-const departmentHealth = [
-  { name: "Finance", tasks: 24, completion: 78, overdue: 2, trend: "up" },
-  { name: "Engineering", tasks: 42, completion: 92, overdue: 1, trend: "up" },
-  { name: "Marketing", tasks: 18, completion: 45, overdue: 4, trend: "down" },
-  { name: "Operations", tasks: 28, completion: 83, overdue: 2, trend: "up" },
-  { name: "Sales", tasks: 16, completion: 67, overdue: 3, trend: "down" },
-  { name: "HR", tasks: 12, completion: 88, overdue: 0, trend: "up" },
-]
+import { useAuth } from "@/hooks/useAuth"
+import { analyticsApi } from "@/lib/api"
+import type { OrgOverview, DeptStats } from "@/types"
 
 function MiniSparkline({ data, positive }: { data: number[]; positive: boolean }) {
   const max = Math.max(...data)
@@ -64,8 +34,8 @@ function MiniSparkline({ data, positive }: { data: number[]; positive: boolean }
   )
 }
 
-function DonutChart() {
-  const total = taskStatusData.reduce((sum, d) => sum + d.value, 0)
+function DonutChart({ data }: { data: { label: string; value: number; color: string }[] }) {
+  const total = data.reduce((sum, d) => sum + d.value, 0)
   let cumulativePercent = 0
   const radius = 60
   const strokeWidth = 16
@@ -74,8 +44,8 @@ function DonutChart() {
   return (
     <div className="flex items-center gap-6">
       <svg width="160" height="160" viewBox="0 0 160 160">
-        {taskStatusData.map((segment, i) => {
-          const percent = segment.value / total
+        {data.map((segment, i) => {
+          const percent = total > 0 ? segment.value / total : 0
           const strokeDasharray = `${percent * circumference} ${circumference}`
           const strokeDashoffset = -cumulativePercent * circumference
           cumulativePercent += percent
@@ -103,7 +73,7 @@ function DonutChart() {
         </text>
       </svg>
       <div className="space-y-2">
-        {taskStatusData.map((segment) => (
+        {data.map((segment) => (
           <div key={segment.label} className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: segment.color }} />
             <span className="text-[11px] text-[#71717a] w-16">{segment.label}</span>
@@ -115,12 +85,12 @@ function DonutChart() {
   )
 }
 
-function BarChart() {
-  const maxTasks = Math.max(...departmentTasksData.map(d => d.tasks))
+function BarChart({ data }: { data: { name: string; tasks: number }[] }) {
+  const maxTasks = Math.max(...data.map(d => d.tasks), 1)
 
   return (
     <div className="space-y-3">
-      {departmentTasksData.map((dept) => (
+      {data.map((dept) => (
         <div key={dept.name} className="flex items-center gap-3">
           <span className="text-[11px] text-[#71717a] w-20 truncate">{dept.name}</span>
           <div className="flex-1 h-5 bg-[#27272a] rounded overflow-hidden">
@@ -136,7 +106,82 @@ function BarChart() {
   )
 }
 
+function SkeletonCard() {
+  return (
+    <div className="bg-[#0f0f11] border border-[#ffffff14] rounded-lg p-4 flex flex-col animate-pulse">
+      <div className="flex items-center justify-between mb-3">
+        <div className="h-3 w-20 bg-[#27272a] rounded" />
+        <div className="h-3.5 w-3.5 bg-[#27272a] rounded" />
+      </div>
+      <div className="h-5 w-12 bg-[#27272a] rounded mt-2" />
+      <div className="h-3 w-16 bg-[#27272a] rounded mt-2" />
+    </div>
+  )
+}
+
 export default function ReportsPage() {
+  useAuth({ required: true })
+
+  const [overview, setOverview] = useState<OrgOverview | null>(null)
+  const [deptStats, setDeptStats] = useState<DeptStats[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      try {
+        const [ov, deptRes] = await Promise.all([
+          analyticsApi.overview(),
+          analyticsApi.departments(),
+        ])
+        if (!cancelled) {
+          setOverview(ov)
+          setDeptStats(deptRes.departments ?? [])
+        }
+      } catch {
+        // silently handle errors — show empty state
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [])
+
+  const kpis = overview
+    ? [
+        { title: "TOTAL TASKS", value: String(overview.totalCards), trend: `+${overview.createdThisWeek} this week`, trendUp: true, icon: ListChecks, sparkline: [30, 45, 35, 50, 40, 55, 48, overview.totalCards] },
+        { title: "COMPLETED", value: String(overview.doneCount), trend: `${overview.doneCount} done`, trendUp: true, icon: CheckCircle2, sparkline: [60, 68, 72, 78, 82, 88, 92, overview.doneCount] },
+        { title: "OVERDUE", value: String(overview.overdueCount), trend: `${overview.overdueCount} overdue`, trendUp: overview.overdueCount === 0, icon: AlertTriangle, sparkline: [20, 18, 22, 15, 12, 10, 8, overview.overdueCount] },
+        { title: "PENDING", value: String(overview.pendingApprovals), trend: `${overview.pendingApprovals} pending`, trendUp: false, icon: Clock, sparkline: [15, 18, 20, 19, 22, 21, 24, overview.pendingApprovals] },
+      ]
+    : []
+
+  const taskStatusData = overview
+    ? [
+        { label: "Done", value: overview.doneCount, color: "#22c55e" },
+        { label: "In Progress", value: overview.inProgressCount, color: "#3b82f6" },
+        { label: "Overdue", value: overview.overdueCount, color: "#ef4444" },
+        { label: "Pending", value: overview.pendingApprovals, color: "#71717a" },
+      ]
+    : []
+
+  const departmentTasksData = deptStats.map((ds) => ({
+    name: ds.department.name,
+    tasks: ds.totalCards,
+  }))
+
+  const departmentHealth = deptStats.map((ds) => {
+    const completion = ds.totalCards > 0 ? Math.round((ds.doneCount / ds.totalCards) * 100) : 0
+    return {
+      name: ds.department.name,
+      tasks: ds.totalCards,
+      completion,
+      overdue: ds.overdueCount,
+      trend: ds.overdueCount > 2 ? "down" as const : "up" as const,
+    }
+  })
+
   return (
     <div className="min-h-screen bg-[#09090b]">
       <Sidebar activeRoute="reports" />
@@ -155,32 +200,41 @@ export default function ReportsPage() {
 
           {/* Section 1: KPI Cards */}
           <section className="grid grid-cols-4 gap-3 mb-5">
-            {kpis.map((kpi) => (
-              <div
-                key={kpi.title}
-                className="bg-[#0f0f11] border border-[#ffffff14] rounded-lg p-4 flex flex-col"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[10px] font-medium text-[#52525b] uppercase tracking-wider">
-                    {kpi.title}
-                  </span>
-                  <kpi.icon className="w-3.5 h-3.5 text-[#3f3f46]" strokeWidth={1.5} />
-                </div>
-                <div className="flex items-end justify-between flex-1">
-                  <div className="flex flex-col justify-center">
-                    <p className="text-[20px] font-semibold text-[#fafafa] leading-none tracking-tight">
-                      {kpi.value}
-                    </p>
-                    <p className={`text-[10px] mt-1.5 ${kpi.trendUp ? "text-[#22c55e]" : "text-[#ef4444]"}`}>
-                      {kpi.trend} vs last week
-                    </p>
+            {loading ? (
+              <>
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
+              </>
+            ) : (
+              kpis.map((kpi) => (
+                <div
+                  key={kpi.title}
+                  className="bg-[#0f0f11] border border-[#ffffff14] rounded-lg p-4 flex flex-col"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[10px] font-medium text-[#52525b] uppercase tracking-wider">
+                      {kpi.title}
+                    </span>
+                    <kpi.icon className="w-3.5 h-3.5 text-[#3f3f46]" strokeWidth={1.5} />
                   </div>
-                  <div className="flex items-end">
-                    <MiniSparkline data={kpi.sparkline} positive={kpi.trendUp} />
+                  <div className="flex items-end justify-between flex-1">
+                    <div className="flex flex-col justify-center">
+                      <p className="text-[20px] font-semibold text-[#fafafa] leading-none tracking-tight">
+                        {kpi.value}
+                      </p>
+                      <p className={`text-[10px] mt-1.5 ${kpi.trendUp ? "text-[#22c55e]" : "text-[#ef4444]"}`}>
+                        {kpi.trend}
+                      </p>
+                    </div>
+                    <div className="flex items-end">
+                      <MiniSparkline data={kpi.sparkline} positive={kpi.trendUp} />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </section>
 
           {/* Section 2: Charts */}
@@ -188,13 +242,21 @@ export default function ReportsPage() {
             {/* Donut Chart */}
             <div className="bg-[#0f0f11] border border-[#ffffff14] rounded-lg p-4">
               <h2 className="text-[12px] font-medium text-[#a1a1aa] mb-4">Task Status Breakdown</h2>
-              <DonutChart />
+              {loading ? (
+                <div className="h-40 bg-[#27272a] rounded animate-pulse" />
+              ) : (
+                <DonutChart data={taskStatusData} />
+              )}
             </div>
 
             {/* Bar Chart */}
             <div className="bg-[#0f0f11] border border-[#ffffff14] rounded-lg p-4">
               <h2 className="text-[12px] font-medium text-[#a1a1aa] mb-4">Tasks by Department</h2>
-              <BarChart />
+              {loading ? (
+                <div className="h-40 bg-[#27272a] rounded animate-pulse" />
+              ) : (
+                <BarChart data={departmentTasksData} />
+              )}
             </div>
           </section>
 
@@ -215,34 +277,48 @@ export default function ReportsPage() {
 
             {/* Table Rows */}
             <div className="divide-y divide-[#ffffff08]">
-              {departmentHealth.map((dept) => (
-                <div
-                  key={dept.name}
-                  className="grid grid-cols-[1fr_80px_100px_80px_60px] gap-4 px-4 items-center h-10 hover:bg-[#ffffff05] transition-colors"
-                >
-                  <span className="text-[12px] font-medium text-[#fafafa]">{dept.name}</span>
-                  <span className="text-[12px] text-[#a1a1aa]">{dept.tasks}</span>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-[4px] bg-[#27272a] rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-[#3b82f6] rounded-full"
-                        style={{ width: `${dept.completion}%` }}
-                      />
+              {loading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="grid grid-cols-[1fr_80px_100px_80px_60px] gap-4 px-4 items-center h-10 animate-pulse">
+                    <div className="h-3 w-24 bg-[#27272a] rounded" />
+                    <div className="h-3 w-8 bg-[#27272a] rounded" />
+                    <div className="h-1 flex-1 bg-[#27272a] rounded" />
+                    <div className="h-3 w-6 bg-[#27272a] rounded" />
+                    <div className="h-3.5 w-3.5 bg-[#27272a] rounded" />
+                  </div>
+                ))
+              ) : departmentHealth.length === 0 ? (
+                <div className="px-4 py-6 text-center text-[12px] text-[#52525b]">No department data available</div>
+              ) : (
+                departmentHealth.map((dept) => (
+                  <div
+                    key={dept.name}
+                    className="grid grid-cols-[1fr_80px_100px_80px_60px] gap-4 px-4 items-center h-10 hover:bg-[#ffffff05] transition-colors"
+                  >
+                    <span className="text-[12px] font-medium text-[#fafafa]">{dept.name}</span>
+                    <span className="text-[12px] text-[#a1a1aa]">{dept.tasks}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-[4px] bg-[#27272a] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[#3b82f6] rounded-full"
+                          style={{ width: `${dept.completion}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] text-[#52525b] w-7 text-right">{dept.completion}%</span>
                     </div>
-                    <span className="text-[10px] text-[#52525b] w-7 text-right">{dept.completion}%</span>
+                    <span className={`text-[12px] ${dept.overdue > 2 ? "text-[#ef4444]" : "text-[#71717a]"}`}>
+                      {dept.overdue}
+                    </span>
+                    <div className="flex items-center">
+                      {dept.trend === "up" ? (
+                        <TrendingUp className="w-3.5 h-3.5 text-[#22c55e]" strokeWidth={1.5} />
+                      ) : (
+                        <TrendingDown className="w-3.5 h-3.5 text-[#ef4444]" strokeWidth={1.5} />
+                      )}
+                    </div>
                   </div>
-                  <span className={`text-[12px] ${dept.overdue > 2 ? "text-[#ef4444]" : "text-[#71717a]"}`}>
-                    {dept.overdue}
-                  </span>
-                  <div className="flex items-center">
-                    {dept.trend === "up" ? (
-                      <TrendingUp className="w-3.5 h-3.5 text-[#22c55e]" strokeWidth={1.5} />
-                    ) : (
-                      <TrendingDown className="w-3.5 h-3.5 text-[#ef4444]" strokeWidth={1.5} />
-                    )}
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </section>
         </div>

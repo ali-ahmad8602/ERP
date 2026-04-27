@@ -60,6 +60,40 @@ export const analyticsApi = {
 
 export const deptApi = {
   list: () => request<{ departments: any[] }>("/api/departments"),
+
+  get: (deptId: string) =>
+    request<{ department: any }>(`/api/departments/${deptId}`),
+
+  addMember: (deptId: string, userId: string, role: string) =>
+    request<any>(`/api/departments/${deptId}/members`, {
+      method: "POST",
+      body: JSON.stringify({ userId, role }),
+    }),
+
+  removeMember: (deptId: string, userId: string) =>
+    request<any>(`/api/departments/${deptId}/members/${userId}`, {
+      method: "DELETE",
+    }),
+};
+
+export const inviteApi = {
+  list: () => request<{ invites: any[] }>("/api/invites"),
+
+  create: (data: { email: string; orgRole: string; departments?: string[] }) =>
+    request<{ invite: any; inviteUrl: string }>("/api/invites", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string) =>
+    request<any>(`/api/invites/${id}`, {
+      method: "DELETE",
+    }),
+};
+
+export const usersApi = {
+  search: (query: string) =>
+    request<{ users: any[] }>(`/api/users?search=${encodeURIComponent(query)}`),
 };
 
 export const boardApi = {
