@@ -25,9 +25,10 @@ interface KanbanBoardProps {
   cards?: Card[]
   onCardMove?: (cardId: string, columnId: string, order: number) => void
   onCardClick?: (card: Card) => void
+  onAddCard?: (columnId: string, title: string) => void
 }
 
-export function KanbanBoard({ columns: propColumns, cards: propCards, onCardMove, onCardClick }: KanbanBoardProps = {}) {
+export function KanbanBoard({ columns: propColumns, cards: propCards, onCardMove, onCardClick, onAddCard }: KanbanBoardProps = {}) {
   const columnDefs = propColumns || staticColumnDefs
   const [localCards, setLocalCards] = useState<Card[]>(initialCards)
 
@@ -170,6 +171,7 @@ export function KanbanBoard({ columns: propColumns, cards: propCards, onCardMove
               title={column.title}
               cards={getColumnCards(column.id)}
               onCardClick={handleCardClick}
+              onAddCard={onAddCard}
             />
           ))}
         </div>

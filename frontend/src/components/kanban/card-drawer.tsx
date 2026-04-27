@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
-import { X, FileText, Paperclip, Calendar, Users, Send } from "lucide-react"
+import { useState, useRef } from "react"
+import { X, FileText, Paperclip, Calendar, Users, Send, Upload } from "lucide-react"
+import { cardApi } from "@/lib/api"
 import type { Card, Priority } from "./types"
 
 const priorityConfig: Record<Priority, { label: string; bg: string; text: string }> = {
@@ -24,10 +25,14 @@ interface CardDrawerProps {
   onComment?: (cardId: string, text: string) => void
   onApprove?: (cardId: string) => void
   onReject?: (cardId: string, reason: string) => void
+  onAttachmentUploaded?: (cardId: string) => void
 }
 
-export function CardDrawer({ card, onClose, onComment, onApprove, onReject }: CardDrawerProps) {
+export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAttachmentUploaded }: CardDrawerProps) {
   const [commentText, setCommentText] = useState("")
+  const [uploading, setUploading] = useState(false)
+  const [localAttachments, setLocalAttachments] = useState<Card["attachments"]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   if (!card) return null
 
@@ -54,6 +59,26 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject }: Ca
       onReject(card.id, reason)
     }
   }
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const data = await cardApi.uploadAttachment(card.id, file)
+      // Optimistically add attachment to local list
+      const newAtt = data.attachment || { _id: Date.now().toString(), name: file.name, size: `${Math.round(file.size / 1024)} KB`, type: file.name.split(".").pop() || "" }
+      setLocalAttachments((prev) => [...prev, { id: newAtt._id || newAtt.id, name: newAtt.name, size: newAtt.size || "", type: newAtt.type || "" }])
+      if (onAttachmentUploaded) onAttachmentUploaded(card.id)
+    } catch (err) {
+      console.error("Upload failed:", err)
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ""
+    }
+  }
+
+  const allAttachments = [...card.attachments, ...localAttachments]
 
   return (
     <>
@@ -141,12 +166,28 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject }: Ca
 
           {/* Attachments */}
           <div className="px-4 py-4 border-b border-[#ffffff0a]">
-            <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider mb-2">
-              Attachments
-            </h4>
-            {card.attachments.length > 0 ? (
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider">
+                Attachments
+              </h4>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="flex items-center gap-1 h-6 px-2 rounded bg-[#27272a] text-[10px] font-medium text-[#a1a1aa] hover:bg-[#3f3f46] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Upload className="w-3 h-3" strokeWidth={1.5} />
+                {uploading ? "Uploading..." : "Upload"}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                onChange={handleUpload}
+                className="hidden"
+              />
+            </div>
+            {allAttachments.length > 0 ? (
               <div className="space-y-1">
-                {card.attachments.map((file) => (
+                {allAttachments.map((file) => (
                   <div
                     key={file.id}
                     className="flex items-center gap-3 px-3 py-2 rounded-md bg-[#0f0f11] border border-[#27272a] hover:border-[#3f3f46] transition-colors cursor-pointer"
@@ -161,7 +202,7 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject }: Ca
                 ))}
               </div>
             ) : (
-              <p className="text-[12px] text-[#52525b]">No attachments</p>
+              <p className="text-[12px] text-[#52525b]">No attachments yet</p>
             )}
           </div>
 

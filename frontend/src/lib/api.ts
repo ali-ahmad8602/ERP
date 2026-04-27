@@ -64,6 +64,12 @@ export const deptApi = {
   get: (deptId: string) =>
     request<{ department: any }>(`/api/departments/${deptId}`),
 
+  create: (data: { name: string }) =>
+    request<{ department: any }>("/api/departments", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
   addMember: (deptId: string, userId: string, role: string) =>
     request<any>(`/api/departments/${deptId}/members`, {
       method: "POST",
@@ -89,6 +95,17 @@ export const inviteApi = {
     request<any>(`/api/invites/${id}`, {
       method: "DELETE",
     }),
+
+  validate: (token: string) =>
+    request<{ valid: boolean; email?: string; orgName?: string }>(
+      `/api/invites/validate/${token}`
+    ),
+
+  accept: (token: string, data: { name: string; password: string }) =>
+    request<{ token: string; user: any }>(`/api/invites/accept/${token}`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 };
 
 export const usersApi = {
@@ -102,6 +119,21 @@ export const boardApi = {
 
   get: (boardId: string) =>
     request<{ board: any }>(`/api/boards/${boardId}`),
+};
+
+export const notificationApi = {
+  list: (limit = 10) =>
+    request<{ notifications: any[] }>(`/api/notifications?limit=${limit}`),
+
+  markRead: (id: string) =>
+    request<any>(`/api/notifications/${id}/read`, {
+      method: "PATCH",
+    }),
+
+  markAllRead: () =>
+    request<any>("/api/notifications/read-all", {
+      method: "PATCH",
+    }),
 };
 
 export const cardApi = {
@@ -147,4 +179,23 @@ export const cardApi = {
     request<{ message: string }>(`/api/cards/${cardId}`, {
       method: "DELETE",
     }),
+
+  uploadAttachment: async (cardId: string, file: File) => {
+    const token = getToken();
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch(
+      `${BASE_URL}/api/cards/${cardId}/attachments`,
+      {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      }
+    );
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.message || body.error || `Upload failed (${res.status})`);
+    }
+    return res.json();
+  },
 };

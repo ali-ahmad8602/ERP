@@ -20,6 +20,7 @@ export default function KanbanPage() {
     fetchBoard,
     fetchCards,
     moveCard,
+    createCard,
   } = useBoardStore()
 
   const [ready, setReady] = useState(false)
@@ -105,6 +106,15 @@ export default function KanbanPage() {
     moveCard(cardId, columnId, order)
   }
 
+  const handleAddCard = async (columnId: string, title: string) => {
+    if (!activeBoard) return
+    try {
+      await createCard({ title, board: activeBoard._id, column: columnId })
+    } catch (err) {
+      console.error("Failed to create card:", err)
+    }
+  }
+
   const isLoading = authLoading || loadingBoards || loadingCards || !ready
 
   return (
@@ -138,6 +148,7 @@ export default function KanbanPage() {
               columns={columns}
               cards={cards}
               onCardMove={handleCardMove}
+              onAddCard={handleAddCard}
             />
           )}
         </div>
