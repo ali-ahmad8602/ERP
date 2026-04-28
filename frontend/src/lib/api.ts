@@ -122,6 +122,15 @@ export const inviteApi = {
 export const usersApi = {
   search: (query: string) =>
     request<{ users: any[] }>(`/api/users?search=${encodeURIComponent(query)}`),
+
+  list: () =>
+    request<{ users: any[] }>("/api/users"),
+
+  deactivate: (userId: string) =>
+    request<{ user: any }>(`/api/users/${userId}/deactivate`, { method: "PATCH" }),
+
+  activate: (userId: string) =>
+    request<{ user: any }>(`/api/users/${userId}/activate`, { method: "PATCH" }),
 };
 
 export const boardApi = {

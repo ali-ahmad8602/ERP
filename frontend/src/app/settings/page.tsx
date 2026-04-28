@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { PageTopbar } from "@/components/dashboard/page-topbar"
-import { Eye, EyeOff, Send, RotateCcw, X, Users, Building2, CreditCard, ChevronDown } from "lucide-react"
+import { Eye, EyeOff, Send, RotateCcw, X, Users, Building2, CreditCard, ChevronDown, ShieldOff, ShieldCheck } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { useAuthStore } from "@/store/auth.store"
 import { usePermissions } from "@/hooks/usePermissions"
-import { inviteApi, deptApi } from "@/lib/api"
+import { useToast } from "@/components/ui/action-toast"
+import { inviteApi, deptApi, usersApi } from "@/lib/api"
 
-type TabType = "profile" | "invites" | "organization"
+type TabType = "profile" | "invites" | "organization" | "users"
 
 interface InviteRecord {
   _id: string
@@ -33,6 +34,7 @@ export default function SettingsPage() {
   const { user } = useAuth({ required: true })
   const authUser = useAuthStore((s) => s.user)
   const { canManageUsers } = usePermissions()
+  const { show } = useToast()
 
   const [activeTab, setActiveTab] = useState<TabType>("profile")
   const [showPassword, setShowPassword] = useState(false)
@@ -54,6 +56,11 @@ export default function SettingsPage() {
   // Organization state
   const [departments, setDepartments] = useState<any[]>([])
   const [orgLoading, setOrgLoading] = useState(false)
+
+  // Users state
+  const [allUsers, setAllUsers] = useState<any[]>([])
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [actioningUserId, setActioningUserId] = useState<string | null>(null)
 
   // Sync profile name from auth store
   useEffect(() => {
@@ -81,6 +88,17 @@ export default function SettingsPage() {
         .then((res) => setDepartments(res.departments ?? []))
         .catch(() => {})
         .finally(() => setOrgLoading(false))
+    }
+  }, [activeTab])
+
+  // Fetch users when tab switches to users
+  useEffect(() => {
+    if (activeTab === "users") {
+      setUsersLoading(true)
+      usersApi.list()
+        .then((res) => setAllUsers(res.users ?? []))
+        .catch(() => {})
+        .finally(() => setUsersLoading(false))
     }
   }, [activeTab])
 
@@ -133,14 +151,47 @@ export default function SettingsPage() {
     }
   }
 
+  const handleDeactivateUser = async (userId: string, userName: string) => {
+    if (userId === authUser?._id) {
+      show("You cannot deactivate your own account", "error")
+      return
+    }
+    if (!window.confirm(`Deactivate ${userName}? They will no longer be able to access the workspace.`)) return
+    setActioningUserId(userId)
+    try {
+      await usersApi.deactivate(userId)
+      setAllUsers(prev => prev.map(u => u._id === userId ? { ...u, isActive: false } : u))
+      show(`${userName} has been deactivated`)
+    } catch (err: any) {
+      show(err.message || "Failed to deactivate user", "error")
+    } finally {
+      setActioningUserId(null)
+    }
+  }
+
+  const handleActivateUser = async (userId: string, userName: string) => {
+    if (!window.confirm(`Activate ${userName}? They will regain access to the workspace.`)) return
+    setActioningUserId(userId)
+    try {
+      await usersApi.activate(userId)
+      setAllUsers(prev => prev.map(u => u._id === userId ? { ...u, isActive: true } : u))
+      show(`${userName} has been activated`)
+    } catch (err: any) {
+      show(err.message || "Failed to activate user", "error")
+    } finally {
+      setActioningUserId(null)
+    }
+  }
+
   const allTabs: { id: TabType; label: string }[] = [
     { id: "profile", label: "Profile" },
+    { id: "users", label: "Users" },
     { id: "invites", label: "Invites" },
     { id: "organization", label: "Organization" },
   ]
 
   const tabs = allTabs.filter((tab) => {
-    if (tab.id === "invites" || tab.id === "organization") return canManageUsers
+    if (tab.id === "invites" || tab.id === "organization" || tab.id === "users") return canManageUsers
     return true
   })
 
@@ -468,6 +519,117 @@ export default function SettingsPage() {
                   )}
                 </div>
               )}
+            </div>
+          )}
+          {/* Users Tab */}
+          {activeTab === "users" && (
+            <div className="bg-[#0f0f11] border border-[#ffffff14] rounded-lg overflow-hidden">
+              {/* Table Header */}
+              <div className="grid grid-cols-[1fr_160px_100px_80px_100px] gap-3 px-4 py-2 border-b border-[#ffffff0a] bg-[#0a0a0b]">
+                <span className="text-[10px] font-medium text-[#52525b] uppercase tracking-wider">Name</span>
+                <span className="text-[10px] font-medium text-[#52525b] uppercase tracking-wider">Email</span>
+                <span className="text-[10px] font-medium text-[#52525b] uppercase tracking-wider">Role</span>
+                <span className="text-[10px] font-medium text-[#52525b] uppercase tracking-wider">Status</span>
+                <span className="text-[10px] font-medium text-[#52525b] uppercase tracking-wider">Actions</span>
+              </div>
+
+              {/* Rows */}
+              <div className="divide-y divide-[#ffffff08]">
+                {usersLoading ? (
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="grid grid-cols-[1fr_160px_100px_80px_100px] gap-3 px-4 items-center h-11 animate-pulse">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-6 h-6 rounded-full bg-[#27272a]" />
+                        <div className="h-3 w-24 bg-[#27272a] rounded" />
+                      </div>
+                      <div className="h-3 w-32 bg-[#27272a] rounded" />
+                      <div className="h-4 w-14 bg-[#27272a] rounded-full" />
+                      <div className="h-4 w-12 bg-[#27272a] rounded-full" />
+                      <div className="h-6 w-20 bg-[#27272a] rounded" />
+                    </div>
+                  ))
+                ) : allUsers.length === 0 ? (
+                  <div className="px-4 py-8 text-center">
+                    <Users className="w-6 h-6 text-[#3f3f46] mx-auto mb-2" strokeWidth={1.5} />
+                    <p className="text-[12px] text-[#52525b]">No users found</p>
+                  </div>
+                ) : (
+                  allUsers.map((u) => {
+                    const isActive = u.isActive !== false
+                    const isSelf = u._id === authUser?._id
+                    const initials = (u.name || "U").split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+                    const orgRoleLabel = (u.orgRole || "user").replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())
+
+                    const orgRoleStyle = (() => {
+                      const r = u.orgRole || "user"
+                      if (r === "super_admin" || r === "org_admin") return "bg-[#3b82f6]/15 text-[#3b82f6]"
+                      if (r === "top_management") return "bg-[#8b5cf6]/15 text-[#8b5cf6]"
+                      return "bg-[#52525b]/20 text-[#a1a1aa]"
+                    })()
+
+                    return (
+                      <div
+                        key={u._id}
+                        className="grid grid-cols-[1fr_160px_100px_80px_100px] gap-3 px-4 items-center h-11 hover:bg-[#ffffff05] transition-colors"
+                      >
+                        {/* Name + Avatar */}
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-6 h-6 rounded-full bg-[#27272a] flex items-center justify-center shrink-0">
+                            <span className="text-[9px] font-medium text-[#a1a1aa]">{initials}</span>
+                          </div>
+                          <span className="text-[12px] font-medium text-[#fafafa] truncate">
+                            {u.name || "Unknown"}
+                            {isSelf && <span className="text-[10px] text-[#52525b] ml-1.5">(you)</span>}
+                          </span>
+                        </div>
+
+                        {/* Email */}
+                        <span className="text-[12px] text-[#71717a] truncate">{u.email || "—"}</span>
+
+                        {/* Role */}
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium w-fit ${orgRoleStyle}`}>
+                          {orgRoleLabel}
+                        </span>
+
+                        {/* Status */}
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium w-fit ${
+                          isActive ? "bg-[#22c55e]/15 text-[#22c55e]" : "bg-[#ef4444]/15 text-[#ef4444]"
+                        }`}>
+                          {isActive ? "Active" : "Inactive"}
+                        </span>
+
+                        {/* Actions */}
+                        <div>
+                          {canManageUsers && !isSelf && (
+                            isActive ? (
+                              <button
+                                onClick={() => handleDeactivateUser(u._id, u.name)}
+                                disabled={actioningUserId === u._id}
+                                className="h-6 px-2 flex items-center gap-1 rounded bg-[#27272a] text-[10px] font-medium text-[#ef4444] hover:bg-[#ef4444]/15 transition-colors disabled:opacity-50"
+                              >
+                                <ShieldOff className="w-3 h-3" strokeWidth={1.5} />
+                                {actioningUserId === u._id ? "..." : "Deactivate"}
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleActivateUser(u._id, u.name)}
+                                disabled={actioningUserId === u._id}
+                                className="h-6 px-2 flex items-center gap-1 rounded bg-[#27272a] text-[10px] font-medium text-[#22c55e] hover:bg-[#22c55e]/15 transition-colors disabled:opacity-50"
+                              >
+                                <ShieldCheck className="w-3 h-3" strokeWidth={1.5} />
+                                {actioningUserId === u._id ? "..." : "Activate"}
+                              </button>
+                            )
+                          )}
+                          {isSelf && (
+                            <span className="text-[10px] text-[#3f3f46]">—</span>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
             </div>
           )}
         </div>
