@@ -79,9 +79,10 @@ interface CardDrawerProps {
   onAttachmentUploaded?: (cardId: string) => void
   onCardUpdated?: (cardId: string, data: any) => void
   readOnly?: boolean
+  boardFields?: { _id: string; name: string; type: string; options?: string[] }[]
 }
 
-export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAttachmentUploaded, onCardUpdated, readOnly }: CardDrawerProps) {
+export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAttachmentUploaded, onCardUpdated, readOnly, boardFields }: CardDrawerProps) {
   const [commentText, setCommentText] = useState("")
   const [uploading, setUploading] = useState(false)
   const [localAttachments, setLocalAttachments] = useState<Card["attachments"]>([])
@@ -102,6 +103,7 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
   const [localLabels, setLocalLabels] = useState<string[]>([])
   const [newLabel, setNewLabel] = useState("")
   const [sendingComment, setSendingComment] = useState(false)
+  const [editCustomFields, setEditCustomFields] = useState<Record<string, any>>({})
 
   // Sync edit state when card changes
   useEffect(() => {
@@ -116,6 +118,12 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
       setLocalLabels(card.labels || [])
       setNewLabel("")
       setActiveTab("details")
+      // Sync custom fields
+      const cfMap: Record<string, any> = {}
+      ;(card.customFields || []).forEach((cf: any) => {
+        cfMap[cf.field] = cf.value
+      })
+      setEditCustomFields(cfMap)
     }
   }, [card?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -172,6 +180,12 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
       if (editDescription !== (card.description || "")) updates.description = editDescription
       if (editPriority !== card.priority) updates.priority = editPriority
       if (editDueDate !== card.dueDate) updates.dueDate = editDueDate || undefined
+
+      // Include custom fields
+      if (boardFields && boardFields.length > 0) {
+        const cfArray = Object.entries(editCustomFields).map(([field, value]) => ({ field, value }))
+        if (cfArray.length > 0) updates.customFields = cfArray
+      }
 
       if (Object.keys(updates).length > 0) {
         await cardApi.update(card.id, updates)
@@ -351,6 +365,94 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
                   </p>
                 )}
               </div>
+
+              {/* Custom Fields */}
+              {boardFields && boardFields.length > 0 && (
+                <div className="px-4 py-4 border-b border-[#ffffff0a]">
+                  <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider mb-2">Custom Fields</h4>
+                  <div className="space-y-2.5">
+                    {boardFields.map((bf) => {
+                      const value = editCustomFields[bf._id] ?? ""
+                      if (readOnly) {
+                        // Read-only: just show value as text
+                        const displayVal = bf.type === "checkbox" ? (value ? "Yes" : "No") : (value || "—")
+                        return (
+                          <div key={bf._id} className="flex items-center justify-between">
+                            <span className="text-[12px] text-[#a1a1aa]">{bf.name}</span>
+                            <span className="text-[12px] text-[#fafafa]">{String(displayVal)}</span>
+                          </div>
+                        )
+                      }
+                      if (!editing) {
+                        // Not editing: show values as read-only display
+                        const displayVal = bf.type === "checkbox" ? (value ? "Yes" : "No") : bf.type === "date" && value ? new Date(value).toLocaleDateString() : (value || "—")
+                        return (
+                          <div key={bf._id} className="flex items-center justify-between">
+                            <span className="text-[12px] text-[#a1a1aa]">{bf.name}</span>
+                            <span className="text-[12px] text-[#fafafa]">{String(displayVal)}</span>
+                          </div>
+                        )
+                      }
+                      // Editing mode: render appropriate input
+                      return (
+                        <div key={bf._id}>
+                          <label className="text-[11px] text-[#a1a1aa] mb-1 block">{bf.name}</label>
+                          {bf.type === "text" && (
+                            <input
+                              type="text"
+                              value={value}
+                              onChange={(e) => setEditCustomFields((prev) => ({ ...prev, [bf._id]: e.target.value }))}
+                              className="w-full h-7 px-2 bg-[#0f0f11] border border-[#27272a] rounded text-[12px] text-[#fafafa] outline-none focus:border-[#3b82f6] transition-colors"
+                            />
+                          )}
+                          {bf.type === "number" && (
+                            <input
+                              type="number"
+                              value={value}
+                              onChange={(e) => setEditCustomFields((prev) => ({ ...prev, [bf._id]: e.target.value }))}
+                              className="w-full h-7 px-2 bg-[#0f0f11] border border-[#27272a] rounded text-[12px] text-[#fafafa] outline-none focus:border-[#3b82f6] transition-colors"
+                            />
+                          )}
+                          {bf.type === "date" && (
+                            <input
+                              type="date"
+                              value={value}
+                              onChange={(e) => setEditCustomFields((prev) => ({ ...prev, [bf._id]: e.target.value }))}
+                              className="w-full h-7 px-2 bg-[#0f0f11] border border-[#27272a] rounded text-[12px] text-[#a1a1aa] outline-none focus:border-[#3b82f6] transition-colors"
+                            />
+                          )}
+                          {bf.type === "checkbox" && (
+                            <button
+                              onClick={() => setEditCustomFields((prev) => ({ ...prev, [bf._id]: !prev[bf._id] }))}
+                              className={`w-8 h-4 rounded-full relative transition-colors ${
+                                value ? "bg-[#3b82f6]" : "bg-[#27272a]"
+                              }`}
+                            >
+                              <div
+                                className={`absolute top-0.5 w-3 h-3 rounded-full bg-[#fafafa] transition-transform ${
+                                  value ? "translate-x-4" : "translate-x-0.5"
+                                }`}
+                              />
+                            </button>
+                          )}
+                          {bf.type === "dropdown" && (
+                            <select
+                              value={value}
+                              onChange={(e) => setEditCustomFields((prev) => ({ ...prev, [bf._id]: e.target.value }))}
+                              className="w-full h-7 px-2 bg-[#0f0f11] border border-[#27272a] rounded text-[12px] text-[#a1a1aa] outline-none focus:border-[#3b82f6] transition-colors"
+                            >
+                              <option value="">Select...</option>
+                              {(bf.options || []).map((opt) => (
+                                <option key={opt} value={opt}>{opt}</option>
+                              ))}
+                            </select>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Labels */}
               <div className="px-4 py-4 border-b border-[#ffffff0a]">

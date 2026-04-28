@@ -12,6 +12,7 @@ interface Board {
   _id: string;
   name: string;
   columns?: BoardColumn[];
+  customFields?: any[];
   settings?: any;
 }
 

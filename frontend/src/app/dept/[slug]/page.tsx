@@ -270,6 +270,7 @@ export default function DeptDetailPage() {
         url: att.url || "",
       })),
       labels: c.labels,
+      customFields: c.customFields || [],
       columnId: c.column as ColumnId,
       auditLog: c.auditLog,
       approval: c.approval ?? undefined,
@@ -556,6 +557,7 @@ export default function DeptDetailPage() {
                 autoOpenCardId={searchParams.get("cardId")}
                 onCardUpdated={handleCardUpdated}
                 readOnly={boardIsLocked}
+                boardFields={activeBoard?.customFields || []}
               />
             ) : (
               <KanbanBoard
@@ -569,6 +571,7 @@ export default function DeptDetailPage() {
                 autoOpenCardId={searchParams.get("cardId")}
                 onCardUpdated={handleCardUpdated}
                 readOnly={boardIsLocked}
+                boardFields={activeBoard?.customFields || []}
               />
             )}
           </div>

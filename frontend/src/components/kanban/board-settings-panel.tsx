@@ -22,6 +22,12 @@ export function BoardSettingsPanel({ board, onClose, onBoardUpdated, onBoardDele
   const [columnError, setColumnError] = useState("")
   const [addingColumn, setAddingColumn] = useState(false)
   const [deletingBoard, setDeletingBoard] = useState(false)
+  const [customFields, setCustomFields] = useState<any[]>([])
+  const [newFieldName, setNewFieldName] = useState("")
+  const [newFieldType, setNewFieldType] = useState("text")
+  const [newFieldOptions, setNewFieldOptions] = useState("")
+  const [addingField, setAddingField] = useState(false)
+  const [fieldError, setFieldError] = useState("")
   const { show } = useToast()
 
   useEffect(() => {
@@ -32,6 +38,7 @@ export function BoardSettingsPanel({ board, onClose, onBoardUpdated, onBoardDele
       setEditingColumns(
         (board.columns || []).map((c: any) => ({ _id: c._id, name: c.name }))
       )
+      setCustomFields(board.customFields || [])
     }
   }, [board])
 
@@ -114,6 +121,54 @@ export function BoardSettingsPanel({ board, onClose, onBoardUpdated, onBoardDele
       show("Failed to add column", "error")
     } finally {
       setAddingColumn(false)
+    }
+  }
+
+  const fieldTypeBadge: Record<string, { bg: string; text: string }> = {
+    text: { bg: "bg-[#3b82f6]/15", text: "text-[#3b82f6]" },
+    number: { bg: "bg-[#22c55e]/15", text: "text-[#22c55e]" },
+    date: { bg: "bg-[#f59e0b]/15", text: "text-[#f59e0b]" },
+    checkbox: { bg: "bg-[#8b5cf6]/15", text: "text-[#8b5cf6]" },
+    dropdown: { bg: "bg-[#ec4899]/15", text: "text-[#ec4899]" },
+  }
+
+  const handleAddField = async () => {
+    if (!newFieldName.trim()) return
+    setFieldError("")
+    setAddingField(true)
+    try {
+      const data: { name: string; type: string; options?: string[] } = {
+        name: newFieldName.trim(),
+        type: newFieldType,
+      }
+      if (newFieldType === "dropdown" && newFieldOptions.trim()) {
+        data.options = newFieldOptions.split(",").map((o) => o.trim()).filter(Boolean)
+      }
+      await boardApi.addField(board._id, data)
+      setNewFieldName("")
+      setNewFieldType("text")
+      setNewFieldOptions("")
+      onBoardUpdated()
+      show("Field added")
+    } catch (err: any) {
+      setFieldError(err.message || "Failed to add field")
+      show("Failed to add field", "error")
+    } finally {
+      setAddingField(false)
+    }
+  }
+
+  const handleDeleteField = async (fieldId: string) => {
+    const confirmed = window.confirm("Remove this custom field?")
+    if (!confirmed) return
+    setFieldError("")
+    try {
+      await boardApi.deleteField(board._id, fieldId)
+      onBoardUpdated()
+      show("Field removed")
+    } catch (err: any) {
+      setFieldError(err.message || "Failed to delete field")
+      show("Failed to remove field", "error")
     }
   }
 
@@ -249,6 +304,69 @@ export function BoardSettingsPanel({ board, onClose, onBoardUpdated, onBoardDele
                 className="h-7 px-2.5 rounded bg-[#3b82f6] text-[11px] font-medium text-white hover:bg-[#2563eb] disabled:opacity-40 transition-colors"
               >
                 {addingColumn ? "Adding..." : "Add"}
+              </button>
+            </div>
+          </div>
+
+          {/* Custom Fields */}
+          <div className="px-4 py-4 border-b border-[#ffffff0a]">
+            <h4 className="text-[11px] font-medium text-[#52525b] uppercase tracking-wider mb-3">Custom Fields</h4>
+            {customFields.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {customFields.map((field: any) => {
+                  const badge = fieldTypeBadge[field.type] || fieldTypeBadge.text
+                  return (
+                    <div key={field._id} className="flex items-center gap-2">
+                      <span className="flex-1 text-[12px] text-[#fafafa] truncate">{field.name}</span>
+                      <span className={`inline-flex px-1.5 py-0.5 rounded-full text-[10px] font-medium ${badge.bg} ${badge.text}`}>
+                        {field.type}
+                      </span>
+                      <button
+                        onClick={() => handleDeleteField(field._id)}
+                        className="w-6 h-6 flex items-center justify-center rounded text-[#52525b] hover:text-[#ef4444] hover:bg-[#ffffff08] transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5" strokeWidth={1.5} />
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+            {fieldError && (
+              <p className="text-[11px] text-[#ef4444] mb-2">{fieldError}</p>
+            )}
+            <div className="space-y-2">
+              <input
+                value={newFieldName}
+                onChange={(e) => setNewFieldName(e.target.value)}
+                placeholder="Field name..."
+                className="w-full h-7 px-2 rounded bg-[#0f0f11] border border-[#27272a] text-[12px] text-[#fafafa] placeholder-[#52525b] outline-none focus:border-[#3b82f6] transition-colors"
+              />
+              <select
+                value={newFieldType}
+                onChange={(e) => setNewFieldType(e.target.value)}
+                className="w-full h-7 px-2 rounded bg-[#0f0f11] border border-[#27272a] text-[12px] text-[#a1a1aa] outline-none focus:border-[#3b82f6] transition-colors"
+              >
+                <option value="text">Text</option>
+                <option value="number">Number</option>
+                <option value="date">Date</option>
+                <option value="checkbox">Checkbox</option>
+                <option value="dropdown">Dropdown</option>
+              </select>
+              {newFieldType === "dropdown" && (
+                <input
+                  value={newFieldOptions}
+                  onChange={(e) => setNewFieldOptions(e.target.value)}
+                  placeholder="Options (comma-separated)..."
+                  className="w-full h-7 px-2 rounded bg-[#0f0f11] border border-[#27272a] text-[12px] text-[#fafafa] placeholder-[#52525b] outline-none focus:border-[#3b82f6] transition-colors"
+                />
+              )}
+              <button
+                onClick={handleAddField}
+                disabled={!newFieldName.trim() || addingField}
+                className="h-7 px-2.5 rounded bg-[#3b82f6] text-[11px] font-medium text-white hover:bg-[#2563eb] disabled:opacity-40 transition-colors"
+              >
+                {addingField ? "Adding..." : "Add"}
               </button>
             </div>
           </div>

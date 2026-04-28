@@ -173,6 +173,17 @@ export const boardApi = {
     request<{ board: any }>(`/api/boards/${boardId}/columns/${colId}`, {
       method: "DELETE",
     }),
+
+  addField: (boardId: string, data: { name: string; type: string; options?: string[]; required?: boolean }) =>
+    request<{ board: any }>(`/api/boards/${boardId}/fields`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  deleteField: (boardId: string, fieldId: string) =>
+    request<{ board: any }>(`/api/boards/${boardId}/fields/${fieldId}`, {
+      method: "DELETE",
+    }),
 };
 
 export const notificationApi = {

@@ -13,6 +13,7 @@ export interface SafeCard {
   labels: string[]
   comments: any[]
   attachments: any[]
+  customFields: any[]
   auditLog: any[]
   approval: any | null
   order: number
@@ -32,6 +33,7 @@ export function safeCard(raw: any): SafeCard {
     labels: Array.isArray(raw?.labels) ? raw.labels : [],
     comments: Array.isArray(raw?.comments) ? raw.comments : [],
     attachments: Array.isArray(raw?.attachments) ? raw.attachments : [],
+    customFields: Array.isArray(raw?.customFields) ? raw.customFields : [],
     auditLog: Array.isArray(raw?.auditLog) ? raw.auditLog : [],
     approval: raw?.approval || null,
     order: typeof raw?.order === "number" ? raw.order : 0,

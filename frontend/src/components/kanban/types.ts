@@ -43,6 +43,7 @@ export interface Card {
   referenceId?: string
   labels?: string[]
   columnId: ColumnId
+  customFields?: { field: string; value: any }[]
   auditLog?: AuditLogEntry[]
   approval?: { approvers: string[] }
 }
