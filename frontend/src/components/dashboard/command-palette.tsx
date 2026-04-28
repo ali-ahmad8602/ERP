@@ -35,6 +35,7 @@ interface BoardEntry {
 
 const pages = [
   { label: "Dashboard", href: "/", icon: Home },
+  { label: "Company Board", href: "/company-board", icon: BarChart3 },
   { label: "Reports", href: "/reports", icon: BarChart3 },
   { label: "Settings", href: "/settings", icon: Settings },
 ]

@@ -9,10 +9,12 @@ import {
   BarChart3,
   HelpCircle,
   Plus,
-  X
+  X,
+  Briefcase
 } from "lucide-react"
 import { deptApi } from "@/lib/api"
 import { usePermissions } from "@/hooks/usePermissions"
+import { useAuthStore } from "@/store/auth.store"
 import { useToast } from "@/components/ui/action-toast"
 
 const navItems = [
@@ -49,7 +51,9 @@ interface SidebarProps {
 export function Sidebar({ activeRoute }: SidebarProps = {}) {
   const pathname = usePathname()
   const { canCreateDept } = usePermissions()
+  const authUser = useAuthStore((s) => s.user)
   const { show } = useToast()
+  const canAccessCompanyBoard = ["super_admin", "org_admin", "top_management"].includes(authUser?.orgRole || "")
   const [departments, setDepartments] = useState<Department[]>([])
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -148,6 +152,25 @@ export function Sidebar({ activeRoute }: SidebarProps = {}) {
                 </Link>
               )
             })}
+            {canAccessCompanyBoard && (() => {
+              const active = isActive("/company-board")
+              return (
+                <Link
+                  href="/company-board"
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-[13px] transition-colors relative ${
+                    active
+                      ? "bg-[#ffffff0a] text-[#3b82f6]"
+                      : "text-[#71717a] hover:text-[#a1a1aa] hover:bg-[#ffffff08]"
+                  }`}
+                >
+                  {active && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 bg-[#3b82f6] rounded-r" />
+                  )}
+                  <Briefcase className="w-4 h-4" strokeWidth={1.5} />
+                  <span>Company Board</span>
+                </Link>
+              )
+            })()}
           </div>
 
           {/* Departments */}

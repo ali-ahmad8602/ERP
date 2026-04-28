@@ -137,6 +137,9 @@ export const boardApi = {
   list: (deptId: string) =>
     request<{ boards: any[] }>(`/api/boards?deptId=${deptId}`),
 
+  listCompany: () =>
+    request<{ boards: any[] }>("/api/boards?companyBoards=true"),
+
   get: (boardId: string) =>
     request<{ board: any }>(`/api/boards/${boardId}`),
 
