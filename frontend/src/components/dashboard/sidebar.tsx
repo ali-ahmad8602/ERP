@@ -13,6 +13,7 @@ import {
 } from "lucide-react"
 import { deptApi } from "@/lib/api"
 import { usePermissions } from "@/hooks/usePermissions"
+import { useToast } from "@/components/ui/action-toast"
 
 const navItems = [
   { icon: LayoutDashboard, label: "Overview", href: "/" },
@@ -24,10 +25,20 @@ const bottomItems = [
   { icon: HelpCircle, label: "Help", href: "/help" },
 ]
 
+const PRESET_COLORS = [
+  "#3b82f6", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6",
+  "#ec4899", "#06b6d4", "#f97316",
+]
+
+const PRESET_ICONS = ["🏢", "💼", "⚙️", "📊", "🛡️", "💰", "🎯", "📋", "🔬", "📞", "🎨", "🚀"]
+
 interface Department {
   _id: string
   name: string
   slug: string
+  icon?: string
+  color?: string
+  description?: string
 }
 
 interface SidebarProps {
@@ -38,11 +49,17 @@ interface SidebarProps {
 export function Sidebar({ activeRoute }: SidebarProps = {}) {
   const pathname = usePathname()
   const { canCreateDept } = usePermissions()
+  const { show } = useToast()
   const [departments, setDepartments] = useState<Department[]>([])
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [newDeptName, setNewDeptName] = useState("")
   const [creating, setCreating] = useState(false)
   const modalRef = useRef<HTMLDivElement>(null)
+
+  // Form state
+  const [formName, setFormName] = useState("")
+  const [formIcon, setFormIcon] = useState("🏢")
+  const [formColor, setFormColor] = useState("#3b82f6")
+  const [formDesc, setFormDesc] = useState("")
 
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
@@ -53,8 +70,7 @@ export function Sidebar({ activeRoute }: SidebarProps = {}) {
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-        setShowCreateModal(false)
-        setNewDeptName("")
+        closeModal()
       }
     }
     if (showCreateModal) {
@@ -63,16 +79,29 @@ export function Sidebar({ activeRoute }: SidebarProps = {}) {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [showCreateModal])
 
+  const closeModal = () => {
+    setShowCreateModal(false)
+    setFormName("")
+    setFormIcon("🏢")
+    setFormColor("#3b82f6")
+    setFormDesc("")
+  }
+
   const handleCreateDept = async () => {
-    if (!newDeptName.trim()) return
+    if (!formName.trim()) return
     setCreating(true)
     try {
-      const { department } = await deptApi.create({ name: newDeptName.trim() })
+      const payload: any = { name: formName.trim() }
+      if (formIcon) payload.icon = formIcon
+      if (formColor) payload.color = formColor
+      if (formDesc.trim()) payload.description = formDesc.trim()
+
+      const { department } = await deptApi.create(payload)
       setDepartments((prev) => [...prev, department])
-      setNewDeptName("")
-      setShowCreateModal(false)
-    } catch (err) {
-      console.error("Failed to create department:", err)
+      show("Department created")
+      closeModal()
+    } catch (err: any) {
+      show(err.message || "Failed to create department", "error")
     } finally {
       setCreating(false)
     }
@@ -122,61 +151,52 @@ export function Sidebar({ activeRoute }: SidebarProps = {}) {
           </div>
 
           {/* Departments */}
-          {departments.length > 0 && (
-            <div className="mt-4 pt-3 border-t border-[#ffffff14]">
-              <div className="flex items-center justify-between px-3 mb-1">
-                <span className="text-[10px] font-medium text-[#52525b] uppercase tracking-wider">
-                  Departments
-                </span>
-                {canCreateDept && (
-                  <button
-                    onClick={() => setShowCreateModal(true)}
-                    className="w-4 h-4 flex items-center justify-center rounded text-[#52525b] hover:text-[#a1a1aa] hover:bg-[#ffffff08] transition-colors"
-                  >
-                    <Plus className="w-3 h-3" strokeWidth={1.5} />
-                  </button>
-                )}
-              </div>
-              <div className="space-y-0.5">
-                {departments.map((dept) => {
-                  const deptHref = `/dept/${dept.slug}`
-                  const active = pathname.startsWith(deptHref)
-                  return (
-                    <Link
-                      key={dept._id}
-                      href={deptHref}
-                      className={`w-full flex items-center gap-3 px-3 py-1.5 rounded-md text-[12px] transition-colors ${
-                        active
-                          ? "bg-[#ffffff0a] text-[#3b82f6]"
-                          : "text-[#71717a] hover:text-[#a1a1aa] hover:bg-[#ffffff08]"
-                      }`}
-                    >
-                      <span className="truncate">{dept.name}</span>
-                    </Link>
-                  )
-                })}
-              </div>
+          <div className="mt-4 pt-3 border-t border-[#ffffff14]">
+            <div className="flex items-center justify-between px-3 mb-1">
+              <span className="text-[10px] font-medium text-[#52525b] uppercase tracking-wider">
+                Departments
+              </span>
+              {canCreateDept && (
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="w-4 h-4 flex items-center justify-center rounded text-[#52525b] hover:text-[#a1a1aa] hover:bg-[#ffffff08] transition-colors"
+                >
+                  <Plus className="w-3 h-3" strokeWidth={1.5} />
+                </button>
+              )}
             </div>
-          )}
-
-          {/* Show + New button if no departments loaded yet */}
-          {departments.length === 0 && (
-            <div className="mt-4 pt-3 border-t border-[#ffffff14]">
-              <div className="flex items-center justify-between px-3 mb-1">
-                <span className="text-[10px] font-medium text-[#52525b] uppercase tracking-wider">
-                  Departments
-                </span>
-                {canCreateDept && (
-                  <button
-                    onClick={() => setShowCreateModal(true)}
-                    className="w-4 h-4 flex items-center justify-center rounded text-[#52525b] hover:text-[#a1a1aa] hover:bg-[#ffffff08] transition-colors"
+            <div className="space-y-0.5">
+              {departments.map((dept) => {
+                const deptHref = `/dept/${dept.slug}`
+                const active = pathname.startsWith(deptHref)
+                return (
+                  <Link
+                    key={dept._id}
+                    href={deptHref}
+                    className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-[12px] transition-colors ${
+                      active
+                        ? "bg-[#ffffff0a] text-[#3b82f6]"
+                        : "text-[#71717a] hover:text-[#a1a1aa] hover:bg-[#ffffff08]"
+                    }`}
                   >
-                    <Plus className="w-3 h-3" strokeWidth={1.5} />
-                  </button>
-                )}
-              </div>
+                    {dept.icon && (
+                      <span className="text-[12px] shrink-0">{dept.icon}</span>
+                    )}
+                    {dept.color && !dept.icon && (
+                      <span
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ backgroundColor: dept.color }}
+                      />
+                    )}
+                    <span className="truncate">{dept.name}</span>
+                  </Link>
+                )
+              })}
+              {departments.length === 0 && (
+                <p className="px-3 py-2 text-[11px] text-[#3f3f46]">No departments yet</p>
+              )}
             </div>
-          )}
+          </div>
         </nav>
 
         {/* Bottom section */}
@@ -222,44 +242,101 @@ export function Sidebar({ activeRoute }: SidebarProps = {}) {
       {/* Create Department Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-          <div ref={modalRef} className="w-full max-w-[360px] bg-[#0f0f11] border border-[#27272a] rounded-lg p-5">
-            <div className="flex items-center justify-between mb-4">
+          <div ref={modalRef} className="w-full max-w-[400px] bg-[#0f0f11] border border-[#27272a] rounded-lg p-5">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5">
               <h3 className="text-[14px] font-semibold text-[#fafafa]">New Department</h3>
               <button
-                onClick={() => { setShowCreateModal(false); setNewDeptName("") }}
+                onClick={closeModal}
                 className="w-7 h-7 flex items-center justify-center rounded-md text-[#52525b] hover:text-[#a1a1aa] hover:bg-[#ffffff08] transition-colors"
               >
                 <X className="w-4 h-4" strokeWidth={1.5} />
               </button>
             </div>
-            <div className="space-y-1.5 mb-4">
-              <label htmlFor="dept-name" className="block text-[11px] font-medium text-[#a1a1aa]">
-                Department Name
+
+            {/* Icon Selector */}
+            <div className="mb-4">
+              <label className="block text-[11px] font-medium text-[#a1a1aa] mb-1.5">Icon</label>
+              <div className="flex flex-wrap gap-1.5">
+                {PRESET_ICONS.map((icon) => (
+                  <button
+                    key={icon}
+                    onClick={() => setFormIcon(icon)}
+                    className={`w-8 h-8 rounded-md flex items-center justify-center text-[16px] transition-colors ${
+                      formIcon === icon
+                        ? "bg-[#3b82f6]/20 ring-1 ring-[#3b82f6]"
+                        : "bg-[#18181b] hover:bg-[#27272a]"
+                    }`}
+                  >
+                    {icon}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Name */}
+            <div className="mb-4">
+              <label htmlFor="dept-name" className="block text-[11px] font-medium text-[#a1a1aa] mb-1.5">
+                Name <span className="text-[#ef4444]">*</span>
               </label>
               <input
                 id="dept-name"
                 type="text"
-                value={newDeptName}
-                onChange={(e) => setNewDeptName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") handleCreateDept() }}
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && formName.trim()) handleCreateDept() }}
                 placeholder="e.g. Engineering"
                 autoFocus
                 className="w-full h-8 px-3 bg-transparent border border-[#27272a] rounded-md text-[13px] text-[#fafafa] placeholder:text-[#3f3f46] focus:outline-none focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6]/20 transition-colors"
               />
             </div>
+
+            {/* Color */}
+            <div className="mb-4">
+              <label className="block text-[11px] font-medium text-[#a1a1aa] mb-1.5">Color</label>
+              <div className="flex gap-1.5">
+                {PRESET_COLORS.map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => setFormColor(color)}
+                    className={`w-6 h-6 rounded-full transition-all ${
+                      formColor === color ? "ring-2 ring-white/40 scale-110" : "hover:scale-105"
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="mb-5">
+              <label htmlFor="dept-desc" className="block text-[11px] font-medium text-[#a1a1aa] mb-1.5">
+                Description <span className="text-[#52525b]">(optional)</span>
+              </label>
+              <textarea
+                id="dept-desc"
+                value={formDesc}
+                onChange={(e) => setFormDesc(e.target.value)}
+                placeholder="What does this department do?"
+                rows={2}
+                className="w-full px-3 py-2 bg-transparent border border-[#27272a] rounded-md text-[13px] text-[#fafafa] placeholder:text-[#3f3f46] focus:outline-none focus:border-[#3b82f6] focus:ring-1 focus:ring-[#3b82f6]/20 transition-colors resize-none"
+              />
+            </div>
+
+            {/* Actions */}
             <div className="flex items-center gap-2 justify-end">
               <button
-                onClick={() => { setShowCreateModal(false); setNewDeptName("") }}
+                onClick={closeModal}
                 className="h-8 px-3 rounded-md text-[12px] font-medium text-[#71717a] hover:text-[#a1a1aa] hover:bg-[#ffffff08] transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreateDept}
-                disabled={!newDeptName.trim() || creating}
+                disabled={!formName.trim() || creating}
                 className="h-8 px-4 bg-[#3b82f6] hover:bg-[#2563eb] text-[12px] font-medium text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {creating ? "Creating..." : "Create"}
+                {creating ? "Creating..." : "Create Department"}
               </button>
             </div>
           </div>

@@ -75,7 +75,7 @@ export const deptApi = {
   get: (deptId: string) =>
     request<{ department: any }>(`/api/departments/${deptId}`),
 
-  create: (data: { name: string }) =>
+  create: (data: { name: string; icon?: string; color?: string; description?: string }) =>
     request<{ department: any }>("/api/departments", {
       method: "POST",
       body: JSON.stringify(data),
