@@ -5,14 +5,9 @@ import { usePathname } from "next/navigation"
 import Link from "next/link"
 import {
   LayoutDashboard,
-  FileText,
-  Users,
   Settings,
-  CreditCard,
   BarChart3,
-  FolderOpen,
   HelpCircle,
-  Kanban,
   Plus,
   X
 } from "lucide-react"
@@ -21,12 +16,7 @@ import { usePermissions } from "@/hooks/usePermissions"
 
 const navItems = [
   { icon: LayoutDashboard, label: "Overview", href: "/" },
-  { icon: Kanban, label: "Workflow", href: "/kanban" },
-  { icon: FileText, label: "Invoices", href: "/invoices" },
-  { icon: Users, label: "Clients", href: "/clients" },
-  { icon: CreditCard, label: "Payments", href: "/payments" },
   { icon: BarChart3, label: "Reports", href: "/reports" },
-  { icon: FolderOpen, label: "Documents", href: "/documents" },
 ]
 
 const bottomItems = [

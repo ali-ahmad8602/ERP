@@ -53,10 +53,10 @@ function deriveBreadcrumbs(pathname: string): { label: string; href?: string }[]
     kanban: "Kanban",
     reports: "Reports",
     settings: "Settings",
-    invoices: "Invoices",
     help: "Help",
     invite: "Invite",
     login: "Login",
+    signup: "Sign Up",
   }
 
   const label = routeLabels[segments[0]] || formatSlug(segments[0])
