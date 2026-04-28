@@ -427,27 +427,9 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
                 </div>
                 {allAttachments.length > 0 ? (
                   <div className="space-y-1">
-                    {allAttachments.map((file) => {
-                      const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001"
-                      const fileUrl = file.url ? `${BASE_URL}${file.url}` : undefined
-                      const inner = (
-                        <div className="flex items-center gap-3 px-3 py-2 rounded-md bg-[#0f0f11] border border-[#27272a] hover:border-[#3f3f46] transition-colors cursor-pointer">
-                          <FileText className="w-4 h-4 text-[#52525b]" strokeWidth={1.5} />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[12px] text-[#fafafa] truncate">{file.name}</p>
-                            <p className="text-[10px] text-[#52525b]">{file.size}</p>
-                          </div>
-                          <Paperclip className="w-3.5 h-3.5 text-[#3f3f46]" strokeWidth={1.5} />
-                        </div>
-                      )
-                      return fileUrl ? (
-                        <a key={file.id} href={fileUrl} target="_blank" rel="noopener noreferrer">
-                          {inner}
-                        </a>
-                      ) : (
-                        <div key={file.id}>{inner}</div>
-                      )
-                    })}
+                    {allAttachments.map((file) => (
+                      <AttachmentItem key={file.id} file={file} />
+                    ))}
                   </div>
                 ) : (
                   <p className="text-[12px] text-[#52525b]">No attachments yet</p>
@@ -558,5 +540,43 @@ export function CardDrawer({ card, onClose, onComment, onApprove, onReject, onAt
         </div>
       </div>
     </>
+  )
+}
+
+/* ── Attachment Item with Image Preview ── */
+const IMAGE_EXTS = /\.(jpg|jpeg|png|gif|webp|svg)$/i
+
+function AttachmentItem({ file }: { file: { id: string; name: string; size: string; type: string; url?: string } }) {
+  const [imgError, setImgError] = useState(false)
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001"
+  const fileUrl = file.url ? `${BASE_URL}${file.url}` : undefined
+  const isImage = fileUrl && IMAGE_EXTS.test(file.url || file.name) && !imgError
+
+  const content = (
+    <div className="flex items-center gap-3 px-3 py-2 rounded-md bg-[#0f0f11] border border-[#27272a] hover:border-[#3f3f46] transition-colors cursor-pointer">
+      {isImage ? (
+        <img
+          src={fileUrl}
+          alt={file.name}
+          onError={() => setImgError(true)}
+          className="w-10 h-10 rounded-md object-cover shrink-0 bg-[#27272a]"
+        />
+      ) : (
+        <FileText className="w-4 h-4 text-[#52525b] shrink-0" strokeWidth={1.5} />
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-[12px] text-[#fafafa] truncate">{file.name}</p>
+        {file.size && <p className="text-[10px] text-[#52525b]">{file.size}</p>}
+      </div>
+      <Paperclip className="w-3.5 h-3.5 text-[#3f3f46] shrink-0" strokeWidth={1.5} />
+    </div>
+  )
+
+  return fileUrl ? (
+    <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="block">
+      {content}
+    </a>
+  ) : (
+    <div>{content}</div>
   )
 }
